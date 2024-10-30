@@ -1,0 +1,37 @@
+[project]
+name = "status"
+version = "0.0.1"
+dynamic = ["dependencies"]
+authors = [
+  { name="David Stainton", email="dstainton415@gmail.com" },
+]
+description = "A status html page generator for katzenpost mix networks"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Topic :: Security :: Cryptography",
+]
+
+[project.urls]
+Homepage = "https://github.com/katzenpost/status"
+Issues = "https://github.com/katzenpost/status/issues"
+
+[project.scripts]
+status = "status.main:main"
+
+[build-system]
+requires = ["hatchling", "hatch-requirements-txt"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+]
