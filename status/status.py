@@ -32,7 +32,8 @@ def parse_config(dirauthconf):
     gateways = {node["Identifier"] for node in config.get("GatewayNodes", [])}
     servicenodes = {node["Identifier"] for node in config.get("ServiceNodes", [])}
     sphinxGeometry = config["SphinxGeometry"]
-    return sphinxGeometry, authorities, mixes, gateways, servicenodes
+    server = config["Server"]
+    return server, sphinxGeometry, authorities, mixes, gateways, servicenodes
 
 def get_operational_nodes(doc):
     nodes = set()
@@ -153,11 +154,30 @@ def make_sphinx_geometry_table(sphinxGeometry):
     for key, value in sphinxGeometry.items():
         table.add_row(f"{key}", f"{value}")
     return table
-    
 
-def generate_report(sphinxGeometry, doc, authorities, mixes, gateways, servicenodes, output_file=None):
+def make_ciphers_table(server, sphinxGeometry):
+    table = Table(title="Cipher Schemes", show_header=False, header_style="bold magenta", box=box.HEAVY_EDGE)
+    table.add_column("Name", style="dim")
+    table.add_column("Value", justify="right")
+    pki_scheme = server['PKISignatureScheme']
+    wire_scheme = server['WireKEMScheme']
+    table.add_row(f"PKI Signature Scheme", f"{pki_scheme}")
+    table.add_row(f"Wire KEM Scheme", f"{wire_scheme}")
+
+    if sphinxGeometry['NIKEName'] is not "":
+        table.add_row(f"Sphinx NIKE Scheme", f"{sphinxGeometry['NIKEName']}")
+    elif sphinxGeometry['KEMName'] is not "":
+        table.add_row(f"Sphinx KEM Scheme", f"{sphinxGeometry['KEMName']}")
+    
+    return table
+
+
+
+def generate_report(doc, dirauthconf, output_file=None):
     console = Console(record=bool(output_file))
 
+    server, sphinxGeometry, authorities, mixes, gateways, servicenodes = parse_config(dirauthconf)
+    
     consensus_table = make_consensus_info_table(doc)
     status_table = make_status_table(doc)
     tuning_params_table = make_tuning_params_table(doc)
@@ -185,7 +205,10 @@ def generate_report(sphinxGeometry, doc, authorities, mixes, gateways, serviceno
     console.print(Panel(outage_summary, title="Outages", title_align="left", border_style="green"))
 
     sphinx_table = make_sphinx_geometry_table(sphinxGeometry)
-    console.print(sphinx_table)
+    ciphers_table = make_ciphers_table(server, sphinxGeometry)
+    crypto_list = [ciphers_table, sphinx_table]
+    crypto_summary = Columns(crypto_list)
+    console.print(Panel(crypto_summary, title="Cryptography Suite", title_align="left", border_style="green"))
 
     srv_table = make_srv_table(doc)
     console.print(srv_table)
@@ -198,23 +221,19 @@ def generate_report(sphinxGeometry, doc, authorities, mixes, gateways, serviceno
 
 
 async def async_main(dirauthconf=None, htmlout=None):
-    sphinxGeometry, authorities, mixes, gateways, servicenodes = parse_config(dirauthconf)
-
     cfg = Config()
     client = ThinClient(cfg)
     await client.start(asyncio.get_event_loop())
     doc = client.pki_document()
     client.stop()
 
-    generate_report(sphinxGeometry, doc, authorities, mixes, gateways, servicenodes, output_file=htmlout)
-
+    generate_report(doc, dirauthconf, output_file=htmlout)
 
 @click.command()
 @click.option("--htmlout", default="", help="Path to output HTML file.")
 @click.option("--dirauthconf", required=True, help="Path to the directory authority configuration TOML file.")
 def main(dirauthconf, htmlout):
     asyncio.run(async_main(dirauthconf, htmlout))
-
 
 if __name__ == '__main__':
     main()
