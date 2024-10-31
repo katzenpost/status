@@ -41,8 +41,10 @@ abstract unix domain socket for thinclient connections.
 Usage: status.py [OPTIONS]
 
 Options:
-  --htmlout TEXT
-  --help          Show this message and exit.
+  --htmlout TEXT      Path to output HTML file.
+  --dirauthconf TEXT  Path to the directory authority configuration TOML file.
+                      [required]
+  --help              Show this message and exit.
 ```
 
 
