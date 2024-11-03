@@ -164,9 +164,9 @@ def make_ciphers_table(server, sphinxGeometry):
     table.add_row(f"PKI Signature Scheme", f"{pki_scheme}")
     table.add_row(f"Wire KEM Scheme", f"{wire_scheme}")
 
-    if sphinxGeometry['NIKEName'] is not "":
+    if sphinxGeometry['NIKEName'] !=  "":
         table.add_row(f"Sphinx NIKE Scheme", f"{sphinxGeometry['NIKEName']}")
-    elif sphinxGeometry['KEMName'] is not "":
+    elif sphinxGeometry['KEMName'] != "":
         table.add_row(f"Sphinx KEM Scheme", f"{sphinxGeometry['KEMName']}")
     
     return table
