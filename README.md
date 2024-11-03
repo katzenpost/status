@@ -4,6 +4,9 @@
 
 ---
 
+![example status image](status.png "Status")
+
+
 works with Katzenpost version v0.0.41 or later
 
 ## Installation / Depedencies
