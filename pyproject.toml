@@ -21,7 +21,7 @@ Homepage = "https://github.com/katzenpost/status"
 Issues = "https://github.com/katzenpost/status/issues"
 
 [project.scripts]
-status = "status.main:main"
+status = "status.status:main"
 
 [build-system]
 requires = ["hatchling", "hatch-requirements-txt"]
