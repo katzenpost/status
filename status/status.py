@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.columns import Columns
 from rich.panel import Panel
-from thinclient import ThinClient, Config
+from katzenpost_thinclient import ThinClient, Config
 from rich import box
 import click
 import tomli
@@ -70,8 +70,9 @@ def make_status_table(doc):
     num_gateways = len(doc["GatewayNodes"])
     num_service_nodes = len(doc["ServiceNodes"])
     num_replica_nodes = 0
-    if "StorageReplicas" in doc:
-        num_replica_nodes = len(doc["StorageReplicas"])
+    replicas = doc.get("StorageReplicas")
+    if replicas is not None:
+        num_replica_nodes = len(replicas)
 
     status_table.add_row("Mix Nodes", str(num_mix_nodes))
     status_table.add_row("Gateway Nodes", str(num_gateways))
@@ -220,8 +221,8 @@ def generate_report(doc, dirauthconf, output_file=None):
 
 
 
-async def async_main(dirauthconf=None, htmlout=None):
-    cfg = Config()
+async def async_main(config_path, dirauthconf=None, htmlout=None):
+    cfg = Config(config_path)
     client = ThinClient(cfg)
     await client.start(asyncio.get_event_loop())
     doc = client.pki_document()
@@ -230,10 +231,11 @@ async def async_main(dirauthconf=None, htmlout=None):
     generate_report(doc, dirauthconf, output_file=htmlout)
 
 @click.command()
+@click.option("--config", "config_path", required=True, help="Path to the thin client TOML config file.")
 @click.option("--htmlout", default="", help="Path to output HTML file.")
 @click.option("--dirauthconf", required=True, help="Path to the directory authority configuration TOML file.")
-def main(dirauthconf, htmlout):
-    asyncio.run(async_main(dirauthconf, htmlout))
+def main(config_path, dirauthconf, htmlout):
+    asyncio.run(async_main(config_path, dirauthconf, htmlout))
 
 if __name__ == '__main__':
     main()

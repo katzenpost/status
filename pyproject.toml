@@ -29,9 +29,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements.txt"]
-
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-cov",
-]

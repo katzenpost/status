@@ -1,3 +1,4 @@
+katzenpost_thinclient==0.0.3
 asyncio==3.4.3
 build==1.2.2.post1
 cbor2==5.6.0
@@ -14,5 +15,4 @@ pycparser==2.22
 Pygments==2.18.0
 pyproject_hooks==1.2.0
 rich==13.9.3
--e git+ssh://git@github.com/katzenpost/thin_client.git@31f8b5451efc1551b35408af1fd3a3e70bb7204c#egg=thinclient
 tomli==2.0.2
