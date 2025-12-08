@@ -62,7 +62,7 @@ def make_tuning_params_table(doc):
     tuning_params_table.add_row("LambdaD", f"{doc['LambdaD']}")
     return tuning_params_table
 
-def make_status_table(doc):
+def make_status_table(doc, dirauths):
     status_table = Table(title="Node Statistics", show_header=True, header_style="bold magenta", box=box.HEAVY_EDGE)
     status_table.add_column("Node Type", style="dim")
     status_table.add_column("Value", justify="right")
@@ -75,6 +75,7 @@ def make_status_table(doc):
     if replicas is not None:
         num_replica_nodes = len(replicas)
 
+    status_table.add_row("Directory Authority Nodes", str(len(dirauths)))
     status_table.add_row("Mix Nodes", str(num_mix_nodes))
     status_table.add_row("Gateway Nodes", str(num_gateways))
     status_table.add_row("Service Nodes", str(num_service_nodes))
@@ -181,7 +182,7 @@ def generate_report(doc, dirauthconf, output_file=None, theme_html=MONOKAI):
     server, sphinxGeometry, authorities, mixes, gateways, servicenodes = parse_config(dirauthconf)
     
     consensus_table = make_consensus_info_table(doc)
-    status_table = make_status_table(doc)
+    status_table = make_status_table(doc, authorities)
     tuning_params_table = make_tuning_params_table(doc)
     combined_summary = Columns([consensus_table, status_table, tuning_params_table])
     console.print(Panel(combined_summary, title="Network Status Summary", title_align="left", border_style="green"))
