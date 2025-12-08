@@ -1,7 +1,6 @@
 [project]
 name = "status"
-version = "0.0.1"
-dynamic = ["dependencies"]
+version = "0.0.2"
 authors = [
   { name="David Stainton", email="dstainton415@gmail.com" },
 ]
@@ -15,6 +14,25 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Security :: Cryptography",
 ]
+dependencies = [
+  "katzenpost_thinclient>=0.0.3",
+  "build==1.2.2.post1",
+  "cbor2>=5.6.2",
+  "cffi==1.17.1",
+  "click==8.1.7",
+  "coloredlogs==15.0.1",
+  "cryptography==44.0.1",
+  "humanfriendly==10.0",
+  "markdown-it-py==3.0.0",
+  "mdurl==0.1.2",
+  "packaging==24.1",
+  "pprintpp==0.4.0",
+  "pycparser==2.22",
+  "Pygments==2.18.0",
+  "pyproject_hooks==1.2.0",
+  "rich==13.9.3",
+  "tomli==2.0.2",
+]
 
 [project.urls]
 Homepage = "https://github.com/katzenpost/status"
@@ -24,8 +42,5 @@ Issues = "https://github.com/katzenpost/status/issues"
 status = "status.status:main"
 
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.metadata.hooks.requirements_txt]
-files = ["requirements.txt"]
