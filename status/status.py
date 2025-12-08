@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.columns import Columns
 from rich.panel import Panel
+from rich.terminal_theme import MONOKAI
 from katzenpost_thinclient import ThinClient, Config
 from rich import box
 import click
@@ -174,7 +175,7 @@ def make_ciphers_table(server, sphinxGeometry):
 
 
 
-def generate_report(doc, dirauthconf, output_file=None):
+def generate_report(doc, dirauthconf, output_file=None, theme_html=MONOKAI):
     console = Console(record=bool(output_file))
 
     server, sphinxGeometry, authorities, mixes, gateways, servicenodes = parse_config(dirauthconf)
@@ -216,7 +217,7 @@ def generate_report(doc, dirauthconf, output_file=None):
 
     if output_file:
         with open(output_file, "w") as file:
-            file.write(console.export_html(inline_styles=True))
+            file.write(console.export_html(inline_styles=True, theme=theme_html))
         console.print(f"HTML report written to {output_file}", style="bold green")
 
 
