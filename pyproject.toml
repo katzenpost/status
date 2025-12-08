@@ -1,46 +1,64 @@
 [project]
-name = "status"
-version = "0.0.2"
+name = "katzenpost-status"
+version = "0.0.5"
 authors = [
-  { name="David Stainton", email="dstainton415@gmail.com" },
+  { name = "David Stainton", email = "dstainton415@gmail.com" },
 ]
-description = "A status html page generator for katzenpost mix networks"
+description = "A status HTML page generator for Katzenpost mix networks"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
     "Intended Audience :: System Administrators",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Topic :: Security :: Cryptography",
 ]
 dependencies = [
-  "katzenpost_thinclient>=0.0.3",
-  "build==1.2.2.post1",
-  "cbor2>=5.6.2",
-  "cffi==1.17.1",
-  "click==8.1.7",
-  "coloredlogs==15.0.1",
-  "cryptography==44.0.1",
-  "humanfriendly==10.0",
-  "markdown-it-py==3.0.0",
-  "mdurl==0.1.2",
-  "packaging==24.1",
-  "pprintpp==0.4.0",
-  "pycparser==2.22",
-  "Pygments==2.18.0",
-  "pyproject_hooks==1.2.0",
-  "rich==13.9.3",
-  "tomli==2.0.2",
+    "katzenpost_thinclient>=0.0.3",
+    "cbor2>=5.6.2",
+    "click>=8.1.7",
+    "rich>=13.9.3",
+    "tomli>=2.0.2",
 ]
+
+[build-system]
+requires = ["flit_core>=3.9"]
+build-backend = "flit_core.buildapi"
+
 
 [project.urls]
 Homepage = "https://github.com/katzenpost/status"
 Issues = "https://github.com/katzenpost/status/issues"
 
 [project.scripts]
-status = "status.status:main"
+katzenpost-status = "katzenpost_status.status:main"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.flit.module]
+name = "katzenpost_status"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 78
+target-version = "py312"
+
+[tool.pytest.ini_options]
+addopts = "--cov=src/katzenpost_status --cov-report=term-missing --doctest-modules -vv"
+testpaths = [
+    "src",
+    "tests",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=9.0.1",
+    "pytest-cov>=7.0.0",
+    "pytest-xdist>=3.8.0",
+    "ruff>=0.14.6",
+]

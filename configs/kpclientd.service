@@ -1,0 +1,28 @@
+[Unit]
+Description=Katzenpost thin client daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=katzenpost-status
+Group=katzenpost-status
+
+ExecStart=/usr/local/bin/kpclientd -c /etc/katzenpost/client2.toml
+
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictRealtime=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+
+[Install]
+WantedBy=multi-user.target

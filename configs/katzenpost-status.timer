@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Katzenpost status generator every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+Unit=katzenpost-status.service
+
+[Install]
+WantedBy=timers.target

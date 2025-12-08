@@ -1,0 +1,13 @@
+[Unit]
+Description=Generate Katzenpost status HTML page
+Requires=kpclientd.service
+After=kpclientd.service
+
+[Service]
+Type=oneshot
+User=katzenpost-status
+Group=katzenpost-status
+
+ExecStart=/usr/local/bin/uv run --directory /var/lib/katzenpost-status/src/katzenpost-status/ status --config /etc/katzenpost/thinclient.toml --dirauthconf /etc/katzenpost/authority.toml --htmlout /var/www/status.namenlos.network/index.html --ping --pki-document --quiet
+
+Nice=10

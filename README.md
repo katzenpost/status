@@ -1,4 +1,4 @@
-# status
+# katzenpost-status
 
 *minxnet diagnostics and status page for katzenpost mix networks*
 
@@ -12,13 +12,13 @@ works with Katzenpost version v0.0.41 or later
 
 ## Installation / Depedencies
 
-**worldmap** depends on the thinclient which requires you
+**katzenpost-status** depends on the katzenpost thinclient which requires you
 to run a katzenpost client2 daemon. Build `kpclientd`:
 
 ```bash
 git clone https://github.com/katzenpost/katzenpost.git
 cd katzenpost/cmd/kpclientd
-go build
+go build -v
 ```
 
 Run the client daemon first:
@@ -27,30 +27,42 @@ Run the client daemon first:
 ./kpclientd -c /home/human/client2.toml
 ```
 
+Install `ping` and `tcptraceroute` for the network survey feature:
+```bash
+apt install tcptraceroute iputils-ping
+```
 
 ### Commandline Usage
 
 ```
-Usage: status [OPTIONS]
+Usage: katzenpost-status [OPTIONS]
 
 Options:
-  --config TEXT       Path to the thin client TOML config file.  [required]
-  --htmlout TEXT      Path to output HTML file.
-  --dirauthconf TEXT  Path to the directory authority configuration TOML file.
-                      [required]
-  --help              Show this message and exit.
+  --config TEXT        Path to the thin client TOML config file.  [required]
+  --htmlout TEXT       Path to output HTML file.
+  --dirauthconf TEXT   Path to the directory authority configuration TOML
+                       file.  [required]
+  --network-name TEXT  Name of the network deployment (outer panel title).
+  --ping / --no-ping   Send a ping via echo service and show result.
+  --verbose            Verbose output (includes Rich tables and debug
+                       logging).
+  --quiet              Suppress all console output (except exit code).
+  --help               Show this message and exit.
 ```
 
 
 ### Example Usage
 
-
+This example uses the `uv` tool:
 ```bash
-
-status --config ~/code/mymixnet/configs/thinclient.toml --dirauthconf ~/code/mymixnet/configs/dirauth1.toml --htmlout network_status.html
+uv venv
+uv sync
+uv run katzenpost-status --config ~/.local/katzenpost/thinclient.toml --dirauthconf ~/.local/katzenpost/authority.toml --htmlout ~/.local/katzenpost/status.html --ping 
 ```
 
 # Example deployment for status.namenlos.network
+As an example we provide a full set of services to regularly update the status
+page for the namenlos network.
 
 ## Add a `katzenpost-status` user that can update the status web page
 ```bash
@@ -61,70 +73,16 @@ chown katzenpost-status:katzenpost-status /var/www/status.namenlos.network
 chmod 0755 /var/www/status.namenlos.network
 ```
 
-## Add a `/etc/systemd/system/kpclientd.service` systemd service
-```
-[Unit]
-Description=Katzenpost thin client daemon
-After=network-online.target
-Wants=network-online.target
+## Add service and timer configurations
 
-[Service]
-User=katzenpost-status
-Group=katzenpost-status
-
-ExecStart=/usr/local/bin/kpclientd -c /etc/katzenpost/client2.toml
-
-Restart=on-failure
-RestartSec=5s
-
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=full
-ProtectHome=true
-ProtectKernelTunables=yes
-ProtectKernelModules=yes
-ProtectControlGroups=yes
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-RestrictRealtime=yes
-LockPersonality=yes
-MemoryDenyWriteExecute=yes
-
-[Install]
-WantedBy=multi-user.target
+```bash
+cp configs/kpclientd.service /etc/systemd/system/kpclientd.service
+cp configs/katzenpost-status.service /etc/systemd/system/katzenpost-status.service
+cp configs/katzenpost-status.timer /etc/systemd/system/katzenpost-status.timer
 ```
 
-## Add a `/etc/systemd/system/katzenpost-status.service` systemd service
-```
-[Unit]
-Description=Generate Katzenpost status HTML page
-Requires=kpclientd.service
-After=kpclientd.service
-
-[Service]
-Type=oneshot
-User=katzenpost-status
-Group=katzenpost-status
-
-ExecStart=/usr/local/bin/uv run --directory /var/lib/katzenpost-status/src/katzenpost-status/ status --config /etc/katzenpost/thinclient.toml --dirauthconf /etc/katzenpost/authority.toml --htmlout /var/www/status.namenlos.network/index.html
-
-Nice=10
-```
-
-## Add a `/etc/systemd/system/katzenpost-status.timer` systemd timer
-```
-[Unit]
-Description=Run Katzenpost status generator every 15 minutes
-
-[Timer]
-OnCalendar=*:0/15
-Persistent=true
-Unit=katzenpost-status.service
-
-[Install]
-WantedBy=timers.target
-```
-
-## Reload systemd services
+### Reload systemd services
+After installing the configuration files and reloading system, enable the services:
 ```
 systemctl daemon-reload
 systemctl enable --now kpclientd.service
