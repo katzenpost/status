@@ -390,7 +390,7 @@ def make_survey_table(survey_results: dict[str, dict[str, Any]]) -> Table:
     )
     table.add_column("Node", style="dim")
     table.add_column("Type", style="dim")
-    table.add_column("Host", style="dim")
+    table.add_column("Host", justify="left")
     table.add_column("Port", justify="right")
     table.add_column("ICMP Ping", justify="right")
     table.add_column("TCP Trace", justify="right")
@@ -493,15 +493,15 @@ def make_traceroute_detail_table(
         header_style="bold bright_white",
         box=box.HEAVY_EDGE,
     )
-    table.add_column("Hop", justify="right", style="dim")
-    table.add_column("IP Address", style="dim")
-    table.add_column("Latency", justify="right")
+    table.add_column("Hop", justify="right", min_width=3)
+    table.add_column("IP Address", justify="left", min_width=15)
+    table.add_column("Latency", justify="right", min_width=8)
 
     hops = trace_data.get("hops", [])
     if hops:
         for hop in hops:
-            hop_num = str(hop.get("hop", ""))
-            ip = hop.get("ip") or "*"
+            hop_num = Text(str(hop.get("hop", "")), style="dim")
+            ip = Text(hop.get("ip") or "*", style="dim")
             latency = hop.get("latency_ms")
             if latency is not None:
                 latency_str = Text(f"{latency:.1f}ms", style="cyan")
@@ -511,23 +511,11 @@ def make_traceroute_detail_table(
     else:
         error = trace_data.get("error", "")
         if error == "address unknown" or is_unknown:
-            table.add_row(
-                Text("-", style="dim"),
-                Text("UNKNOWN", style="red"),
-                Text("-", style="dim"),
-            )
+            table.add_row(Text("-", style="dim"), Text("UNKNOWN", style="red"), Text("-", style="dim"))
         elif error:
-            table.add_row(
-                Text("-", style="dim"),
-                Text(f"Error: {error}", style="red"),
-                Text("-", style="dim"),
-            )
+            table.add_row(Text("-", style="dim"), Text(f"Error: {error}", style="red"), Text("-", style="dim"))
         else:
-            table.add_row(
-                Text("-", style="dim"),
-                Text("No path data", style="dim"),
-                Text("-", style="dim"),
-            )
+            table.add_row(Text("-", style="dim"), Text("No path data", style="dim"), Text("-", style="dim"))
 
     return table
 
