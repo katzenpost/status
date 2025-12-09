@@ -1579,10 +1579,6 @@ def generate_report(
         crypto_section,
     ]
 
-    if show_pki_doc:
-        pki_panel = make_pki_doc_panel(doc)
-        sections.append(pki_panel)
-
     if survey_results:
         survey_table = make_survey_table(survey_results)
 
@@ -1624,6 +1620,10 @@ def generate_report(
             border_style="cyan",
         )
         sections.append(survey_panel)
+
+    if show_pki_doc:
+        pki_panel = make_pki_doc_panel(doc)
+        sections.append(pki_panel)
 
     sections.append(Align.center(footer))
 
