@@ -173,7 +173,7 @@ wheels = [
 
 [[package]]
 name = "katzenpost-status"
-version = "0.0.5"
+version = "0.0.8"
 source = { editable = "." }
 dependencies = [
     { name = "cbor2" },
