@@ -3,11 +3,11 @@
 """Courier service probe for katzenpost-status.
 
 Tests that the courier service is running and responding to queries.
-Getting an ACK back (even with PayloadLen=0) means the courier is alive.
+Getting an ACK back (empty plaintext) means the courier is alive.
 
 This does NOT test courier->replica connectivity. Use replica_probe for that.
 
-Note: Testing the courier requires preparing a valid channel message, which
+Note: Testing the courier requires preparing a valid pigeonhole message, which
 requires storage replicas to be present in the PKI consensus. If no replicas
 are available, the probe will return NO_REPLICAS.
 """
@@ -16,8 +16,8 @@ import asyncio
 import contextlib
 import io
 import logging
+import os
 import time
-from typing import Any
 
 from katzenpost_thinclient import ThinClient, Config
 
@@ -32,7 +32,7 @@ RESULT_FAILURE = "FAILURE"
 
 async def probe_provider(
     config_path: str,
-    service_desc: Any,
+    service_desc: object,
     timeout: float = 30.0,
     debug: bool = False,
 ) -> tuple[str, float | None]:
@@ -78,19 +78,25 @@ async def probe_provider(
         logger.info("[%s] courier probe: daemon connected", provider_name)
 
     start_time = time.monotonic()
+    envelope_hash = None
     try:
         if debug:
-            logger.info("[%s] courier probe: creating write channel", provider_name)
+            logger.info("[%s] courier probe: creating keypair", provider_name)
 
-        channel_id, read_cap, write_cap = await client.create_write_channel()
-
-        if debug:
-            logger.info("[%s] courier probe: channel created id=%d", provider_name, channel_id)
+        seed = os.urandom(32)
+        kp = await client.new_keypair(seed)
 
         test_payload = ("probe-" + str(time.time_ns())).encode("ascii")
 
+        if debug:
+            logger.info("[%s] courier probe: encrypting write", provider_name)
+
         try:
-            write_reply = await client.write_channel(channel_id, test_payload)
+            wcr = await client.encrypt_write(
+                plaintext=test_payload,
+                write_cap=kp.write_cap,
+                message_box_index=kp.first_message_index,
+            )
         except Exception as e:
             error_msg = str(e)
             if "error code: 4" in error_msg:
@@ -102,32 +108,26 @@ async def probe_provider(
                 return RESULT_NO_REPLICAS, None
             else:
                 if debug:
-                    logger.error("[%s] courier probe: write_channel failed: %s", provider_name, e)
+                    logger.error("[%s] courier probe: encrypt_write failed: %s", provider_name, e)
                 raise
 
-        if debug:
-            logger.info(
-                "[%s] courier probe: payload ready, %d bytes",
-                provider_name, len(write_reply.send_message_payload)
-            )
-
-        dest_node, _ = service_desc.to_destination()
-        dest_queue = b"courier"
-        message_id = client.new_message_id()
+        envelope_hash = wcr.envelope_hash
 
         if debug:
-            logger.info("[%s] courier probe: sending query to courier", provider_name)
+            logger.info("[%s] courier probe: sending to courier via ARQ", provider_name)
 
         try:
             with contextlib.redirect_stdout(io.StringIO()), \
                  contextlib.redirect_stderr(io.StringIO()):
                 result = await asyncio.wait_for(
-                    client.send_channel_query_await_reply(
-                        channel_id=channel_id,
-                        payload=write_reply.send_message_payload,
-                        dest_node=dest_node,
-                        dest_queue=dest_queue,
-                        message_id=message_id,
+                    client.start_resending_encrypted_message(
+                        read_cap=None,
+                        write_cap=kp.write_cap,
+                        message_box_index=None,
+                        reply_index=None,
+                        envelope_descriptor=wcr.envelope_descriptor,
+                        message_ciphertext=wcr.message_ciphertext,
+                        envelope_hash=wcr.envelope_hash,
                     ),
                     timeout=timeout,
                 )
@@ -136,13 +136,13 @@ async def probe_provider(
             latency_ms = (end_time - start_time) * 1000
 
             if debug:
-                result_len = len(result) if result else 0
                 logger.info(
-                    "[%s] courier probe: ACK received, %d bytes payload, %.0fms",
-                    provider_name, result_len, latency_ms
+                    "[%s] courier probe: ACK received, %.0fms",
+                    provider_name, latency_ms
                 )
 
-            await client.close_channel(channel_id)
+            await client.cancel_resending_encrypted_message(wcr.envelope_hash)
+            envelope_hash = None
 
             if debug:
                 logger.info("[%s] courier probe: SUCCESS", provider_name)
@@ -163,6 +163,11 @@ async def probe_provider(
         return RESULT_FAILURE, None
 
     finally:
+        if envelope_hash is not None:
+            try:
+                await client.cancel_resending_encrypted_message(envelope_hash)
+            except Exception:
+                pass
         thinclient_logger.setLevel(original_level)
         client.stop()
 
