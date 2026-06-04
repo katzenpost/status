@@ -41,14 +41,18 @@ async def test_replica_probe_round_trip():
 async def test_replica_probe_all():
     from katzenpost_status.replica_probe import probe_all_replicas
 
+    from katzenpost_status.status import decode_node
+
     client = await setup_thin_client()
     config_path = get_config_path()
     try:
         pki = client.pki_document()
         replica_names = []
         if pki:
-            storage = pki.get("StorageNodes", {})
-            replica_names = list(storage.keys())
+            replica_names = [
+                decode_node(n).get("Name", f"replica{i}")
+                for i, n in enumerate(pki.get("StorageReplicas", []))
+            ]
 
         results = await probe_all_replicas(
             config_path, client, replica_names,
