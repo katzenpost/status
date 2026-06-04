@@ -32,6 +32,30 @@ Install `ping` and `tcptraceroute` for the network survey feature:
 apt install tcptraceroute iputils-ping
 ```
 
+### Thin client configuration
+
+The `--config` file is the thin client's TOML config. Recent versions of
+the thin client receive the Sphinx and Pigeonhole geometries from the
+daemon over the handshake, so the file now carries only the `[Dial]`
+transport section; a stale file with `[SphinxGeometry]` or
+`[PigeonholeGeometry]` sections will be rejected. A minimal config looks
+like:
+
+```toml
+[Dial]
+  [Dial.Tcp]
+    Address = "localhost:64331"
+    Network = "tcp"
+```
+
+To reach the daemon over an abstract Unix socket instead, use:
+
+```toml
+[Dial]
+  [Dial.Unix]
+    Address = "@katzenpost"
+```
+
 ### Commandline Usage
 
 ```
