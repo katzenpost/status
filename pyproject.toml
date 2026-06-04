@@ -16,7 +16,7 @@ classifiers = [
     "Topic :: Security :: Cryptography",
 ]
 dependencies = [
-    "katzenpost_thinclient @ git+https://github.com/katzenpost/thin_client@update_python_pigeonhole",
+    "katzenpost_thinclient @ git+https://github.com/katzenpost/thin_client@fa3c7fface7084dd80483ddb24f8002c78df4267",
     "cbor2>=5.6.2",
     "click>=8.1.7",
     "rich>=13.9.3",

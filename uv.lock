@@ -197,7 +197,7 @@ dev = [
 requires-dist = [
     { name = "cbor2", specifier = ">=5.6.2" },
     { name = "click", specifier = ">=8.1.7" },
-    { name = "katzenpost-thinclient", git = "https://github.com/katzenpost/thin_client?rev=update_python_pigeonhole" },
+    { name = "katzenpost-thinclient", git = "https://github.com/katzenpost/thin_client?rev=fa3c7fface7084dd80483ddb24f8002c78df4267" },
     { name = "rich", specifier = ">=13.9.3" },
     { name = "tomli", specifier = ">=2.0.2" },
 ]
@@ -214,8 +214,8 @@ dev = [
 
 [[package]]
 name = "katzenpost-thinclient"
-version = "0.0.11"
-source = { git = "https://github.com/katzenpost/thin_client?rev=update_python_pigeonhole#7c3c11f4cfe11d0c83a00bf313be649682ce2c45" }
+version = "0.0.17"
+source = { git = "https://github.com/katzenpost/thin_client?rev=fa3c7fface7084dd80483ddb24f8002c78df4267#fa3c7fface7084dd80483ddb24f8002c78df4267" }
 dependencies = [
     { name = "asyncio" },
     { name = "cbor2" },

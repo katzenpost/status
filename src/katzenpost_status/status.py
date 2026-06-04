@@ -1020,15 +1020,49 @@ def build_survey_targets_from_config(
 
 
 def parse_thinclient_config(config_path: str) -> dict[str, Any]:
+    """Read the thin client TOML for display purposes only.
+
+    The Sphinx and Pigeonhole geometries are no longer carried in this
+    file: the daemon now supplies them to the thin client over the
+    handshake. We read only the [Dial] transport so that verbose output
+    can name where it is connecting.
+    """
     with open(config_path, "rb") as f:
         config = tomli.load(f)
-    pigeonhole_geometry = config.get("PigeonholeGeometry", {})
-    network = config.get("Network", "tcp")
-    address = config.get("Address", "localhost:64331")
+    dial = config.get("Dial", {})
+    unix = dial.get("Unix", {})
+    tcp = dial.get("Tcp", {})
+    if unix:
+        network = "unix"
+        address = unix.get("Address", "")
+    else:
+        network = tcp.get("Network", "tcp")
+        address = tcp.get("Address", "localhost:64331")
     return {
-        "pigeonhole_geometry": pigeonhole_geometry,
         "network": network,
         "address": address,
+    }
+
+
+def pigeonhole_geometry_to_dict(geometry: Any) -> dict[str, Any]:
+    """Render a thin client PigeonholeGeometry object as the PascalCase
+    dict the geometry tables expect.
+
+    The daemon supplies this geometry over the handshake, so we read it
+    from the connected client rather than the config file. Returns an
+    empty dict when no geometry is available (for instance, when the
+    daemon could not be reached).
+    """
+    if geometry is None:
+        return {}
+    return {
+        "MaxPlaintextPayloadLength": geometry.max_plaintext_payload_length,
+        "CourierQueryReadLength": geometry.courier_query_read_length,
+        "CourierQueryWriteLength": geometry.courier_query_write_length,
+        "CourierQueryReplyReadLength": geometry.courier_query_reply_read_length,
+        "CourierQueryReplyWriteLength": geometry.courier_query_reply_write_length,
+        "NIKEName": geometry.nike_name,
+        "SignatureSchemeName": geometry.signature_scheme_name,
     }
 
 
@@ -2520,7 +2554,6 @@ def make_footer(network_name: str) -> Text:
 def generate_report(
     doc: dict[str, Any],
     dirauthconf: str,
-    config_path: str,
     output_file: str | None = None,
     service_probes: ServiceProbeResults | None = None,
     conn_status: ConnectionStatus | None = None,
@@ -2531,9 +2564,12 @@ def generate_report(
     survey_results: dict[str, dict[str, Any]] | None = None,
     quiet: bool = False,
     last_consensus: dict[str, Any] | None = None,
+    pigeonhole_geometry: dict[str, Any] | None = None,
 ) -> None:
     if conn_status is None:
         conn_status = ConnectionStatus()
+    if pigeonhole_geometry is None:
+        pigeonhole_geometry = {}
     if dirauth_status is None:
         dirauth_status = {}
     if node_status is None:
@@ -2576,9 +2612,6 @@ def generate_report(
                 node_name = data.get("name", "")
                 if node_name:
                     storagenodes.add(node_name)
-
-    thinclient_data = parse_thinclient_config(config_path)
-    pigeonhole_geometry = thinclient_data["pigeonhole_geometry"]
 
     capabilities = get_services_by_capability(doc)
     storage_replica_names = [
@@ -2853,6 +2886,7 @@ async def _collect_network_data(
     dict[str, tuple[bool, float | None]],
     dict[str, tuple[bool, float | None]],
     ThinClient | None,
+    dict[str, Any],
 ]:
     config_path: str = ctx.obj["config_path"]
     dirauthconf: str = ctx.obj["dirauthconf"]
@@ -2947,7 +2981,22 @@ async def _collect_network_data(
     # Restore thinclient logger level
     thinclient_logger.setLevel(original_level)
 
-    return doc, conn_status, dirauth_status, node_status, client if client_started else None
+    # The daemon delivers the Pigeonhole geometry over the handshake, so
+    # it is available on the client once start() has returned.
+    pigeonhole_geometry: dict[str, Any] = {}
+    if client_started:
+        pigeonhole_geometry = pigeonhole_geometry_to_dict(
+            getattr(client, "pigeonhole_geometry", None)
+        )
+
+    return (
+        doc,
+        conn_status,
+        dirauth_status,
+        node_status,
+        client if client_started else None,
+        pigeonhole_geometry,
+    )
 
 
 async def _async_main_inner(ctx: click.Context) -> None:
@@ -2966,7 +3015,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
     cache_path = get_cache_path(cache_file if cache_file else None)
 
     if verbose:
-        doc, conn_status, dirauth_status, node_status, client = (
+        doc, conn_status, dirauth_status, node_status, client, pigeonhole_geometry = (
             await _collect_network_data(ctx, cache_path)
         )
     else:
@@ -2974,7 +3023,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
             contextlib.redirect_stdout(io.StringIO()),
             contextlib.redirect_stderr(io.StringIO()),
         ):
-            doc, conn_status, dirauth_status, node_status, client = (
+            doc, conn_status, dirauth_status, node_status, client, pigeonhole_geometry = (
                 await _collect_network_data(ctx, cache_path)
             )
 
@@ -3093,7 +3142,6 @@ async def _async_main_inner(ctx: click.Context) -> None:
     generate_report(
         doc,
         dirauthconf,
-        config_path,
         output_file=htmlout or None,
         service_probes=service_probes,
         conn_status=conn_status,
@@ -3104,6 +3152,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
         survey_results=survey_results,
         quiet=quiet,
         last_consensus=last_consensus,
+        pigeonhole_geometry=pigeonhole_geometry,
     )
 
 async def async_main(ctx: click.Context) -> None:
