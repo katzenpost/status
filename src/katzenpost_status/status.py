@@ -6,6 +6,7 @@ import contextlib
 import io
 import json
 import logging
+import os
 import subprocess
 import time
 from collections import defaultdict
@@ -1019,15 +1020,49 @@ def build_survey_targets_from_config(
 
 
 def parse_thinclient_config(config_path: str) -> dict[str, Any]:
+    """Read the thin client TOML for display purposes only.
+
+    The Sphinx and Pigeonhole geometries are no longer carried in this
+    file: the daemon now supplies them to the thin client over the
+    handshake. We read only the [Dial] transport so that verbose output
+    can name where it is connecting.
+    """
     with open(config_path, "rb") as f:
         config = tomli.load(f)
-    pigeonhole_geometry = config.get("PigeonholeGeometry", {})
-    network = config.get("Network", "tcp")
-    address = config.get("Address", "localhost:64331")
+    dial = config.get("Dial", {})
+    unix = dial.get("Unix", {})
+    tcp = dial.get("Tcp", {})
+    if unix:
+        network = "unix"
+        address = unix.get("Address", "")
+    else:
+        network = tcp.get("Network", "tcp")
+        address = tcp.get("Address", "localhost:64331")
     return {
-        "pigeonhole_geometry": pigeonhole_geometry,
         "network": network,
         "address": address,
+    }
+
+
+def pigeonhole_geometry_to_dict(geometry: Any) -> dict[str, Any]:
+    """Render a thin client PigeonholeGeometry object as the PascalCase
+    dict the geometry tables expect.
+
+    The daemon supplies this geometry over the handshake, so we read it
+    from the connected client rather than the config file. Returns an
+    empty dict when no geometry is available (for instance, when the
+    daemon could not be reached).
+    """
+    if geometry is None:
+        return {}
+    return {
+        "MaxPlaintextPayloadLength": geometry.max_plaintext_payload_length,
+        "CourierQueryReadLength": geometry.courier_query_read_length,
+        "CourierQueryWriteLength": geometry.courier_query_write_length,
+        "CourierQueryReplyReadLength": geometry.courier_query_reply_read_length,
+        "CourierQueryReplyWriteLength": geometry.courier_query_reply_write_length,
+        "NIKEName": geometry.nike_name,
+        "SignatureSchemeName": geometry.signature_scheme_name,
     }
 
 
@@ -2045,29 +2080,17 @@ def make_srv_table(doc: dict[str, Any]) -> Table:
     return table
 
 
-class PingState:
-    def __init__(self) -> None:
-        self.reply_message: dict[str, Any] | None = None
-        self.reply_event: asyncio.Event = asyncio.Event()
-
-    def save_reply(self, reply: dict[str, Any]) -> None:
-        self.reply_message = reply
-        self.reply_event.set()
-
-
 async def do_ping_provider(
     config_path: str,
     service_desc: Any,
     timeout: float = 30.0,
 ) -> tuple[bool, float | None]:
     """Ping a specific echo provider."""
-    # Suppress thinclient debug output
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
     thinclient_logger.setLevel(logging.WARNING)
 
-    state = PingState()
-    cfg = Config(config_path, on_message_reply=state.save_reply)
+    cfg = Config(config_path)
     client = ThinClient(cfg)
     loop = asyncio.get_event_loop()
     try:
@@ -2079,20 +2102,21 @@ async def do_ping_provider(
         return False, None
     start_time = time.monotonic()
     try:
-        message_id = client.new_message_id()
         payload = b"hello"
         dest_node, dest_queue = service_desc.to_destination()
         with contextlib.redirect_stdout(io.StringIO()), \
              contextlib.redirect_stderr(io.StringIO()):
-            await client.send_reliable_message(message_id, payload, dest_node, dest_queue)
-            await asyncio.wait_for(state.reply_event.wait(), timeout=timeout)
+            reply_payload = await asyncio.wait_for(
+                client.blocking_send_message(
+                    payload, dest_node, dest_queue,
+                    timeout_seconds=timeout,
+                ),
+                timeout=timeout + 5.0,
+            )
         end_time = time.monotonic()
         latency_ms = (end_time - start_time) * 1000
-        reply = state.reply_message
-        if reply is None:
-            return False, None
-        payload2 = reply.get("payload", b"")[:len(payload)]
-        success = len(payload2) == len(payload) and payload2.decode() == payload.decode()
+        payload2 = reply_payload[:len(payload)]
+        success = len(payload2) == len(payload) and payload2 == payload
         return success, latency_ms if success else None
     except (asyncio.TimeoutError, Exception):
         return False, None
@@ -2129,9 +2153,9 @@ async def do_courier_probe(
     timeout: float = 60.0,
 ) -> tuple[bool, float | None]:
     """Test courier service by sending a write and getting ACK.
-    
+
     This only tests that the courier responds, not replica connectivity.
-    
+
     Returns:
         (success, latency_ms) where:
         - (True, latency): Courier responded with ACK
@@ -2140,11 +2164,11 @@ async def do_courier_probe(
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
     thinclient_logger.setLevel(logging.WARNING)
-    
+
     cfg = Config(config_path)
     client = ThinClient(cfg)
     loop = asyncio.get_event_loop()
-    
+
     try:
         with contextlib.redirect_stdout(io.StringIO()), \
              contextlib.redirect_stderr(io.StringIO()):
@@ -2152,59 +2176,62 @@ async def do_courier_probe(
     except Exception:
         thinclient_logger.setLevel(original_level)
         return False, None
-    
+
     start_time = time.monotonic()
-    
+    envelope_hash = None
+
     try:
-        # Create write channel
-        channel_id, read_cap, write_cap = await client.create_write_channel()
-        
-        # Prepare test payload
+        seed = os.urandom(32)
+        kp = await client.new_keypair(seed)
+
         test_payload = f"courier-probe-{time.time_ns()}".encode("ascii")
-        
+
         try:
-            write_reply = await client.write_channel(channel_id, test_payload)
+            wcr = await client.encrypt_write(
+                plaintext=test_payload,
+                write_cap=kp.write_cap,
+                message_box_index=kp.first_message_index,
+            )
         except Exception as e:
-            # Error code 4: no storage replicas in PKI
             if "error code: 4" in str(e):
                 return False, None
             raise
-        
-        # Send write to courier and wait for ACK
-        dest_node, _ = service_desc.to_destination()
-        dest_queue = b"courier"
-        message_id = client.new_message_id()
-        
+
+        envelope_hash = wcr.envelope_hash
+
         try:
             with contextlib.redirect_stdout(io.StringIO()), \
                  contextlib.redirect_stderr(io.StringIO()):
                 await asyncio.wait_for(
-                    client.send_channel_query_await_reply(
-                        channel_id=channel_id,
-                        payload=write_reply.send_message_payload,
-                        dest_node=dest_node,
-                        dest_queue=dest_queue,
-                        message_id=message_id,
+                    client.start_resending_encrypted_message(
+                        read_cap=None,
+                        write_cap=kp.write_cap,
+                        message_box_index=None,
+                        reply_index=None,
+                        envelope_descriptor=wcr.envelope_descriptor,
+                        message_ciphertext=wcr.message_ciphertext,
+                        envelope_hash=wcr.envelope_hash,
                     ),
                     timeout=timeout,
                 )
-            
-            # Got ACK - success!
+
             end_time = time.monotonic()
             latency_ms = (end_time - start_time) * 1000
+            await client.cancel_resending_encrypted_message(wcr.envelope_hash)
+            envelope_hash = None
             return True, latency_ms
-            
+
         except asyncio.TimeoutError:
             return False, None
-        finally:
-            try:
-                await client.close_channel(channel_id)
-            except Exception:
-                pass
-        
+
     except Exception:
         return False, None
     finally:
+        if envelope_hash is not None:
+            try:
+                await client.cancel_resending_encrypted_message(envelope_hash)
+            except Exception:
+                pass
         thinclient_logger.setLevel(original_level)
         client.stop()
 
@@ -2247,7 +2274,7 @@ async def do_replica_probe(
     timeout: float = 60.0,
 ) -> tuple[bool, float | None]:
     """Test courier->replica connectivity via write/read round-trip.
-    
+
     Returns:
         (success, latency_ms) where:
         - (True, latency): Full round-trip succeeded
@@ -2257,13 +2284,11 @@ async def do_replica_probe(
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
     thinclient_logger.setLevel(logging.WARNING)
-    
-    provider_name = service_desc.mix_descriptor.get("Name", "unknown")
-    
+
     cfg = Config(config_path)
     client = ThinClient(cfg)
     loop = asyncio.get_event_loop()
-    
+
     try:
         with contextlib.redirect_stdout(io.StringIO()), \
              contextlib.redirect_stderr(io.StringIO()):
@@ -2271,104 +2296,111 @@ async def do_replica_probe(
     except Exception:
         thinclient_logger.setLevel(original_level)
         return False, None
-    
+
     start_time = time.monotonic()
-    write_channel_id = None
-    read_channel_id = None
     got_write_ack = False
-    
+    write_envelope_hash = None
+    read_envelope_hash = None
+
     try:
-        # Create write channel
-        write_channel_id, read_cap, write_cap = await client.create_write_channel()
-        
-        # Prepare test payload
+        seed = os.urandom(32)
+        kp = await client.new_keypair(seed)
+
         test_id = f"replica-probe-{time.time_ns()}"
         test_payload = test_id.encode("ascii")
-        
+
         try:
-            write_reply = await client.write_channel(write_channel_id, test_payload)
+            wcr = await client.encrypt_write(
+                plaintext=test_payload,
+                write_cap=kp.write_cap,
+                message_box_index=kp.first_message_index,
+            )
         except Exception as e:
-            # Error code 4: no storage replicas in PKI
             if "error code: 4" in str(e):
                 return False, None
             raise
-        
-        # Send write to courier
-        dest_node, _ = service_desc.to_destination()
-        dest_queue = b"courier"
-        message_id = client.new_message_id()
-        
+
+        write_envelope_hash = wcr.envelope_hash
+
         try:
             with contextlib.redirect_stdout(io.StringIO()), \
                  contextlib.redirect_stderr(io.StringIO()):
-                write_result = await asyncio.wait_for(
-                    client.send_channel_query_await_reply(
-                        channel_id=write_channel_id,
-                        payload=write_reply.send_message_payload,
-                        dest_node=dest_node,
-                        dest_queue=dest_queue,
-                        message_id=message_id,
+                await asyncio.wait_for(
+                    client.start_resending_encrypted_message(
+                        read_cap=None,
+                        write_cap=kp.write_cap,
+                        message_box_index=None,
+                        reply_index=None,
+                        envelope_descriptor=wcr.envelope_descriptor,
+                        message_ciphertext=wcr.message_ciphertext,
+                        envelope_hash=wcr.envelope_hash,
                     ),
                     timeout=timeout,
                 )
             got_write_ack = True
         except asyncio.TimeoutError:
             return False, None
-        
-        # Close write channel before reading
-        await client.close_channel(write_channel_id)
-        write_channel_id = None
-        
-        # Create read channel - returns just the channel id
-        read_channel_id = await client.create_read_channel(read_cap)
-        
-        # Prepare read request
-        read_reply = await client.read_channel(read_channel_id)
-        message_id = client.new_message_id()
-        
-        # Send read to courier - wait for replica data
+
+        await client.cancel_resending_encrypted_message(wcr.envelope_hash)
+        write_envelope_hash = None
+
+        # Wait for replication
+        await asyncio.sleep(10.0)
+
+        # Read phase
         max_retries = 3
         retry_delay = 10.0
-        
+
         for attempt in range(max_retries):
+            rcr = await client.encrypt_read(
+                read_cap=kp.read_cap,
+                message_box_index=kp.first_message_index,
+            )
+            read_envelope_hash = rcr.envelope_hash
+
             try:
                 with contextlib.redirect_stdout(io.StringIO()), \
                      contextlib.redirect_stderr(io.StringIO()):
                     read_result = await asyncio.wait_for(
-                        client.send_channel_query_await_reply(
-                            channel_id=read_channel_id,
-                            payload=read_reply.send_message_payload,
-                            dest_node=dest_node,
-                            dest_queue=dest_queue,
-                            message_id=message_id,
+                        client.start_resending_encrypted_message(
+                            read_cap=kp.read_cap,
+                            write_cap=None,
+                            message_box_index=kp.first_message_index,
+                            reply_index=0,
+                            envelope_descriptor=rcr.envelope_descriptor,
+                            message_ciphertext=rcr.message_ciphertext,
+                            envelope_hash=rcr.envelope_hash,
                         ),
                         timeout=timeout,
                     )
-                
-                # Check if we got a response (any response means round-trip worked)
-                # Note: read_result is a dict, not bytes
-                if read_result is not None:
+
+                await client.cancel_resending_encrypted_message(rcr.envelope_hash)
+                read_envelope_hash = None
+
+                if read_result is not None and read_result.plaintext is not None:
                     end_time = time.monotonic()
                     latency_ms = (end_time - start_time) * 1000
                     return True, latency_ms
-                
+
             except asyncio.TimeoutError:
-                pass
-            
+                if read_envelope_hash is not None:
+                    try:
+                        await client.cancel_resending_encrypted_message(rcr.envelope_hash)
+                    except Exception:
+                        pass
+                    read_envelope_hash = None
+
             if attempt < max_retries - 1:
                 await asyncio.sleep(retry_delay)
-                # Regenerate read request
-                read_reply = await client.read_channel(read_channel_id)
-                message_id = client.new_message_id()
-        
+
         # Got courier ACK but no replica data
         if got_write_ack:
             end_time = time.monotonic()
             latency_ms = (end_time - start_time) * 1000
             return False, latency_ms
-        
+
         return False, None
-        
+
     except Exception:
         if got_write_ack:
             end_time = time.monotonic()
@@ -2376,17 +2408,13 @@ async def do_replica_probe(
             return False, latency_ms
         return False, None
     finally:
+        for eh in (write_envelope_hash, read_envelope_hash):
+            if eh is not None:
+                try:
+                    await client.cancel_resending_encrypted_message(eh)
+                except Exception:
+                    pass
         thinclient_logger.setLevel(original_level)
-        if write_channel_id is not None:
-            try:
-                await client.close_channel(write_channel_id)
-            except Exception:
-                pass
-        if read_channel_id is not None:
-            try:
-                await client.close_channel(read_channel_id)
-            except Exception:
-                pass
         client.stop()
 
 
@@ -2526,7 +2554,6 @@ def make_footer(network_name: str) -> Text:
 def generate_report(
     doc: dict[str, Any],
     dirauthconf: str,
-    config_path: str,
     output_file: str | None = None,
     service_probes: ServiceProbeResults | None = None,
     conn_status: ConnectionStatus | None = None,
@@ -2537,9 +2564,12 @@ def generate_report(
     survey_results: dict[str, dict[str, Any]] | None = None,
     quiet: bool = False,
     last_consensus: dict[str, Any] | None = None,
+    pigeonhole_geometry: dict[str, Any] | None = None,
 ) -> None:
     if conn_status is None:
         conn_status = ConnectionStatus()
+    if pigeonhole_geometry is None:
+        pigeonhole_geometry = {}
     if dirauth_status is None:
         dirauth_status = {}
     if node_status is None:
@@ -2582,9 +2612,6 @@ def generate_report(
                 node_name = data.get("name", "")
                 if node_name:
                     storagenodes.add(node_name)
-
-    thinclient_data = parse_thinclient_config(config_path)
-    pigeonhole_geometry = thinclient_data["pigeonhole_geometry"]
 
     capabilities = get_services_by_capability(doc)
     storage_replica_names = [
@@ -2859,6 +2886,7 @@ async def _collect_network_data(
     dict[str, tuple[bool, float | None]],
     dict[str, tuple[bool, float | None]],
     ThinClient | None,
+    dict[str, Any],
 ]:
     config_path: str = ctx.obj["config_path"]
     dirauthconf: str = ctx.obj["dirauthconf"]
@@ -2953,7 +2981,22 @@ async def _collect_network_data(
     # Restore thinclient logger level
     thinclient_logger.setLevel(original_level)
 
-    return doc, conn_status, dirauth_status, node_status, client if client_started else None
+    # The daemon delivers the Pigeonhole geometry over the handshake, so
+    # it is available on the client once start() has returned.
+    pigeonhole_geometry: dict[str, Any] = {}
+    if client_started:
+        pigeonhole_geometry = pigeonhole_geometry_to_dict(
+            getattr(client, "pigeonhole_geometry", None)
+        )
+
+    return (
+        doc,
+        conn_status,
+        dirauth_status,
+        node_status,
+        client if client_started else None,
+        pigeonhole_geometry,
+    )
 
 
 async def _async_main_inner(ctx: click.Context) -> None:
@@ -2972,7 +3015,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
     cache_path = get_cache_path(cache_file if cache_file else None)
 
     if verbose:
-        doc, conn_status, dirauth_status, node_status, client = (
+        doc, conn_status, dirauth_status, node_status, client, pigeonhole_geometry = (
             await _collect_network_data(ctx, cache_path)
         )
     else:
@@ -2980,7 +3023,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
             contextlib.redirect_stdout(io.StringIO()),
             contextlib.redirect_stderr(io.StringIO()),
         ):
-            doc, conn_status, dirauth_status, node_status, client = (
+            doc, conn_status, dirauth_status, node_status, client, pigeonhole_geometry = (
                 await _collect_network_data(ctx, cache_path)
             )
 
@@ -3099,7 +3142,6 @@ async def _async_main_inner(ctx: click.Context) -> None:
     generate_report(
         doc,
         dirauthconf,
-        config_path,
         output_file=htmlout or None,
         service_probes=service_probes,
         conn_status=conn_status,
@@ -3110,6 +3152,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
         survey_results=survey_results,
         quiet=quiet,
         last_consensus=last_consensus,
+        pigeonhole_geometry=pigeonhole_geometry,
     )
 
 async def async_main(ctx: click.Context) -> None:

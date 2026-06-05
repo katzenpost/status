@@ -24,8 +24,8 @@ import asyncio
 import contextlib
 import io
 import logging
+import os
 import time
-from typing import Any
 
 from katzenpost_thinclient import ThinClient, Config
 
@@ -41,7 +41,7 @@ RESULT_FAILURE = "FAILURE"
 
 async def probe_via_courier(
     config_path: str,
-    service_desc: Any,
+    service_desc: object,
     timeout: float = 60.0,
     debug: bool = False,
 ) -> tuple[str, float | None]:
@@ -88,24 +88,30 @@ async def probe_via_courier(
         logger.info("[%s] replica probe: daemon connected", provider_name)
 
     start_time = time.monotonic()
-    write_channel_id = None
-    read_channel_id = None
     got_write_ack = False
+    write_envelope_hash = None
+    read_envelope_hash = None
 
     try:
+        # --- Write phase ---
         if debug:
-            logger.info("[%s] replica probe: creating write channel", provider_name)
+            logger.info("[%s] replica probe: creating keypair", provider_name)
 
-        write_channel_id, read_cap, write_cap = await client.create_write_channel()
-
-        if debug:
-            logger.info("[%s] replica probe: write channel created id=%d", provider_name, write_channel_id)
+        seed = os.urandom(32)
+        kp = await client.new_keypair(seed)
 
         test_id = f"replica-probe-{time.time_ns()}"
         test_payload = test_id.encode("ascii")
 
+        if debug:
+            logger.info("[%s] replica probe: encrypting write", provider_name)
+
         try:
-            write_reply = await client.write_channel(write_channel_id, test_payload)
+            wcr = await client.encrypt_write(
+                plaintext=test_payload,
+                write_cap=kp.write_cap,
+                message_box_index=kp.first_message_index,
+            )
         except Exception as e:
             error_msg = str(e)
             if "error code: 4" in error_msg:
@@ -115,21 +121,9 @@ async def probe_via_courier(
                         provider_name
                     )
                 return RESULT_NO_REPLICAS, None
-            else:
-                if debug:
-                    logger.error("[%s] replica probe: write_channel failed: %s", provider_name, e)
-                raise
+            raise
 
-        if debug:
-            logger.info(
-                "[%s] replica probe: write payload ready, %d bytes",
-                provider_name, len(write_reply.send_message_payload)
-            )
-
-        # Send write to courier
-        dest_node, _ = service_desc.to_destination()
-        dest_queue = b"courier"
-        message_id = client.new_message_id()
+        write_envelope_hash = wcr.envelope_hash
 
         if debug:
             logger.info("[%s] replica probe: sending write to courier", provider_name)
@@ -137,13 +131,15 @@ async def probe_via_courier(
         try:
             with contextlib.redirect_stdout(io.StringIO()), \
                  contextlib.redirect_stderr(io.StringIO()):
-                write_result = await asyncio.wait_for(
-                    client.send_channel_query_await_reply(
-                        channel_id=write_channel_id,
-                        payload=write_reply.send_message_payload,
-                        dest_node=dest_node,
-                        dest_queue=dest_queue,
-                        message_id=message_id,
+                await asyncio.wait_for(
+                    client.start_resending_encrypted_message(
+                        read_cap=None,
+                        write_cap=kp.write_cap,
+                        message_box_index=None,
+                        reply_index=None,
+                        envelope_descriptor=wcr.envelope_descriptor,
+                        message_ciphertext=wcr.message_ciphertext,
+                        envelope_hash=wcr.envelope_hash,
                     ),
                     timeout=timeout,
                 )
@@ -160,33 +156,19 @@ async def probe_via_courier(
                 )
             return RESULT_TIMEOUT, None
 
-        # Close write channel before reading
-        await client.close_channel(write_channel_id)
-        write_channel_id = None
+        await client.cancel_resending_encrypted_message(wcr.envelope_hash)
+        write_envelope_hash = None
 
-        # Wait for replication
+        # --- Wait for replication ---
         replication_wait = 10.0
         if debug:
             logger.info("[%s] replica probe: waiting %.0fs for replication", provider_name, replication_wait)
         await asyncio.sleep(replication_wait)
 
-        # Create read channel
+        # --- Read phase ---
         if debug:
-            logger.info("[%s] replica probe: creating read channel", provider_name)
+            logger.info("[%s] replica probe: encrypting read", provider_name)
 
-        read_channel_id = await client.create_read_channel(read_cap)
-
-        if debug:
-            logger.info("[%s] replica probe: read channel created id=%d", provider_name, read_channel_id)
-
-        # Get read payload
-        read_reply = await client.read_channel(read_channel_id)
-        read_payload = read_reply.send_message_payload
-
-        if debug:
-            logger.info("[%s] replica probe: read payload ready, %d bytes", provider_name, len(read_payload))
-
-        # Try to read - multiple attempts
         max_read_attempts = 3
         read_timeout = timeout
         got_read_response = False
@@ -195,25 +177,32 @@ async def probe_via_courier(
             if debug:
                 logger.info("[%s] replica probe: read attempt %d/%d", provider_name, attempt + 1, max_read_attempts)
 
-            read_message_id = client.new_message_id()
+            rcr = await client.encrypt_read(
+                read_cap=kp.read_cap,
+                message_box_index=kp.first_message_index,
+            )
+            read_envelope_hash = rcr.envelope_hash
 
             try:
                 with contextlib.redirect_stdout(io.StringIO()), \
                      contextlib.redirect_stderr(io.StringIO()):
                     read_result = await asyncio.wait_for(
-                        client.send_channel_query_await_reply(
-                            channel_id=read_channel_id,
-                            payload=read_payload,
-                            dest_node=dest_node,
-                            dest_queue=dest_queue,
-                            message_id=read_message_id,
+                        client.start_resending_encrypted_message(
+                            read_cap=kp.read_cap,
+                            write_cap=None,
+                            message_box_index=kp.first_message_index,
+                            reply_index=0,
+                            envelope_descriptor=rcr.envelope_descriptor,
+                            message_ciphertext=rcr.message_ciphertext,
+                            envelope_hash=rcr.envelope_hash,
                         ),
                         timeout=read_timeout,
                     )
 
-                # KEY FIX: Any response means the round-trip worked
-                # The response could be bytes, dict, or other - just check it's not None
-                if read_result is not None:
+                await client.cancel_resending_encrypted_message(rcr.envelope_hash)
+                read_envelope_hash = None
+
+                if read_result is not None and read_result.plaintext is not None:
                     if debug:
                         logger.info("[%s] replica probe: got read response", provider_name)
                     got_read_response = True
@@ -224,17 +213,18 @@ async def probe_via_courier(
                     await asyncio.sleep(5.0)
 
             except asyncio.TimeoutError:
+                if read_envelope_hash is not None:
+                    try:
+                        await client.cancel_resending_encrypted_message(rcr.envelope_hash)
+                    except Exception:
+                        pass
+                    read_envelope_hash = None
                 if debug:
                     logger.warning(
                         "[%s] replica probe: read timeout attempt %d/%d",
                         provider_name, attempt + 1, max_read_attempts
                     )
                 continue
-
-        # Close read channel
-        if read_channel_id is not None:
-            await client.close_channel(read_channel_id)
-            read_channel_id = None
 
         end_time = time.monotonic()
         latency_ms = (end_time - start_time) * 1000
@@ -243,17 +233,15 @@ async def probe_via_courier(
             if debug:
                 logger.info("[%s] replica probe: SUCCESS - round-trip complete", provider_name)
             return RESULT_SUCCESS, latency_ms
+        elif got_write_ack:
+            if debug:
+                logger.warning(
+                    "[%s] replica probe: ACK_ONLY - courier ACK but no replica data",
+                    provider_name
+                )
+            return RESULT_ACK_ONLY, latency_ms
         else:
-            # Got write ACK but no read response
-            if got_write_ack:
-                if debug:
-                    logger.warning(
-                        "[%s] replica probe: ACK_ONLY - courier ACK but no replica data",
-                        provider_name
-                    )
-                return RESULT_ACK_ONLY, latency_ms
-            else:
-                return RESULT_TIMEOUT, None
+            return RESULT_TIMEOUT, None
 
     except Exception as e:
         if debug:
@@ -265,17 +253,13 @@ async def probe_via_courier(
         return RESULT_FAILURE, None
 
     finally:
+        for eh in (write_envelope_hash, read_envelope_hash):
+            if eh is not None:
+                try:
+                    await client.cancel_resending_encrypted_message(eh)
+                except Exception:
+                    pass
         thinclient_logger.setLevel(original_level)
-        if write_channel_id is not None:
-            try:
-                await client.close_channel(write_channel_id)
-            except Exception:
-                pass
-        if read_channel_id is not None:
-            try:
-                await client.close_channel(read_channel_id)
-            except Exception:
-                pass
         client.stop()
 
 

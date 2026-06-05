@@ -17,7 +17,6 @@ import contextlib
 import io
 import logging
 import time
-from typing import Any
 
 from katzenpost_thinclient import ThinClient, Config
 
@@ -30,21 +29,9 @@ RESULT_MISMATCH = "MISMATCH"
 RESULT_FAILURE = "FAILURE"
 
 
-class EchoState:
-    """State holder for echo probe callback."""
-
-    def __init__(self) -> None:
-        self.reply_message: dict[str, Any] | None = None
-        self.reply_event: asyncio.Event = asyncio.Event()
-
-    def save_reply(self, reply: dict[str, Any]) -> None:
-        self.reply_message = reply
-        self.reply_event.set()
-
-
 async def probe_provider(
     config_path: str,
-    service_desc: Any,
+    service_desc: object,
     timeout: float = 30.0,
     debug: bool = False,
 ) -> tuple[str, float | None]:
@@ -67,8 +54,7 @@ async def probe_provider(
     if debug:
         logger.info("[%s] echo probe: starting", provider_name)
 
-    state = EchoState()
-    cfg = Config(config_path, on_message_reply=state.save_reply)
+    cfg = Config(config_path)
     client = ThinClient(cfg)
     loop = asyncio.get_event_loop()
 
@@ -92,43 +78,33 @@ async def probe_provider(
 
     start_time = time.monotonic()
     try:
-        message_id = client.new_message_id()
         payload = b"echo-probe-test"
         dest_node, dest_queue = service_desc.to_destination()
 
         if debug:
-            logger.info(
-                "[%s] echo probe: sending message id=%s",
-                provider_name, message_id.hex()[:16]
-            )
+            logger.info("[%s] echo probe: sending message", provider_name)
 
         try:
             with contextlib.redirect_stdout(io.StringIO()), \
                  contextlib.redirect_stderr(io.StringIO()):
-                await client.send_reliable_message(message_id, payload, dest_node, dest_queue)
-
-            if debug:
-                logger.info("[%s] echo probe: message sent, waiting for reply", provider_name)
-
-            await asyncio.wait_for(state.reply_event.wait(), timeout=timeout)
+                reply_payload = await asyncio.wait_for(
+                    client.blocking_send_message(
+                        payload, dest_node, dest_queue,
+                        timeout_seconds=timeout,
+                    ),
+                    timeout=timeout + 5.0,
+                )
 
             end_time = time.monotonic()
             latency_ms = (end_time - start_time) * 1000
-
-            reply = state.reply_message
-            if reply is None:
-                if debug:
-                    logger.warning("[%s] echo probe: reply event set but no message", provider_name)
-                return RESULT_FAILURE, None
-
-            reply_payload = reply.get("payload", b"")
-            reply_prefix = reply_payload[:len(payload)]
 
             if debug:
                 logger.info(
                     "[%s] echo probe: reply received, %d bytes, latency=%.0fms",
                     provider_name, len(reply_payload), latency_ms
                 )
+
+            reply_prefix = reply_payload[:len(payload)]
 
             if len(reply_prefix) == len(payload) and reply_prefix == payload:
                 if debug:
