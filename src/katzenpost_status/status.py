@@ -13,7 +13,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import cbor2
 import click
@@ -1474,45 +1474,45 @@ def make_outage_reports(
 ) -> list[Table]:
     operational_nodes = get_operational_nodes(doc)
 
-    def get_node_survey_status(node_name: str) -> tuple[bool, float | None, bool, float | None, bool]:
-        """Get ICMP and TCP status from survey results.
-        Returns (icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed).
-        was_surveyed is True if survey_results exists and this node was found in it."""
-        if not survey_results:
+    def get_node_survey_status(
+        node_name: str, category: str | None = None
+    ) -> tuple[bool, float | None, bool, float | None, bool]:
+        """Get ICMP and TCP status from survey results, limited to a single
+        role category when given so a dual-role machine's roles are not
+        conflated. Returns (icmp_ok, icmp_latency, tcp_ok, tcp_latency,
+        was_surveyed)."""
+        entries = _survey_entries_for_role(node_name, category, survey_results)
+        if not entries:
             return False, None, False, None, False
-        
+
         icmp_ok = False
         icmp_latency: float | None = None
         tcp_ok = False
         tcp_latency: float | None = None
-        was_surveyed = False
-        
-        # Survey keys are "name|type|host:port", search by name
-        for key, data in survey_results.items():
-            if data.get("name") == node_name:
-                was_surveyed = True
-                icmp = data.get("icmp_ping", {})
-                if icmp.get("reachable"):
-                    icmp_ok = True
-                    lat = icmp.get("latency_ms")
-                    if isinstance(lat, (int, float)):
-                        if icmp_latency is None or lat < icmp_latency:
-                            icmp_latency = float(lat)
-                
-                tcp = data.get("tcp_traceroute", {})
-                if tcp.get("reachable"):
-                    tcp_ok = True
-                    # TCP uses final_latency_ms, not latency_ms
-                    lat = tcp.get("final_latency_ms")
-                    if isinstance(lat, (int, float)):
-                        if tcp_latency is None or lat < tcp_latency:
-                            tcp_latency = float(lat)
-        
-        return icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed
+
+        for data in entries:
+            icmp = data.get("icmp_ping", {})
+            if icmp.get("reachable"):
+                icmp_ok = True
+                lat = icmp.get("latency_ms")
+                if isinstance(lat, (int, float)):
+                    if icmp_latency is None or lat < icmp_latency:
+                        icmp_latency = float(lat)
+
+            tcp = data.get("tcp_traceroute", {})
+            if tcp.get("reachable"):
+                tcp_ok = True
+                lat = tcp.get("final_latency_ms")
+                if isinstance(lat, (int, float)):
+                    if tcp_latency is None or lat < tcp_latency:
+                        tcp_latency = float(lat)
+
+        return icmp_ok, icmp_latency, tcp_ok, tcp_latency, True
 
     def get_outage_report(
         node_type: str,
         config_nodes: set[str],
+        category: str,
     ) -> Table | None:
         outages = config_nodes - operational_nodes
         if outages:
@@ -1525,8 +1525,8 @@ def make_outage_reports(
             table.add_column(node_type, justify="center", no_wrap=True)
             table.add_column("Status", justify="right")
             for node in sorted(outages):
-                # Get status from survey results (more accurate)
-                icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = get_node_survey_status(node)
+                # Get status from survey results (more accurate), for this role only
+                icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = get_node_survey_status(node, category)
                 
                 # Fallback to node_status if no survey results for this node
                 if not was_surveyed and node in node_status:
@@ -1570,7 +1570,7 @@ def make_outage_reports(
         dirauth_report.add_column("Status", justify="right")
         for node in sorted(dirauth_outages):
             # Get survey status for dirauth
-            icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = get_node_survey_status(node)
+            icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = get_node_survey_status(node, "dirauth")
             
             if tcp_ok:
                 latency = tcp_latency if tcp_latency is not None else icmp_latency
@@ -1589,31 +1589,83 @@ def make_outage_reports(
 
     reports = [
         dirauth_report,
-        get_outage_report("Mix Nodes", mixes),
-        get_outage_report("Gateways", gateways),
-        get_outage_report("Service Nodes", servicenodes),
-        get_outage_report("Storage Replicas", storagenodes),
+        get_outage_report("Mix Nodes", mixes, "mix"),
+        get_outage_report("Gateways", gateways, "gateway"),
+        get_outage_report("Service Nodes", servicenodes, "service"),
+        get_outage_report("Storage Replicas", storagenodes, "storage"),
     ]
     return [r for r in reports if r is not None]
+
+
+# Survey node_type values are role-specific ("dirauth", "gateway", "service",
+# "mix", "storage", and the per-layer "mix-L0"/"mix-L1"/...). A single machine
+# may run several roles at once (for example a directory authority that also
+# runs a mix), so reachability must be read per role. Matching by name alone
+# lets one role's probe mask another's, making a dead mix on a healthy dirauth
+# host appear alive.
+def _role_accepts(category: str) -> Callable[[str], bool]:
+    if category == "mix":
+        return lambda t: t == "mix" or t.startswith("mix-")
+    return lambda t: t == category
+
+
+def _survey_entries_for_role(
+    node_name: str,
+    category: str | None,
+    survey_results: dict[str, dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    if not survey_results:
+        return []
+    accept = _role_accepts(category) if category is not None else (lambda _t: True)
+    return [
+        data
+        for data in survey_results.values()
+        if data.get("name") == node_name and accept(str(data.get("node_type", "")))
+    ]
+
+
+def role_tcp_status(
+    node_name: str,
+    category: str,
+    survey_results: dict[str, dict[str, Any]] | None,
+    node_status: dict[str, tuple[bool, float | None]],
+) -> tuple[bool, float | None]:
+    """Best TCP reachability and latency for node_name in a single role.
+
+    Only survey entries belonging to `category` are considered, so a machine
+    running several roles does not have one role's reachability reported for
+    another. Falls back to the name-keyed node_status only when this role was
+    not surveyed."""
+    entries = _survey_entries_for_role(node_name, category, survey_results)
+    if not entries:
+        return node_status.get(node_name, (False, None))
+    tcp_up = False
+    tcp_latency: float | None = None
+    for data in entries:
+        tcp = data.get("tcp_traceroute", {})
+        if tcp.get("reachable"):
+            tcp_up = True
+            lat = tcp.get("final_latency_ms")
+            if isinstance(lat, (int, float)) and (tcp_latency is None or lat < tcp_latency):
+                tcp_latency = float(lat)
+    return tcp_up, tcp_latency
 
 
 def get_icmp_latency_from_survey(
     node_name: str,
     survey_results: dict[str, dict[str, Any]] | None,
+    category: str | None = None,
 ) -> float | None:
-    """Get the best (lowest) ICMP latency for a node from survey results."""
-    if not survey_results:
-        return None
-    
+    """Get the best (lowest) ICMP latency for a node, optionally limited to a
+    single role category so dual-role machines are not conflated."""
     best_latency: float | None = None
-    for key, data in survey_results.items():
-        if data.get("name") == node_name:
-            icmp = data.get("icmp_ping", {})
-            if icmp.get("reachable"):
-                lat = icmp.get("latency_ms")
-                if isinstance(lat, (int, float)):
-                    if best_latency is None or lat < best_latency:
-                        best_latency = float(lat)
+    for data in _survey_entries_for_role(node_name, category, survey_results):
+        icmp = data.get("icmp_ping", {})
+        if icmp.get("reachable"):
+            lat = icmp.get("latency_ms")
+            if isinstance(lat, (int, float)):
+                if best_latency is None or lat < best_latency:
+                    best_latency = float(lat)
     return best_latency
 
 
@@ -1677,13 +1729,8 @@ def make_gateway_table(
     table.add_column("Node Name", style="dim")
     table.add_column("Status", justify="right")
     for node in sorted(gateways):
-        tcp_up = False
-        tcp_latency: float | None = None
-        if node in node_status:
-            tcp_up, tcp_latency = node_status[node]
-
-        # Get ICMP status from survey for DOWN & OUT timing
-        icmp_latency = get_icmp_latency_from_survey(node, survey_results)
+        tcp_up, tcp_latency = role_tcp_status(node, "gateway", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node, survey_results, "gateway")
         
         is_operational = node in operational_nodes
 
@@ -1724,13 +1771,8 @@ def make_service_table(
     table.add_column("Node Name", style="dim")
     table.add_column("Status", justify="right")
     for node in sorted(servicenodes):
-        tcp_up = False
-        tcp_latency: float | None = None
-        if node in node_status:
-            tcp_up, tcp_latency = node_status[node]
-
-        # Get ICMP status from survey for DOWN & OUT timing
-        icmp_latency = get_icmp_latency_from_survey(node, survey_results)
+        tcp_up, tcp_latency = role_tcp_status(node, "service", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node, survey_results, "service")
         
         is_operational = node in operational_nodes
 
@@ -1771,33 +1813,9 @@ def make_storage_table(
     table.add_column("Node Name", style="dim")
     table.add_column("Status", justify="right")
     
-    def get_node_tcp_status(node_name: str) -> tuple[bool, float | None]:
-        """Get TCP status from survey results, aggregating across all addresses."""
-        tcp_ok = False
-        tcp_latency: float | None = None
-        
-        if survey_results:
-            for key, data in survey_results.items():
-                if data.get("name") == node_name:
-                    tcp = data.get("tcp_traceroute", {})
-                    if tcp.get("reachable"):
-                        tcp_ok = True
-                        lat = tcp.get("final_latency_ms")
-                        if isinstance(lat, (int, float)):
-                            if tcp_latency is None or lat < tcp_latency:
-                                tcp_latency = float(lat)
-        
-        # Fallback to node_status if no survey results
-        if not tcp_ok and node_name in node_status:
-            return node_status[node_name]
-        
-        return tcp_ok, tcp_latency
-    
     for node in sorted(storagenodes):
-        tcp_up, tcp_latency = get_node_tcp_status(node)
-
-        # Get ICMP status from survey for DOWN & OUT timing
-        icmp_latency = get_icmp_latency_from_survey(node, survey_results)
+        tcp_up, tcp_latency = role_tcp_status(node, "storage", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node, survey_results, "storage")
         
         is_operational = node in operational_nodes
 
@@ -1841,13 +1859,8 @@ def make_topology_table(
     table.add_column("Status", justify="right")
 
     for node_name in sorted(expected_nodes):
-        tcp_up = False
-        tcp_latency: float | None = None
-        if node_name in node_status:
-            tcp_up, tcp_latency = node_status[node_name]
-
-        # Get ICMP status from survey for DOWN & OUT timing
-        icmp_latency = get_icmp_latency_from_survey(node_name, survey_results)
+        tcp_up, tcp_latency = role_tcp_status(node_name, "mix", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node_name, survey_results, "mix")
         
         is_operational = node_name in operational_nodes
 
