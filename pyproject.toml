@@ -1,8 +1,9 @@
 [project]
 name = "katzenpost-status"
-version = "0.0.8"
+version = "0.0.9"
 authors = [
   { name = "David Stainton", email = "dstainton415@gmail.com" },
+  { name = "Jacob Appelbaum", email = "jacob@appelbaum.net" },
 ]
 description = "A status HTML page generator for Katzenpost mix networks"
 readme = "README.md"
