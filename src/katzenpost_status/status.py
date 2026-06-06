@@ -2165,15 +2165,7 @@ async def do_courier_probe(
     service_desc: Any,
     timeout: float = 60.0,
 ) -> tuple[bool, float | None]:
-    """Test courier service by sending a write and getting ACK.
-
-    This only tests that the courier responds, not replica connectivity.
-
-    Returns:
-        (success, latency_ms) where:
-        - (True, latency): Courier responded with ACK
-        - (False, None): No response or error
-    """
+    """Test courier service by sending a write and getting ACK."""
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
     thinclient_logger.setLevel(logging.WARNING)
@@ -2230,15 +2222,37 @@ async def do_courier_probe(
 
             end_time = time.monotonic()
             latency_ms = (end_time - start_time) * 1000
-            await client.cancel_resending_encrypted_message(wcr.envelope_hash)
             envelope_hash = None
             return True, latency_ms
 
         except asyncio.TimeoutError:
             return False, None
 
-    except Exception:
+        except Exception as e:
+            if type(e).__name__ == "DatabaseFailureError":
+                end_time = time.monotonic()
+                latency_ms = (end_time - start_time) * 1000
+                envelope_hash = None
+                logging.getLogger(__name__).warning(
+                    "courier probe got storage database failure after courier ACK"
+                )
+                return True, latency_ms
+
+            logging.getLogger(__name__).warning(
+                "courier probe failed after ARQ: %s: %s",
+                type(e).__name__,
+                e,
+            )
+            return False, None
+
+    except Exception as e:
+        logging.getLogger(__name__).warning(
+            "courier probe failed: %s: %s",
+            type(e).__name__,
+            e,
+        )
         return False, None
+
     finally:
         if envelope_hash is not None:
             try:
@@ -2284,15 +2298,21 @@ async def do_courier_probes_parallel(
 async def do_replica_probe(
     config_path: str,
     service_desc: Any,
+    replica_name: str,
+    replica_index: int,
     timeout: float = 60.0,
 ) -> tuple[bool, float | None]:
-    """Test courier->replica connectivity via write/read round-trip.
+    """Probe one courier->one replica Pigeonhole path.
 
-    Returns:
-        (success, latency_ms) where:
-        - (True, latency): Full round-trip succeeded
-        - (False, latency): Courier ACK received but no replica data
-        - (False, None): Complete failure
+    This is intentionally replica-index aware.  The previous implementation
+    labelled the same undirected courier/storage probe as every replica.  For
+    a real per-replica active check, ask the courier for the replica reply slot
+    corresponding to this replica row.
+
+    Return values are interpreted by the renderer as:
+      (True, latency)       -> write/read path succeeded
+      (False, latency)      -> courier/storage path reached, replica not OK
+      (False, None)         -> failure before useful courier/replica response
     """
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
@@ -2306,21 +2326,29 @@ async def do_replica_probe(
         with contextlib.redirect_stdout(io.StringIO()), \
              contextlib.redirect_stderr(io.StringIO()):
             await asyncio.wait_for(client.start(loop), timeout=10.0)
-    except Exception:
+    except Exception as e:
+        logging.getLogger(__name__).warning(
+            "replica probe %s: daemon connection failed: %s: %s",
+            replica_name,
+            type(e).__name__,
+            e,
+        )
         thinclient_logger.setLevel(original_level)
         return False, None
 
     start_time = time.monotonic()
-    got_write_ack = False
     write_envelope_hash = None
     read_envelope_hash = None
+
+    reply_index = replica_index % 2
 
     try:
         seed = os.urandom(32)
         kp = await client.new_keypair(seed)
 
-        test_id = f"replica-probe-{time.time_ns()}"
-        test_payload = test_id.encode("ascii")
+        test_payload = (
+            f"replica-probe-{replica_name}-{time.time_ns()}"
+        ).encode("ascii")
 
         try:
             wcr = await client.encrypt_write(
@@ -2347,22 +2375,38 @@ async def do_replica_probe(
                         envelope_descriptor=wcr.envelope_descriptor,
                         message_ciphertext=wcr.message_ciphertext,
                         envelope_hash=wcr.envelope_hash,
+                        #no_idempotent_box_already_exists=True,
                     ),
                     timeout=timeout,
                 )
-            got_write_ack = True
+
+            write_envelope_hash = None
+
         except asyncio.TimeoutError:
             return False, None
 
-        await client.cancel_resending_encrypted_message(wcr.envelope_hash)
-        write_envelope_hash = None
+        except Exception as e:
+            if type(e).__name__ == "DatabaseFailureError":
+                write_envelope_hash = None
+                logging.getLogger(__name__).warning(
+                    "replica probe %s reply_index=%d got database failure "
+                    "during write; continuing to readback probe",
+                    replica_name,
+                    reply_index,
+                )
+            else:
+                logging.getLogger(__name__).warning(
+                    "replica probe %s write failed after ARQ: %s: %s",
+                    replica_name,
+                    type(e).__name__,
+                    e,
+                )
+                return False, None
 
-        # Wait for replication
-        await asyncio.sleep(10.0)
+        await asyncio.sleep(3.0)
 
-        # Read phase
         max_retries = 3
-        retry_delay = 10.0
+        retry_delay = 5.0
 
         for attempt in range(max_retries):
             rcr = await client.encrypt_read(
@@ -2379,26 +2423,59 @@ async def do_replica_probe(
                             read_cap=kp.read_cap,
                             write_cap=None,
                             message_box_index=kp.first_message_index,
-                            reply_index=0,
+                            reply_index=reply_index,
                             envelope_descriptor=rcr.envelope_descriptor,
                             message_ciphertext=rcr.message_ciphertext,
                             envelope_hash=rcr.envelope_hash,
+                            no_retry_on_box_id_not_found=True,
                         ),
                         timeout=timeout,
                     )
 
-                await client.cancel_resending_encrypted_message(rcr.envelope_hash)
                 read_envelope_hash = None
 
-                if read_result is not None and read_result.plaintext is not None:
+                if (
+                    read_result is not None
+                    and getattr(read_result, "plaintext", None) == test_payload
+                ):
                     end_time = time.monotonic()
                     latency_ms = (end_time - start_time) * 1000
                     return True, latency_ms
 
+                logging.getLogger(__name__).warning(
+                    "replica probe %s readback mismatch on attempt %d",
+                    replica_name,
+                    attempt + 1,
+                )
+
             except asyncio.TimeoutError:
+                pass
+
+            except Exception as e:
+                if type(e).__name__ == "BoxIDNotFoundError":
+                    pass
+                elif type(e).__name__ == "DatabaseFailureError":
+                    end_time = time.monotonic()
+                    latency_ms = (end_time - start_time) * 1000
+                    logging.getLogger(__name__).warning(
+                        "replica probe %s read got database failure",
+                        replica_name,
+                    )
+                    return False, latency_ms
+                else:
+                    logging.getLogger(__name__).warning(
+                        "replica probe %s read failed: %s: %s",
+                        replica_name,
+                        type(e).__name__,
+                        e,
+                    )
+
+            finally:
                 if read_envelope_hash is not None:
                     try:
-                        await client.cancel_resending_encrypted_message(rcr.envelope_hash)
+                        await client.cancel_resending_encrypted_message(
+                            read_envelope_hash,
+                        )
                     except Exception:
                         pass
                     read_envelope_hash = None
@@ -2406,25 +2483,24 @@ async def do_replica_probe(
             if attempt < max_retries - 1:
                 await asyncio.sleep(retry_delay)
 
-        # Got courier ACK but no replica data
-        if got_write_ack:
-            end_time = time.monotonic()
-            latency_ms = (end_time - start_time) * 1000
-            return False, latency_ms
+        end_time = time.monotonic()
+        latency_ms = (end_time - start_time) * 1000
+        return False, latency_ms
 
+    except Exception as e:
+        logging.getLogger(__name__).warning(
+            "replica probe %s failed: %s: %s",
+            replica_name,
+            type(e).__name__,
+            e,
+        )
         return False, None
 
-    except Exception:
-        if got_write_ack:
-            end_time = time.monotonic()
-            latency_ms = (end_time - start_time) * 1000
-            return False, latency_ms
-        return False, None
     finally:
-        for eh in (write_envelope_hash, read_envelope_hash):
-            if eh is not None:
+        for envelope_hash in (write_envelope_hash, read_envelope_hash):
+            if envelope_hash is not None:
                 try:
-                    await client.cancel_resending_encrypted_message(eh)
+                    await client.cancel_resending_encrypted_message(envelope_hash)
                 except Exception:
                     pass
         thinclient_logger.setLevel(original_level)
@@ -2437,39 +2513,57 @@ async def do_replica_probes_parallel(
     replica_names: list[str],
     timeout: float = 160.0,
 ) -> dict[str, tuple[bool, float | None]]:
-    """Probe courier->replica paths with separate probes for each replica.
-    
-    Returns dict mapping "{courier}->{replica}" -> (success, latency_ms)
+    """Probe each courier->replica Pigeonhole path separately.
+
+    replica_names may come from an unordered PKI walk.  Do not use enumerate()
+    order as the replica reply slot.  For the current namenlos deployment the
+    replica name encodes the ReplicaID: storagereplica0 -> slot 0,
+    storagereplica1 -> slot 1.
     """
     try:
         service_descs = client.get_services("courier")
     except Exception:
         return {}
-    
-    if not service_descs:
+
+    if not service_descs or not replica_names:
         return {}
-    
-    if not replica_names:
-        return {}
-    
-    # Run separate probe for EACH courier->replica combination
+
+    def replica_reply_index(replica_name: str, fallback: int) -> int:
+        suffix = ""
+        for ch in reversed(replica_name):
+            if not ch.isdigit():
+                break
+            suffix = ch + suffix
+        if suffix:
+            return int(suffix)
+        return fallback
+
     tasks: dict[str, Any] = {}
+
     for desc in service_descs:
         courier_name = desc.mix_descriptor.get("Name", "unknown")
-        for replica_name in replica_names:
+        for fallback_index, replica_name in enumerate(replica_names):
+            replica_index = replica_reply_index(replica_name, fallback_index)
             key = f"{courier_name}->{replica_name}"
-            # Each probe is independent
-            tasks[key] = do_replica_probe(config_path, desc, timeout)
-    
+            tasks[key] = do_replica_probe(
+                config_path=config_path,
+                service_desc=desc,
+                replica_name=replica_name,
+                replica_index=replica_index,
+                timeout=timeout,
+            )
+
     results: dict[str, tuple[bool, float | None]] = {}
     gathered = await asyncio.gather(*tasks.values(), return_exceptions=True)
+
     for key, result in zip(tasks.keys(), gathered):
         if isinstance(result, BaseException):
             results[key] = (False, None)
         else:
             results[key] = result
-    
+
     return results
+
 
 def pretty_print_pki_doc(doc: dict[str, Any]) -> str:
     lines: list[str] = []
