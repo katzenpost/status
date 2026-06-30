@@ -12,6 +12,7 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
+from html import escape as html_escape
 from pathlib import Path
 from typing import Any, Callable
 
@@ -298,8 +299,8 @@ def run_icmp_ping(host: str, count: int = 3, timeout: int = 2) -> dict[str, Any]
 def run_tcp_traceroute(
     host: str,
     port: int,
-    max_hops: int = 30,
-    timeout: int = 2,
+    max_hops: int = 20,
+    timeout: int = 1,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {
         "host": host,
@@ -562,6 +563,8 @@ def _parse_tcptraceroute6_output(stdout: str, result: dict[str, Any]) -> None:
 def _survey_single_target(
     target: SurveyTarget,
     run_traceroute: bool = True,
+    max_hops: int = 20,
+    hop_timeout: int = 1,
 ) -> tuple[str, dict[str, Any]]:
     name, node_type, host, port = target
     # Include host:port in key to allow multiple addresses per node
@@ -575,7 +578,9 @@ def _survey_single_target(
     if host:
         node_result["icmp_ping"] = run_icmp_ping(host)
         if run_traceroute:
-            node_result["tcp_traceroute"] = run_tcp_traceroute(host, port)
+            node_result["tcp_traceroute"] = run_tcp_traceroute(
+                host, port, max_hops, hop_timeout
+            )
     else:
         node_result["icmp_ping"] = {
             "host": "unknown",
@@ -600,6 +605,8 @@ def run_survey_parallel(
     run_traceroute: bool = True,
     verbose: bool = False,
     max_workers: int = 10,
+    max_hops: int = 20,
+    hop_timeout: int = 1,
 ) -> dict[str, dict[str, Any]]:
     results: dict[str, dict[str, Any]] = {}
 
@@ -608,7 +615,9 @@ def run_survey_parallel(
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_target = {
-            executor.submit(_survey_single_target, target, run_traceroute): target
+            executor.submit(
+                _survey_single_target, target, run_traceroute, max_hops, hop_timeout
+            ): target
             for target in targets
         }
 
@@ -2658,6 +2667,42 @@ def make_footer(network_name: str) -> Text:
     )
 
 
+def _inject_html_poller(
+    html: str, meta_name: str, generated_at: str, poll_seconds: int
+) -> str:
+    """Return html with a tiny auto-refresh poller inserted before </body>.
+
+    The poller fetches the sibling meta file every poll_seconds and reloads the
+    page when its generated_at advances past the value baked in at render time.
+    Dependency-free, ASCII-only, and silent on any fetch/JSON error. Injected at
+    the same point as the viz footer link. When poll_seconds <= 0 the html is
+    returned unchanged (caller gates on the same condition)."""
+    if poll_seconds <= 0:
+        return html
+    safe_meta = json.dumps(meta_name)
+    safe_gen = json.dumps(generated_at)
+    poller = (
+        "<script>\n"
+        "(function(){\n"
+        f"  var META={safe_meta}, BASE={safe_gen}, N={int(poll_seconds)};\n"
+        "  function check(){\n"
+        "    fetch(META, {cache: 'no-store'}).then(function(r){\n"
+        "      return r.ok ? r.json() : null;\n"
+        "    }).then(function(d){\n"
+        "      if (d && d.generated_at && d.generated_at !== BASE) {\n"
+        "        location.reload();\n"
+        "      }\n"
+        "    }).catch(function(){});\n"
+        "  }\n"
+        "  setInterval(check, N * 1000);\n"
+        "})();\n"
+        "</script>\n"
+    )
+    if "</body>" in html:
+        return html.replace("</body>", poller + "</body>", 1)
+    return html + poller
+
+
 def generate_report(
     doc: dict[str, Any],
     dirauthconf: str,
@@ -2672,6 +2717,8 @@ def generate_report(
     quiet: bool = False,
     last_consensus: dict[str, Any] | None = None,
     pigeonhole_geometry: dict[str, Any] | None = None,
+    viz_link: str | None = None,
+    html_poll_seconds: int = 0,
 ) -> None:
     if conn_status is None:
         conn_status = ConnectionStatus()
@@ -2980,8 +3027,40 @@ def generate_report(
 
     if output_file:
         html = console.export_html(inline_styles=True, theme=MONOKAI)
+        if viz_link:
+            # A single link to the animated page, appended just before </body>.
+            safe_link = html_escape(viz_link, quote=True)
+            footer = (
+                '<div style="text-align:center; padding:16px; '
+                'font-family:monospace; font-size:14px;">'
+                f'<a href="{safe_link}" style="color:#00f3ff;">'
+                "> Live network visualization</a></div>\n"
+            )
+            if "</body>" in html:
+                html = html.replace("</body>", footer + "</body>", 1)
+            else:
+                html += footer
+        # Optional main-page auto-refresh: bake the current timestamp into a
+        # small inline poller and drop a sibling meta file carrying the same
+        # value. When a later render advances the meta timestamp, an open page
+        # reloads. Off by default (html_poll_seconds == 0).
+        generated_at = ""
+        if html_poll_seconds > 0:
+            generated_at = datetime.utcnow().isoformat(timespec="microseconds") + "Z"
+            out_path = Path(output_file)
+            meta_name = out_path.stem + ".meta.json"
+            html = _inject_html_poller(
+                html, meta_name, generated_at, html_poll_seconds
+            )
         with open(output_file, "w", encoding="utf-8") as file:
             file.write(html)
+        # Write the meta file AFTER the html so a poller firing in the gap never
+        # reloads into the stale page; worst case is one missed poll cycle.
+        if html_poll_seconds > 0:
+            meta_path = Path(output_file).with_name(Path(output_file).stem + ".meta.json")
+            meta_path.write_text(
+                json.dumps({"generated_at": generated_at}), encoding="utf-8"
+            )
 
 
 async def _collect_network_data(
@@ -3110,9 +3189,22 @@ async def _async_main_inner(ctx: click.Context) -> None:
     dirauthconf: str = ctx.obj["dirauthconf"]
     config_path: str = ctx.obj["config_path"]
     htmlout: str = ctx.obj["htmlout"]
+    visualize: bool = ctx.obj["visualize"]
+    vizout: str = ctx.obj["vizout"]
+    viz_poll_seconds: int = ctx.obj["viz_poll_seconds"]
+    html_poll_seconds: int = ctx.obj["html_poll_seconds"]
+    geoip_db: str = ctx.obj["geoip_db"]
+    geoip_asn_db: str = ctx.obj["geoip_asn_db"]
+    viz_vantage: str = ctx.obj["viz_vantage"]
+    viz_clients: int = ctx.obj["viz_clients"]
+    viz_history: int = ctx.obj["viz_history"]
+    asn_whois: bool = ctx.obj["asn_whois"]
+    asn_cache: str = ctx.obj["asn_cache"]
     network_name: str = ctx.obj["network_name"]
     show_pki_doc: bool = ctx.obj["pki_document"]
     run_survey: bool = ctx.obj["survey"]
+    survey_max_hops: int = ctx.obj["survey_max_hops"]
+    survey_hop_timeout: int = ctx.obj["survey_hop_timeout"]
     ping_enabled: bool = ctx.obj["ping"]
     max_threads: int = ctx.obj["max_threads"]
     cache_file: str = ctx.obj["cache_file"]
@@ -3198,7 +3290,8 @@ async def _async_main_inner(ctx: click.Context) -> None:
         if verbose and not quiet:
             click.echo(f"Running survey on {len(all_targets)} node endpoints...")
         return await asyncio.to_thread(
-            run_survey_parallel, all_targets, True, verbose and not quiet, max_threads
+            run_survey_parallel, all_targets, True, verbose and not quiet,
+            max_threads, survey_max_hops, survey_hop_timeout,
         )
 
     # Get storage replica names from PKI for replica probes
@@ -3226,13 +3319,95 @@ async def _async_main_inner(ctx: click.Context) -> None:
             config_path, client, storage_replica_names, timeout=160.0
         )
 
-    survey_results, echo_results, courier_results, replica_results = await asyncio.gather(
-        run_survey_async(), run_echo_probes_async(), run_courier_probes_async(), run_replica_probes_async()
-    )
+    # The visualization is opt-in (--visualize, off by default). Only when it is
+    # enabled do we render the animated page and link to it from the report. The
+    # two files live side by side, so the report links by bare filename (the
+    # deployed site serves both from the same directory). This is resolved up
+    # front (it depends only on doc/ctx) so the intermediate viz write below can
+    # use it.
+    viz_path = ""
+    if visualize:
+        viz_path = vizout
+        if not viz_path and htmlout:
+            viz_path = os.path.join(os.path.dirname(htmlout), "visualize.html")
+        if not viz_path:
+            click.echo(
+                "warning: --visualize needs --vizout or --htmlout to know where "
+                "to write; skipping the visualization.",
+                err=True,
+            )
+    viz_link = os.path.basename(viz_path) if viz_path else None
+
+    epoch_val = doc.get("Epoch", 0)
+    vantage: dict[str, Any] | None = None
+    if viz_vantage:
+        try:
+            lat_s, lon_s = viz_vantage.split(",", 1)
+            vantage = {"lat": float(lat_s), "lon": float(lon_s), "label": "monitor"}
+        except ValueError:
+            vantage = None
+
+    # Run the four probes concurrently (unchanged), but stage the writes so an
+    # open viz page updates as soon as the survey finishes (~40s) instead of
+    # waiting for the ~2 min replica probe. The survey (latency/hops/status),
+    # node_status, and dirauth_status are the only inputs the viz consumes;
+    # courier/replica only feed the rich report, so the intermediate viz write
+    # is already complete viz data (not a partial). We never write before the
+    # survey completes: the already-served data file holds the previous run's
+    # complete data, and a consensus-only write would visibly degrade an open
+    # page.
+    survey_task = asyncio.create_task(run_survey_async())
+    echo_task = asyncio.create_task(run_echo_probes_async())
+    courier_task = asyncio.create_task(run_courier_probes_async())
+    replica_task = asyncio.create_task(run_replica_probes_async())
+
+    survey_results = await survey_task
+    echo_results = await echo_task
     if echo_results:
         service_probes["echo"] = echo_results
         if any(ok for ok, _ in echo_results.values()):
             conn_status.network_online = True
+
+    def write_viz(write_history: bool) -> None:
+        from .viz import generate_viz  # local import avoids a circular import
+
+        generate_viz(
+            doc,
+            viz_path,
+            survey_results=survey_results,
+            node_status=node_status,
+            dirauth_status=dirauth_status,
+            network_name=network_name,
+            epoch=epoch_val or None,
+            epoch_time_str=epoch_id_to_time_str(epoch_val) if epoch_val else None,
+            epoch_end=(EPOCH + (epoch_val + 1) * PERIOD).isoformat() + "Z" if epoch_val else None,
+            epoch_period_s=PERIOD.total_seconds(),
+            poll_seconds=viz_poll_seconds,
+            geoip_db=geoip_db or None,
+            geoip_asn_db=geoip_asn_db or None,
+            asn_whois=asn_whois,
+            asn_cache_path=(
+                asn_cache
+                or (os.path.join(os.path.dirname(viz_path), ".asn-cache.json") if asn_whois else "")
+            ) or None,
+            vantage=vantage,
+            clients_per_gateway=viz_clients,
+            history_len=viz_history,
+            write_history=write_history,
+        )
+
+    # Intermediate write: complete viz data as soon as the survey is done, so an
+    # open page refreshes early. History is deferred to the final write so the
+    # epoch-deduped scrubber keeps the full snapshot, not this one. Run in a
+    # thread (like run_survey_parallel): generate_viz is synchronous work that
+    # can include RDAP lookups, and the courier/replica probes are still in
+    # flight on this loop, so blocking here would delay their responses and
+    # inflate their measured latencies.
+    if viz_path:
+        await asyncio.to_thread(write_viz, False)
+
+    courier_results = await courier_task
+    replica_results = await replica_task
     if courier_results:
         service_probes["courier"] = courier_results
         if any(ok for ok, _ in courier_results.values()):
@@ -3246,6 +3421,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
     if client:
         client.stop()
 
+    # Final writes with the complete data (report needs courier/replica).
     generate_report(
         doc,
         dirauthconf,
@@ -3260,7 +3436,14 @@ async def _async_main_inner(ctx: click.Context) -> None:
         quiet=quiet,
         last_consensus=last_consensus,
         pigeonhole_geometry=pigeonhole_geometry,
+        viz_link=viz_link,
+        html_poll_seconds=html_poll_seconds,
     )
+
+    if viz_path:
+        write_viz(write_history=True)
+        if not quiet:
+            click.echo(f"Wrote visualization to {viz_path}")
 
 async def async_main(ctx: click.Context) -> None:
     await _async_main_inner(ctx)
@@ -3277,6 +3460,89 @@ async def async_main(ctx: click.Context) -> None:
     "--htmlout",
     default="",
     help="Path to output HTML file.",
+)
+@click.option(
+    "--visualize/--no-visualize",
+    "visualize",
+    default=False,
+    help="Render the animated three.js visualization page and link to it from "
+    "the status page. Disabled by default.",
+)
+@click.option(
+    "--vizout",
+    default="",
+    help="Path to output the visualization HTML page (used only with "
+    "--visualize). Defaults to 'visualize.html' next to --htmlout.",
+)
+@click.option(
+    "--viz-poll-seconds",
+    "viz_poll_seconds",
+    default=60,
+    type=int,
+    help="How often the visualization page reloads its data file, in seconds "
+    "(used only with --visualize; default: 60).",
+)
+@click.option(
+    "--html-poll-seconds",
+    "html_poll_seconds",
+    default=0,
+    type=int,
+    help="How often the main status page checks for a fresh render and reloads, "
+    "in seconds. 0 disables (default). When > 0 the page fetches a small "
+    "sibling <name>.meta.json and reloads when a newer render lands.",
+)
+@click.option(
+    "--geoip-db",
+    "geoip_db",
+    default="",
+    help="Path to a GeoLite2/GeoIP2 City database (.mmdb) used to locate node "
+    "IPs for the Earth view. Optional; the curated table takes precedence.",
+)
+@click.option(
+    "--geoip-asn-db",
+    "geoip_asn_db",
+    default="",
+    help="Path to a GeoLite2/GeoIP2 ASN database (.mmdb) used to annotate "
+    "traceroute hops with their network (AS). Optional.",
+)
+@click.option(
+    "--viz-vantage",
+    "viz_vantage",
+    default="",
+    help="Monitor vantage location as \"lat,lon\" for the traceroute links "
+    "(used only with --visualize).",
+)
+@click.option(
+    "--viz-clients",
+    "viz_clients",
+    default=3,
+    type=int,
+    help="Number of simulated clients per gateway in the visualization "
+    "(used only with --visualize; default: 3).",
+)
+@click.option(
+    "--viz-history",
+    "viz_history",
+    default=48,
+    type=int,
+    help="How many recent epochs of visualization data to retain for the "
+    "history scrubber, written each run alongside the data (used only with "
+    "--visualize; 0 disables; default: 48).",
+)
+@click.option(
+    "--asn-whois/--no-asn-whois",
+    "asn_whois",
+    default=False,
+    help="Resolve each node's AS/operator via ipwhois (RDAP) when no ASN "
+    "database is given, for the diversity view -- no database file needed. "
+    "Results are cached on disk (see --asn-cache) since IP-to-AS is static.",
+)
+@click.option(
+    "--asn-cache",
+    "asn_cache",
+    default="",
+    help="Path to the persistent ipwhois ASN cache (used with --asn-whois). "
+    "Defaults to '.asn-cache.json' next to the output.",
 )
 @click.option(
     "--dirauthconf",
@@ -3318,6 +3584,22 @@ async def async_main(ctx: click.Context) -> None:
     help="Maximum number of threads for parallel survey (default: 20).",
 )
 @click.option(
+    "--survey-max-hops",
+    type=int,
+    default=20,
+    help="Max TCP-traceroute hops per target (default: 20). Lower is faster; "
+    "reachable nodes stop at the destination regardless, so this only bounds "
+    "unreachable or filtered paths.",
+)
+@click.option(
+    "--survey-hop-timeout",
+    type=int,
+    default=1,
+    help="Per-hop TCP-traceroute reply timeout in seconds (default: 1). Lower "
+    "is faster on unanswered hops; the final-hop latency to reachable nodes is "
+    "well under a second.",
+)
+@click.option(
     "--cache-file",
     "cache_file",
     default="",
@@ -3341,11 +3623,24 @@ def main(
     dirauthconf: str,
     network_name: str,
     htmlout: str,
+    visualize: bool,
+    vizout: str,
+    viz_poll_seconds: int,
+    html_poll_seconds: int,
+    geoip_db: str,
+    geoip_asn_db: str,
+    viz_vantage: str,
+    viz_clients: int,
+    viz_history: int,
+    asn_whois: bool,
+    asn_cache: str,
     ping: bool,
     timeout: float,
     pki_document: bool,
     survey: bool,
     max_threads: int,
+    survey_max_hops: int,
+    survey_hop_timeout: int,
     cache_file: str,
     verbose: bool,
     quiet: bool,
@@ -3355,11 +3650,24 @@ def main(
     ctx.obj["dirauthconf"] = dirauthconf
     ctx.obj["network_name"] = network_name
     ctx.obj["htmlout"] = htmlout
+    ctx.obj["visualize"] = visualize
+    ctx.obj["vizout"] = vizout
+    ctx.obj["viz_poll_seconds"] = viz_poll_seconds
+    ctx.obj["html_poll_seconds"] = html_poll_seconds
+    ctx.obj["geoip_db"] = geoip_db
+    ctx.obj["geoip_asn_db"] = geoip_asn_db
+    ctx.obj["viz_vantage"] = viz_vantage
+    ctx.obj["viz_clients"] = viz_clients
+    ctx.obj["viz_history"] = viz_history
+    ctx.obj["asn_whois"] = asn_whois
+    ctx.obj["asn_cache"] = asn_cache
     ctx.obj["ping"] = ping
     ctx.obj["timeout"] = timeout
     ctx.obj["pki_document"] = pki_document
     ctx.obj["survey"] = survey
     ctx.obj["max_threads"] = max_threads
+    ctx.obj["survey_max_hops"] = survey_max_hops
+    ctx.obj["survey_hop_timeout"] = survey_hop_timeout
     ctx.obj["cache_file"] = cache_file
     ctx.obj["verbose"] = verbose
     ctx.obj["quiet"] = quiet

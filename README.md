@@ -64,6 +64,21 @@ Usage: katzenpost-status [OPTIONS]
 Options:
   --config TEXT        Path to the thin client TOML config file.  [required]
   --htmlout TEXT       Path to output HTML file.
+  --visualize / --no-visualize
+                       Render the animated three.js visualization page (a
+                       second, self-contained page fed by the live consensus
+                       and traceroute data) and link to it from the status
+                       page. Disabled by default.
+  --vizout TEXT        Path to output the visualization HTML page (used only
+                       with --visualize). Defaults to 'visualize.html' next to
+                       --htmlout. Writes a small HTML shell, a '<name>.data.js'
+                       data file (rewritten every run), and a 'katzenpost-viz/'
+                       directory of static local assets (vendored three.js and
+                       the app JS). No CDN is used. The page reloads only the
+                       data file on a timer.
+  --viz-poll-seconds INTEGER
+                       How often the visualization page reloads its data file,
+                       in seconds (used only with --visualize; default: 60).
   --dirauthconf TEXT   Path to the directory authority configuration TOML
                        file.  [required]
   --network-name TEXT  Name of the network deployment (outer panel title).
