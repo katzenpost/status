@@ -3028,13 +3028,16 @@ def generate_report(
     if output_file:
         html = console.export_html(inline_styles=True, theme=MONOKAI)
         if viz_link:
-            # A single link to the animated page, appended just before </body>.
+            # The only link to the animated page: a small, discreet pi in the
+            # bottom-right corner (rendered via the &pi; entity to keep the
+            # source ASCII).
             safe_link = html_escape(viz_link, quote=True)
             footer = (
-                '<div style="text-align:center; padding:16px; '
-                'font-family:monospace; font-size:14px;">'
-                f'<a href="{safe_link}" style="color:#00f3ff;">'
-                "> Live network visualization</a></div>\n"
+                f'<a href="{safe_link}" title="Live visualization" '
+                'style="position:fixed;bottom:10px;right:14px;z-index:50;'
+                'text-decoration:none;color:#00f3ff;opacity:0.45;'
+                'font-family:monospace;font-size:20px;line-height:1;">'
+                "&pi;</a>\n"
             )
             if "</body>" in html:
                 html = html.replace("</body>", footer + "</body>", 1)
