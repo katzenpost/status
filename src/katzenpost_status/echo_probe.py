@@ -59,17 +59,25 @@ async def probe_provider(
     loop = asyncio.get_event_loop()
 
     try:
-        with contextlib.redirect_stdout(io.StringIO()), \
-             contextlib.redirect_stderr(io.StringIO()):
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
             await asyncio.wait_for(client.start(loop), timeout=10.0)
     except asyncio.TimeoutError:
         if debug:
-            logger.error("[%s] echo probe: daemon connection timeout", provider_name)
+            logger.error(
+                "[%s] echo probe: daemon connection timeout", provider_name
+            )
         thinclient_logger.setLevel(original_level)
         return RESULT_TIMEOUT, None
     except Exception as e:
         if debug:
-            logger.error("[%s] echo probe: daemon connection failed: %s", provider_name, e)
+            logger.error(
+                "[%s] echo probe: daemon connection failed: %s",
+                provider_name,
+                e,
+            )
         thinclient_logger.setLevel(original_level)
         return RESULT_FAILURE, None
 
@@ -85,11 +93,15 @@ async def probe_provider(
             logger.info("[%s] echo probe: sending message", provider_name)
 
         try:
-            with contextlib.redirect_stdout(io.StringIO()), \
-                 contextlib.redirect_stderr(io.StringIO()):
+            with (
+                contextlib.redirect_stdout(io.StringIO()),
+                contextlib.redirect_stderr(io.StringIO()),
+            ):
                 reply_payload = await asyncio.wait_for(
                     client.blocking_send_message(
-                        payload, dest_node, dest_queue,
+                        payload,
+                        dest_node,
+                        dest_queue,
                         timeout_seconds=timeout,
                     ),
                     timeout=timeout + 5.0,
@@ -101,20 +113,27 @@ async def probe_provider(
             if debug:
                 logger.info(
                     "[%s] echo probe: reply received, %d bytes, latency=%.0fms",
-                    provider_name, len(reply_payload), latency_ms
+                    provider_name,
+                    len(reply_payload),
+                    latency_ms,
                 )
 
-            reply_prefix = reply_payload[:len(payload)]
+            reply_prefix = reply_payload[: len(payload)]
 
             if len(reply_prefix) == len(payload) and reply_prefix == payload:
                 if debug:
-                    logger.info("[%s] echo probe: SUCCESS - payload verified", provider_name)
+                    logger.info(
+                        "[%s] echo probe: SUCCESS - payload verified",
+                        provider_name,
+                    )
                 return RESULT_OK, latency_ms
             else:
                 if debug:
                     logger.warning(
                         "[%s] echo probe: MISMATCH - expected %s, got %s",
-                        provider_name, payload, reply_prefix
+                        provider_name,
+                        payload,
+                        reply_prefix,
                     )
                 return RESULT_MISMATCH, latency_ms
 
@@ -122,13 +141,19 @@ async def probe_provider(
             if debug:
                 logger.warning(
                     "[%s] echo probe: TIMEOUT waiting for reply (%.0fs)",
-                    provider_name, timeout
+                    provider_name,
+                    timeout,
                 )
             return RESULT_TIMEOUT, None
 
     except Exception as e:
         if debug:
-            logger.error("[%s] echo probe: ERROR: %s: %s", provider_name, type(e).__name__, e)
+            logger.error(
+                "[%s] echo probe: ERROR: %s: %s",
+                provider_name,
+                type(e).__name__,
+                e,
+            )
         return RESULT_FAILURE, None
 
     finally:
@@ -160,7 +185,9 @@ async def probe_all_providers(
         return {}
 
     if debug:
-        logger.info("echo probe: found %d echo provider(s)", len(service_descs))
+        logger.info(
+            "echo probe: found %d echo provider(s)", len(service_descs)
+        )
 
     tasks = {
         desc.mix_descriptor.get("Name", "unknown"): probe_provider(
@@ -175,7 +202,9 @@ async def probe_all_providers(
     for name, result in zip(tasks.keys(), gathered):
         if isinstance(result, BaseException):
             if debug:
-                logger.error("[%s] echo probe: task exception: %s", name, result)
+                logger.error(
+                    "[%s] echo probe: task exception: %s", name, result
+                )
             results[name] = (RESULT_FAILURE, None)
         else:
             results[name] = result
@@ -183,8 +212,7 @@ async def probe_all_providers(
     if debug:
         ok_count = sum(1 for code, _ in results.values() if code == RESULT_OK)
         logger.info(
-            "echo probe: complete, %d/%d providers OK",
-            ok_count, len(results)
+            "echo probe: complete, %d/%d providers OK", ok_count, len(results)
         )
 
     return results

@@ -55,8 +55,11 @@ async def test_replica_probe_all():
             ]
 
         results = await probe_all_replicas(
-            config_path, client, replica_names,
-            timeout=120.0, debug=True,
+            config_path,
+            client,
+            replica_names,
+            timeout=120.0,
+            debug=True,
         )
 
         assert len(results) > 0, "No replica probe results"

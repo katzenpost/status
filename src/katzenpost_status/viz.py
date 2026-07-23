@@ -69,12 +69,14 @@ STATUS_COLORS = {
     "unknown": "#556677",
 }
 
+
 def _fingerprint(value: Any) -> str | None:
     """Short blake2b-256 hex fingerprint of a key's bytes (keys are not
     human-readable, so we show a stable identifier instead)."""
     if not isinstance(value, (bytes, bytearray)):
         return None
     return hashlib.blake2b(bytes(value), digest_size=32).hexdigest()
+
 
 def _addresses(desc: dict[str, Any]) -> list[str]:
     """Flatten a node descriptor's Addresses map into a list of URIs."""
@@ -89,6 +91,7 @@ def _addresses(desc: dict[str, Any]) -> list[str]:
                 for a in lst or []:
                     out.append(str(a))
     return out
+
 
 def _node_details(desc: dict[str, Any] | None) -> dict[str, Any]:
     """Human-relevant consensus fields for a node, shown when it is clicked.
@@ -138,12 +141,15 @@ def _node_details(desc: dict[str, Any] | None) -> dict[str, Any]:
 
     return d
 
+
 def _network_consensus(doc: dict[str, Any]) -> dict[str, Any]:
     """Document-level consensus fields worth surfacing in the HUD."""
     out: dict[str, Any] = {}
     for key, dest in (
-        ("Epoch", "epoch"), ("GenesisEpoch", "genesis_epoch"),
-        ("Version", "version"), ("PKISignatureScheme", "pki_signature_scheme"),
+        ("Epoch", "epoch"),
+        ("GenesisEpoch", "genesis_epoch"),
+        ("Version", "version"),
+        ("PKISignatureScheme", "pki_signature_scheme"),
     ):
         if doc.get(key) not in (None, ""):
             out[dest] = doc[key]
@@ -163,6 +169,7 @@ def _network_consensus(doc: dict[str, Any]) -> dict[str, Any]:
         out["link_kem"] = kem
     return out
 
+
 def _link_kem(doc: dict[str, Any]) -> str | None:
     """Read the link KEM scheme name from an advertised link public key's PEM
     header (for example "KYBER768-X25519 PUBLIC KEY")."""
@@ -180,6 +187,7 @@ def _link_kem(doc: dict[str, Any]) -> str | None:
                     if m:
                         return m.group(1)
     return None
+
 
 def _best_hops(
     name: str,
@@ -211,6 +219,7 @@ def _best_hops(
         )
     return out
 
+
 def _node_entry(
     name: str,
     node_type: str,
@@ -223,7 +232,9 @@ def _node_entry(
     descriptor: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble one node's status record for the animation."""
-    tcp_up, tcp_lat = role_tcp_status(name, category, survey_results, node_status)
+    tcp_up, tcp_lat = role_tcp_status(
+        name, category, survey_results, node_status
+    )
     icmp_lat = get_icmp_latency_from_survey(name, survey_results, category)
     hops = _best_hops(name, category, survey_results)
     surveyed = bool(_survey_entries_for_role(name, category, survey_results))
@@ -247,16 +258,26 @@ def _node_entry(
         "color": STATUS_COLORS[status],
         "in_consensus": in_consensus,
         "reachable": bool(tcp_up),
-        "latency_ms": round(latency, 1) if isinstance(latency, (int, float)) else None,
+        "latency_ms": round(latency, 1)
+        if isinstance(latency, (int, float))
+        else None,
         "hop_count": len(hops),
         "hops": hops,
         "details": _node_details(descriptor),
     }
 
+
 TRAFFIC_PARAM_NAMES = (
-    "SendRatePerMinute", "Mu",
-    "LambdaP", "LambdaL", "LambdaD", "LambdaM", "LambdaG", "LambdaR",
+    "SendRatePerMinute",
+    "Mu",
+    "LambdaP",
+    "LambdaL",
+    "LambdaD",
+    "LambdaM",
+    "LambdaG",
+    "LambdaR",
 )
+
 
 def _extract_parameters(doc: dict[str, Any]) -> dict[str, float | None]:
     doc_params = doc.get("Parameters", {}) or {}
@@ -276,6 +297,7 @@ def _extract_parameters(doc: dict[str, Any]) -> dict[str, float | None]:
         except (TypeError, ValueError):
             out[name] = None
     return out
+
 
 def build_viz_payload(
     doc: dict[str, Any],
@@ -319,7 +341,9 @@ def build_viz_payload(
     dirauth_names = sorted(dirauth_status.keys())
     for name in dirauth_names:
         up, lat = dirauth_status.get(name, (False, None))
-        tcp_up, tcp_lat = role_tcp_status(name, "dirauth", survey_results, node_status)
+        tcp_up, tcp_lat = role_tcp_status(
+            name, "dirauth", survey_results, node_status
+        )
         reachable = bool(up or tcp_up)
         latency = lat if lat is not None else tcp_lat
         hops = _best_hops(name, "dirauth", survey_results)
@@ -345,8 +369,15 @@ def build_viz_payload(
     for name, desc in decoded_of(doc.get("GatewayNodes", [])):
         nodes.append(
             _node_entry(
-                name, "gateway", "gateway", None, operational,
-                survey_results, node_status, name in operational, desc,
+                name,
+                "gateway",
+                "gateway",
+                None,
+                operational,
+                survey_results,
+                node_status,
+                name in operational,
+                desc,
             )
         )
 
@@ -357,24 +388,45 @@ def build_viz_payload(
         for name, desc in decoded:
             nodes.append(
                 _node_entry(
-                    name, "mix", "mix", layer_idx, operational,
-                    survey_results, node_status, name in operational, desc,
+                    name,
+                    "mix",
+                    "mix",
+                    layer_idx,
+                    operational,
+                    survey_results,
+                    node_status,
+                    name in operational,
+                    desc,
                 )
             )
 
     for name, desc in decoded_of(doc.get("ServiceNodes", [])):
         nodes.append(
             _node_entry(
-                name, "service", "service", None, operational,
-                survey_results, node_status, name in operational, desc,
+                name,
+                "service",
+                "service",
+                None,
+                operational,
+                survey_results,
+                node_status,
+                name in operational,
+                desc,
             )
         )
 
     for name, desc in decoded_of(doc.get("StorageReplicas", [])):
         nodes.append(
             _node_entry(
-                name, "storage", "storage", None, operational,
-                survey_results, node_status, name in operational, desc,
+                name,
+                "storage",
+                "storage",
+                None,
+                operational,
+                survey_results,
+                node_status,
+                name in operational,
+                desc,
             )
         )
 
@@ -390,12 +442,16 @@ def build_viz_payload(
             if not tcp.get("reachable"):
                 continue
             raw_type = str(data.get("node_type", "") or "")
-            role = "mix" if raw_type.startswith("mix") else (raw_type or "node")
+            role = (
+                "mix" if raw_type.startswith("mix") else (raw_type or "node")
+            )
             lat = tcp.get("final_latency_ms")
             hops = tcp.get("hops", []) or []
             cur = out_by_name.get(name)
             better_lat = isinstance(lat, (int, float)) and (
-                cur is None or cur["latency_ms"] is None or lat < cur["latency_ms"]
+                cur is None
+                or cur["latency_ms"] is None
+                or lat < cur["latency_ms"]
             )
             if cur is None or better_lat:
                 host, port = data.get("host"), data.get("port")
@@ -412,11 +468,16 @@ def build_viz_payload(
                     "in_consensus": False,
                     "reachable": True,
                     "latency_ms": round(float(lat), 1)
-                    if isinstance(lat, (int, float)) else None,
+                    if isinstance(lat, (int, float))
+                    else None,
                     "hop_count": len(hops),
                     "hops": [
-                        {"hop": h.get("hop"), "ip": h.get("ip"),
-                         "latency_ms": h.get("latency_ms")} for h in hops
+                        {
+                            "hop": h.get("hop"),
+                            "ip": h.get("ip"),
+                            "latency_ms": h.get("latency_ms"),
+                        }
+                        for h in hops
                     ],
                     "details": details,
                 }
@@ -429,7 +490,11 @@ def build_viz_payload(
         if ip is None and survey_results:
             for data in survey_results.values():
                 host = data.get("host")
-                if data.get("name") == n["name"] and host and host != "unknown":
+                if (
+                    data.get("name") == n["name"]
+                    and host
+                    and host != "unknown"
+                ):
                     ip = host
                     break
         location = geo_resolver.resolve(ip, n["name"])
@@ -445,7 +510,11 @@ def build_viz_payload(
                 continue
             hg = geo_resolver.resolve(hip, None)
             if hg:
-                hop["geo"] = {"lat": hg["lat"], "lon": hg["lon"], "label": hg.get("label", "")}
+                hop["geo"] = {
+                    "lat": hg["lat"],
+                    "lon": hg["lon"],
+                    "label": hg.get("label", ""),
+                }
             asn = geo_resolver.resolve_asn(hip)
             if asn:
                 hop["asn"] = asn.get("asn", "")
@@ -463,7 +532,8 @@ def build_viz_payload(
         "epoch_time_str": epoch_time_str,
         "epoch_end": epoch_end,
         "epoch_period_s": epoch_period_s,
-        "generated_at": generated_at or (datetime.utcnow().isoformat(timespec="microseconds") + "Z"),
+        "generated_at": generated_at
+        or (datetime.utcnow().isoformat(timespec="microseconds") + "Z"),
         "parameters": _extract_parameters(doc),
         "consensus": _network_consensus(doc),
         "vantage": vantage,
@@ -477,16 +547,19 @@ def build_viz_payload(
         },
     }
 
+
 def render_data_json(payload: dict[str, Any]) -> str:
     """Render the data file: plain JSON. The page fetches this on a timer and
     rebuilds when it changes, so a cron run only rewrites this one file."""
     return json.dumps(payload, separators=(",", ":"))
+
 
 def _feature_files() -> list[str]:
     """Names of the feature plugin JS files, sorted for a stable load order."""
     if not FEATURES_SRC.is_dir():
         return []
     return sorted(p.name for p in FEATURES_SRC.glob("*.js"))
+
 
 def render_shell_html(
     network_name: str,
@@ -510,6 +583,7 @@ def render_shell_html(
         .replace("__FEATURE_SCRIPTS__", feature_tags)
     )
 
+
 def _write_if_changed(path: Path, content: str) -> bool:
     """Write content only when it differs from what is already on disk, so the
     static assets keep a stable mtime across cron runs (and browsers can cache
@@ -523,25 +597,37 @@ def _write_if_changed(path: Path, content: str) -> bool:
     path.write_text(content, encoding="utf-8")
     return True
 
+
 def _write_static_assets(assets_dir: Path) -> None:
     """Write the vendored three.js modules and the application JS into the
     assets sub-directory, only when their content has changed."""
     assets_dir.mkdir(parents=True, exist_ok=True)
     for fname in VENDOR_SCRIPTS:
-        _write_if_changed(assets_dir / fname, (VENDOR_DIR / fname).read_text(encoding="utf-8"))
-    _write_if_changed(assets_dir / APP_JS_NAME, APP_JS_PATH.read_text(encoding="utf-8"))
+        _write_if_changed(
+            assets_dir / fname,
+            (VENDOR_DIR / fname).read_text(encoding="utf-8"),
+        )
+    _write_if_changed(
+        assets_dir / APP_JS_NAME, APP_JS_PATH.read_text(encoding="utf-8")
+    )
     features = _feature_files()
     if features:
         feat_dir = assets_dir / FEATURES_SUBDIR
         feat_dir.mkdir(parents=True, exist_ok=True)
         for name in features:
-            _write_if_changed(feat_dir / name, (FEATURES_SRC / name).read_text(encoding="utf-8"))
+            _write_if_changed(
+                feat_dir / name,
+                (FEATURES_SRC / name).read_text(encoding="utf-8"),
+            )
     earth_src = ASSETS_DIR / "earth"
     if earth_src.is_dir():
         earth_dir = assets_dir / "earth"
         earth_dir.mkdir(parents=True, exist_ok=True)
         for f in sorted(earth_src.glob("*.json")):
-            _write_if_changed(earth_dir / f.name, f.read_text(encoding="utf-8"))
+            _write_if_changed(
+                earth_dir / f.name, f.read_text(encoding="utf-8")
+            )
+
 
 def _write_history(
     out_dir: Path,
@@ -598,6 +684,7 @@ def _write_history(
         index = index[-history_len:]
     index_path.write_text(json.dumps(index), encoding="utf-8")
 
+
 def generate_viz(
     doc: dict[str, Any],
     output_file: str,
@@ -643,8 +730,10 @@ def generate_viz(
         epoch_end=epoch_end,
         epoch_period_s=epoch_period_s,
         geo_resolver=GeoResolver(
-            db_path=geoip_db, asn_db_path=geoip_asn_db,
-            asn_whois=asn_whois, asn_cache_path=asn_cache_path,
+            db_path=geoip_db,
+            asn_db_path=geoip_asn_db,
+            asn_whois=asn_whois,
+            asn_cache_path=asn_cache_path,
         ),
         vantage=vantage,
         clients_per_gateway=clients_per_gateway,
@@ -659,7 +748,10 @@ def generate_viz(
     data_json_text = render_data_json(payload)
     (out_dir / data_name).write_text(data_json_text, encoding="utf-8")
     out_html.write_text(
-        render_shell_html(network_name, data_name, poll_seconds), encoding="utf-8"
+        render_shell_html(network_name, data_name, poll_seconds),
+        encoding="utf-8",
     )
     if write_history:
-        _write_history(out_dir, out_html.stem, payload, data_json_text, history_len)
+        _write_history(
+            out_dir, out_html.stem, payload, data_json_text, history_len
+        )
