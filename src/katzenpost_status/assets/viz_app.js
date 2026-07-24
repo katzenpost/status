@@ -292,6 +292,10 @@
         toggle.setAttribute('aria-expanded', v ? 'true' : 'false');
         toggle.textContent = v ? '✕' : '☰';
         toggle.setAttribute('aria-label', v ? 'Hide menu' : 'Show menu');
+        // The floating scene chooser sits where the open panel lands; hide it
+        // while the menu is open so the two do not overlap.
+        var vs = document.getElementById('view-select');
+        if (vs) vs.style.display = v ? 'none' : '';
     }
 
     function clearWorld() {
