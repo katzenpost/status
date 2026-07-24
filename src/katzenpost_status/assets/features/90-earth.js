@@ -12,7 +12,7 @@
         : /view=cascade/.test(_vh) ? 'cascade' : /view=radial/.test(_vh) ? 'radial' : /view=depend/.test(_vh) ? 'depend' : /view=jenga/.test(_vh) ? 'jenga' : /view=spire/.test(_vh) ? 'spire' : /view=shells/.test(_vh) ? 'shells' : /view=arch/.test(_vh) ? 'arch' : /view=tree/.test(_vh) ? 'tree' : /view=suspend/.test(_vh) ? 'suspend'
             : /view=spiral/.test(_vh) ? 'spiral' : /view=fibsphere/.test(_vh) ? 'fibsphere'
                 : /view=hypercube/.test(_vh) ? 'hypercube' : /view=torus/.test(_vh) ? 'torus'
-                    : /view=helix/.test(_vh) ? 'helix' : /view=tspiral/.test(_vh) ? 'tspiral'
+                    : /view=helix/.test(_vh) ? 'helix' : /view=mobius/.test(_vh) ? 'mobius' : /view=tspiral/.test(_vh) ? 'tspiral'
                         : /view=force/.test(_vh) ? 'force' : 'earth';
     var globe = null;
     var flatMap = null;      // 2D map backdrop (land + cables), Earth-flat mode
@@ -21,7 +21,7 @@
     var spinEnabled = true;   // 3D views slowly auto-rotate unless Rotate is off
     var SPIN3D = {
         earth: 1, rings: 1, spiral: 1, radial: 1, depend: 1, jenga: 1, spire: 1, shells: 1, arch: 1, tree: 1, suspend: 1, fibsphere: 1,
-        hypercube: 1, torus: 1, helix: 1, force: 1
+        hypercube: 1, torus: 1, helix: 1, mobius: 1, force: 1
     };
     var landRings = null;    // [[ [lon,lat], ... ], ...] once loaded
     var firstBuild = true;   // frame the globe once, on the first data build
@@ -44,11 +44,11 @@
     var btn = document.createElement('button');
     btn.style.width = '100%';
     var MODE_ORDER = ['earth', 'flat', 'rings', 'cascade', 'radial', 'depend', 'jenga', 'spire', 'shells', 'arch', 'tree', 'suspend', 'spiral', 'fibsphere',
-        'hypercube', 'torus', 'helix', 'tspiral', 'force'];
+        'hypercube', 'torus', 'helix', 'mobius', 'tspiral', 'force'];
     var MODE_NAME = {
         earth: 'Earth', flat: 'Flat map', rings: 'Rings', cascade: 'Cascade', radial: 'Radial',
         depend: 'Dependency', jenga: 'Quorum stack', spire: 'Threshold spire', shells: 'Nested shells', arch: 'Keystone arch', tree: 'Root tree', suspend: 'Suspension', spiral: 'Spiral', fibsphere: 'Fib sphere', hypercube: 'Hypercube',
-        torus: 'Trefoil', helix: 'Helix', tspiral: 'Time spiral', force: 'Force graph'
+        torus: 'Trefoil', helix: 'Helix', mobius: 'Mobius strip', tspiral: 'Time spiral', force: 'Force graph'
     };
     function nextMode(m) { return MODE_ORDER[(MODE_ORDER.indexOf(m) + 1) % MODE_ORDER.length]; }
     var curOverlay = null;
@@ -1001,6 +1001,34 @@
         K.snapTo(dist * 0.7, 0, dist * 0.7, 0, 0, 0);
     }
 
+    function computeMobius(ns) {
+        var order = ns.slice().sort(tierSort), n = order.length;
+        var Rm = 22, wid = 7;   // loop radius; half-width of the band
+        order.forEach(function (o, i) {
+            var u = (i / n) * Math.PI * 2;
+            var v = ((i % 3) - 1) * wid;        // three lanes across the width
+            var half = u / 2, rad = Rm + v * Math.cos(half);
+            o.mobiusPos = new THREE.Vector3(
+                Math.cos(u) * rad, v * Math.sin(half), Math.sin(u) * rad);
+        });
+    }
+    function enterMobius() {
+        K.setLinkBuilder(straightLinkBuilder('mobiusPos'));
+        structLinksOn();
+        K.setSegmentInterpolator(null); K.setPathBuilder(null);
+        K.setOrbitOrigin(true); K.setPlanar(false); K.setClusterFilter(null);
+        K.worldRoot().rotation.set(0, 0, 0);
+        setSceneryVisible(false);
+        K.rebuildLinks(); K.drawSelectionPath();
+        var c = K.controls(); if (c) { c.minDistance = 8; c.maxDistance = 240; }
+    }
+    function frameMobius() {
+        var fov = K.camera().fov, tan = Math.tan(THREE.MathUtils.degToRad(fov * 0.5));
+        var dist = (30 / tan) * 1.25 + 12;
+        K.worldRoot().rotation.set(0, 0, 0);
+        K.snapTo(dist * 0.25, dist * 0.45, dist, 0, 0, 0);
+    }
+
     function computeTimeSpiral(ns) {
         var order = ns.slice().sort(tierSort), n = order.length, turns = 3;
         order.forEach(function (o, i) {
@@ -1592,6 +1620,7 @@
         else if (mode === 'hypercube') { enterHyper(); frameHyper(); }
         else if (mode === 'torus') { enterTorus(); frameTorus(); }
         else if (mode === 'helix') { enterHelix(); frameHelix(); }
+        else if (mode === 'mobius') { enterMobius(); frameMobius(); }
         else if (mode === 'tspiral') { enterTimeSpiral(); frameTimeSpiral(); }
         else if (mode === 'force') { enterForce(); frameForce(); }
         else { enterRings(); frameRings(); }
@@ -1697,6 +1726,7 @@
         computeHyper(ns);
         computeTorus(ns);
         computeHelix(ns);
+        computeMobius(ns);
         computeTimeSpiral(ns);
         if (mode === 'force') computeForce(ns);
         ns.forEach(function (o) {
@@ -1719,6 +1749,7 @@
         else if (mode === 'hypercube') enterHyper();
         else if (mode === 'torus') enterTorus();
         else if (mode === 'helix') enterHelix();
+        else if (mode === 'mobius') enterMobius();
         else if (mode === 'tspiral') enterTimeSpiral();
         else if (mode === 'force') enterForce();
         else enterRings();
@@ -1739,6 +1770,7 @@
             else if (mode === 'hypercube') frameHyper();
             else if (mode === 'torus') frameTorus();
             else if (mode === 'helix') frameHelix();
+            else if (mode === 'mobius') frameMobius();
             else if (mode === 'tspiral') frameTimeSpiral();
             else if (mode === 'force') frameForce();
             else frameRings();
@@ -1751,7 +1783,7 @@
             : mode === 'cascade' ? o.cascadePos : mode === 'radial' ? o.radialPos
                 : mode === 'spiral' ? o.spiralPos : mode === 'fibsphere' ? o.fibPos
                     : mode === 'torus' ? o.torusPos : mode === 'helix' ? o.helixPos
-                        : mode === 'tspiral' ? o.tspiralPos : mode === 'depend' ? o.dependPos : mode === 'jenga' ? o.jengaPos : mode === 'spire' ? o.spirePos : mode === 'shells' ? o.shellsPos : mode === 'arch' ? o.archPos : mode === 'tree' ? o.treePos : mode === 'suspend' ? o.suspendPos : o.ringPos;
+                        : mode === 'mobius' ? o.mobiusPos : mode === 'tspiral' ? o.tspiralPos : mode === 'depend' ? o.dependPos : mode === 'jenga' ? o.jengaPos : mode === 'spire' ? o.spirePos : mode === 'shells' ? o.shellsPos : mode === 'arch' ? o.archPos : mode === 'tree' ? o.treePos : mode === 'suspend' ? o.suspendPos : o.ringPos;
     }
     K.on('build', applyMode);
 
