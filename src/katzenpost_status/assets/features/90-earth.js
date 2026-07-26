@@ -254,14 +254,41 @@
         K.worldRoot().add(globe);
     }
 
+    // Break a cable polyline at the antimeridian (|dlon|>180) and densify long
+    // spans so the segments hug the globe surface instead of chording through
+    // it (which is what made the trans-Pacific cables near Hawaii look wrong).
+    function densifyCable(line, stepDeg) {
+        stepDeg = stepDeg || 2;
+        var subs = [], cur = [];
+        for (var i = 0; i < line.length; i++) {
+            var p = line[i];
+            if (cur.length) {
+                var q = cur[cur.length - 1], dlon = p[0] - q[0];
+                if (Math.abs(dlon) > 180) { subs.push(cur); cur = []; }
+                else {
+                    var dist = Math.max(Math.abs(dlon), Math.abs(p[1] - q[1]));
+                    var k = Math.ceil(dist / stepDeg);
+                    for (var s = 1; s < k; s++) {
+                        var t = s / k;
+                        cur.push([q[0] + dlon * t, q[1] + (p[1] - q[1]) * t]);
+                    }
+                }
+            }
+            cur.push(p);
+        }
+        if (cur.length) subs.push(cur);
+        return subs;
+    }
     function ensureCables() {
         if (cableMesh || !cableLines || !globe) return;
         var pts = [];
         cableLines.forEach(function (line) {
-            for (var i = 0; i < line.length - 1; i++) {
-                pts.push(geoToVec(line[i][1], line[i][0], R - 0.1));
-                pts.push(geoToVec(line[i + 1][1], line[i + 1][0], R - 0.1));
-            }
+            densifyCable(line).forEach(function (sub) {
+                for (var i = 0; i < sub.length - 1; i++) {
+                    pts.push(geoToVec(sub[i][1], sub[i][0], R - 0.1));
+                    pts.push(geoToVec(sub[i + 1][1], sub[i + 1][0], R - 0.1));
+                }
+            });
         });
         cableMesh = new THREE.LineSegments(
             new THREE.BufferGeometry().setFromPoints(pts),
@@ -452,10 +479,12 @@
         if (showFiber && cableLines) {
             var pts = [];
             cableLines.forEach(function (line) {
-                for (var i = 0; i < line.length - 1; i++) {
-                    pts.push(geoToFlat(line[i][1], line[i][0]));
-                    pts.push(geoToFlat(line[i + 1][1], line[i + 1][0]));
-                }
+                densifyCable(line).forEach(function (sub) {
+                    for (var i = 0; i < sub.length - 1; i++) {
+                        pts.push(geoToFlat(sub[i][1], sub[i][0]));
+                        pts.push(geoToFlat(sub[i + 1][1], sub[i + 1][0]));
+                    }
+                });
             });
             flatMap.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),
                 new THREE.LineBasicMaterial({ color: 0x45b8e0, transparent: true, opacity: 0.3 })));
