@@ -1248,6 +1248,20 @@
     var DIRAUTH_LINK_COLOR = 0xffd23f;   // PKI: dirauth <-> everything
     var REPLICA_LINK_COLOR = 0x00d2a0;   // storage replica <-> replica
     var COURIER_LINK_COLOR = 0xc06cff;   // courier service <-> replica
+    var GROUP_COLORS = {                 // per node-group colour, for arcs/highlights
+        gateway: 0x2ec4b6, service: 0xff8f3f, storage: 0x00d2a0,
+        dirauth: 0xffd23f, out: 0x9aa7b3
+    };
+    var MIX_LAYER_COLORS = [0x4d8bf0, 0x9b5de5, 0xff5d8f, 0x6ce0b0];
+    function groupColor(node) {
+        if (!node || !node.data) return 0x8aa0b4;
+        var t = node.data.type;
+        if (t === 'mix') {
+            var L = (typeof node.data.layer === 'number') ? node.data.layer : 0;
+            return MIX_LAYER_COLORS[L % MIX_LAYER_COLORS.length];
+        }
+        return GROUP_COLORS[t] || 0x8aa0b4;
+    }
     function isPkiLink(a, b) { return a.data.type === 'dirauth' || b.data.type === 'dirauth'; }
     function linkColor(a, b) {
         if (!a || !b) return 0x4a7a9a;
@@ -1603,6 +1617,7 @@
         vantagePos: function () { return vantagePos; },
         vantageLink: function (a, b, hops, latency, curvePoints) { return vantageLink(a, b, hops, latency, curvePoints); },
         latencyColor: latencyColor,
+        groupColor: groupColor,
         showVantage: showVantage,
         showLink: showLink,
         topoPairs: function () { return topoPairs; },

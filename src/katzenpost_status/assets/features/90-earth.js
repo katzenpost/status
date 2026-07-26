@@ -319,7 +319,7 @@
         if (!node.earthPos) return null;
         var va = vantageEarthPos();
         return K.makeTube(arcPoints(va, node.earthPos, Math.max(24, (node.data.hop_count || 1) * 2)),
-            0.45, K.latencyColor(node.data.latency_ms), 0.8);
+            0.45, K.groupColor(node), 0.8);
     }
     function clearExtras() {
         extras.forEach(function (o) {
@@ -347,7 +347,7 @@
 
     function cableRoute(a, b) {
         if (!cablePolysVec || !cablePolysVec.length) return null;
-        if (a.angleTo(b) < 0.5) return null;           // short hop: a plain arc reads fine
+        if (a.angleTo(b) < 0.18) return null;          // only very local hops skip fiber
         var gc = a.distanceTo(b), best = null;
         for (var p = 0; p < cablePolysVec.length; p++) {
             var poly = cablePolysVec[p], da = Infinity, ia = 0, db = Infinity, ib = 0;
@@ -358,7 +358,7 @@
             if (!best || da + db < best.s) best = { s: da + db, poly: poly, ia: ia, ib: ib };
         }
         if (!best) return null;
-        var thr = (0.35 * gc) * (0.35 * gc);
+        var thr = (0.6 * gc) * (0.6 * gc);             // snap to fiber even when a bit farther
         if (best.poly[best.ia].distanceToSquared(a) > thr) return null;
         if (best.poly[best.ib].distanceToSquared(b) > thr) return null;
         var lo = Math.min(best.ia, best.ib), hi = Math.max(best.ia, best.ib);
@@ -366,7 +366,7 @@
         if (best.ia > best.ib) slice.reverse();
         var slen = 0;
         for (var s = 0; s < slice.length - 1; s++) slen += slice[s].distanceTo(slice[s + 1]);
-        if (slen > 2.5 * gc) return null;              // ...and not a wildly indirect detour
+        if (slen > 4.0 * gc) return null;              // ...and not a wildly indirect detour
         var pts = [a.clone()];
         for (var j = 0; j < slice.length; j += 3) pts.push(slice[j].clone().setLength(SURF * 1.01));
         pts.push(b.clone());
@@ -515,7 +515,7 @@
     }
     function flatPathBuilder(node) {
         if (!node.flatPos) return null;
-        return K.makeTube([vantageFlatPos(), node.flatPos.clone()], 0.3, K.latencyColor(node.data.latency_ms), 0.8);
+        return K.makeTube([vantageFlatPos(), node.flatPos.clone()], 0.3, K.groupColor(node), 0.8);
     }
     function ringLinkBuilder(aObj, bObj, hex, opacity, rscale) {
         var a = aObj.ringPos || aObj.mesh.position, b = bObj.ringPos || bObj.mesh.position;
