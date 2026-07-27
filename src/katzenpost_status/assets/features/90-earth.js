@@ -71,7 +71,6 @@
     function showOverlay(id) {
         overlayList().forEach(function (o) { if (o.el) o.el.style.display = (o.id === id) ? 'block' : 'none'; });
         curOverlay = id;
-        if (ovClose) ovClose.style.display = 'block';
         var ov = findOverlay(id); if (ov && ov.onShow) ov.onShow();
         updateBtn();
     }
@@ -79,7 +78,6 @@
         if (curOverlay) { var ov = findOverlay(curOverlay); if (ov && ov.onHide) ov.onHide(); }
         overlayList().forEach(function (o) { if (o.el) o.el.style.display = 'none'; });
         curOverlay = null;
-        if (ovClose) ovClose.style.display = 'none';
     }
     function gotoNextView() { gotoView(nextViewId()); }
     function gotoView(vid) {
@@ -104,15 +102,9 @@
         btn.textContent = 'View: ' + viewName(here) + ' (next: ' + viewName(nx) + ')';
         rebuildViewSelect();
     }
-    var ovClose = document.createElement('button');
-    ovClose.id = 'overlay-close'; ovClose.type = 'button'; ovClose.textContent = 'x Close';
-    ovClose.setAttribute('aria-label', 'Close overlay');
-    ovClose.style.cssText = 'position:fixed;z-index:31;display:none;' +
-        'top:max(12px, env(safe-area-inset-top));right:max(12px, env(safe-area-inset-right));' +
-        'height:34px;padding:0 12px;background:rgba(8,12,20,0.92);border:1px solid rgba(255,180,84,0.5);' +
-        'color:#ffb454;border-radius:8px;font:12px/1 monospace;cursor:pointer';
-    ovClose.addEventListener('click', function () { hideOverlays(); updateBtn(); });
-    document.body.appendChild(ovClose);
+    // No dedicated overlay-close button: an overlay is just another view, so
+    // switching views (via the chooser) replaces it. Selecting a spatial view
+    // hides any overlay in gotoView/hideOverlays.
     var viewSelect = document.createElement('select');
     viewSelect.id = 'view-select';
     viewSelect.setAttribute('aria-label', 'Choose view');
