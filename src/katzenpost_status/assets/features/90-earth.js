@@ -83,6 +83,7 @@
     function gotoView(vid) {
         if (vid.indexOf('overlay:') === 0) { showOverlay(vid.slice(8)); }
         else { hideOverlays(); setMode(vid); updateBtn(); }
+        try { if (window.localStorage) localStorage.setItem('katzen.view', vid); } catch (e) { }
     }
     function rebuildViewSelect() {
         if (!viewSelect) return;
@@ -108,6 +109,7 @@
     var viewSelect = document.createElement('select');
     viewSelect.id = 'view-select';
     viewSelect.setAttribute('aria-label', 'Choose view');
+    viewSelect.setAttribute('autocomplete', 'off');   // we restore the view ourselves
     viewSelect.style.cssText = 'position:fixed;z-index:30;top:calc(max(12px, env(safe-area-inset-top)) + 52px);' +
         'left:max(12px, env(safe-area-inset-left));max-width:160px;height:34px;' +
         'background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;' +
@@ -1827,8 +1829,16 @@
 
     K.on('boot', function () {
         rebuildViewSelect();
-        var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(location.hash + location.search);
-        if (om && findOverlay(om[1])) showOverlay(om[1]);
+        var qs = location.hash + location.search;
+        var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(qs);
+        if (om && findOverlay(om[1])) { showOverlay(om[1]); return; }
+        // With no view/overlay pinned in the URL, restore the last-selected
+        // view so the menu label and what is shown agree after a reload.
+        if (!/[?#&]view=/i.test(qs)) {
+            var saved = null;
+            try { saved = window.localStorage && localStorage.getItem('katzen.view'); } catch (e) { }
+            if (saved && saved !== curViewId() && viewIds().indexOf(saved) >= 0) gotoView(saved);
+        }
     });
     K.on('boot', function () {
         fetch('katzenpost-viz/earth/land-110m.geo.json', { cache: 'force-cache' })
