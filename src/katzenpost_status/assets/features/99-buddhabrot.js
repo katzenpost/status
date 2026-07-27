@@ -13,17 +13,6 @@
     canvas.style.cssText = 'position:absolute;top:50%;left:50%;display:block;width:96vmin;height:96vmin;' +
         'transform:translate(-50%,-50%) rotate(90deg);will-change:transform';
     el.appendChild(canvas);
-    var cap = document.createElement('div');
-    cap.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:26;' +
-        'max-width:calc(100vw - 24px);text-align:center;color:#9fb3c2;font:11px/1.5 monospace;' +
-        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 26px 6px 12px';
-    var capText = document.createElement('span');
-    var capX = document.createElement('button');
-    capX.textContent = 'x'; capX.setAttribute('aria-label', 'Close');
-    capX.style.cssText = 'position:absolute;top:2px;right:5px;background:none;border:none;color:#9fb3c2;cursor:pointer;font:12px monospace;padding:2px 4px';
-    capX.addEventListener('click', function () { cap.style.display = 'none'; });
-    cap.appendChild(capText); cap.appendChild(capX);
-    el.appendChild(cap);
     document.body.appendChild(el);
 
     var mob = window.matchMedia('(max-width: 600px)').matches;
@@ -39,7 +28,7 @@
     // Classic complex window; the canvas is rotated 90deg for the upright look.
     var RE0 = -2.15, RE1 = 1.0, IM0 = -1.28, IM1 = 1.28;
     var reSpan = RE1 - RE0, imSpan = IM1 - IM0;
-    var BUDGET = mob ? 350000 : 1300000;    // iterations per animation frame
+    var BUDGET = mob ? 900000 : 3000000;    // iterations per animation frame
 
     var running = false, raf = 0, lastEpoch = null, t0 = 0;
 
@@ -47,13 +36,14 @@
     function readParams() {
         var d = K.data() || {}, P = d.parameters || {};
         var mu = pos(P.Mu);
-        // Longer per-hop delay (smaller Mu) => deeper orbits in the long channel.
-        var deep = mu ? Math.max(0.5, Math.min(4, (1 / mu) / 25)) : 1.5;
-        var maxIter = [60, 700, Math.max(1400, Math.round(2600 * deep))];
+        // Longer per-hop delay (smaller Mu) => deeper orbits, but keep the depth
+        // in a range that stays dense enough to read.
+        var deep = mu ? Math.max(0.7, Math.min(1.7, (1 / mu) / 400)) : 1.0;
+        var maxIter = [80, 800, Math.round(2600 * deep)];   // ~1800..4400
         var lp = pos(P.LambdaP), lm = pos(P.LambdaM), lg = pos(P.LambdaG);
         var w = [lp || 1, lm || 1, lg || 1];
         var rate = (typeof K.trafficRate === 'function' ? K.trafficRate() : 0) || 0;
-        var expo = 1.15 + Math.min(2.0, rate / 45);           // busier network -> brighter
+        var expo = 1.7 + Math.min(1.8, rate / 45);            // busier network -> brighter
         var by = (d.counts && d.counts.by_status) || {};
         var total = (d.counts && d.counts.total) || (d.nodes ? d.nodes.length : 0) || 1;
         var health = Math.max(0, Math.min(1, ((by.down || 0) + (by.unknown || 0)) / total));
@@ -118,7 +108,9 @@
             for (ch = 0; ch < 3; ch++) {
                 var v = hist[ch][i];
                 if (v <= 0) continue;
-                var s = Math.pow(v / mxv[ch], 0.42) * expo * cw[ch];
+                // Normalise to a fraction of the peak (not the peak itself) so a
+                // few hot pixels do not crush the arms to black.
+                var s = Math.pow(Math.min(1, v / (mxv[ch] * 0.09)), 0.5) * expo * cw[ch];
                 r += TINT[ch][0] * s; g += TINT[ch][1] * s; bl += TINT[ch][2] * s;
             }
             if (red > 0) { r = r * (1 - red) + (r + g + bl) * 0.5 * red; g *= (1 - 0.7 * red); bl *= (1 - 0.7 * red); }
@@ -129,13 +121,6 @@
             data[k + 3] = 255;
         }
         ctx.putImageData(img, 0, 0);
-    }
-
-    function caption() {
-        var mi = P.maxIter;
-        capText.innerHTML = 'Loopix Nebulabrot &mdash; ambient art driven by live parameters. ' +
-            'Channels = mix layers (depth ' + mi[0] + '/' + mi[1] + '/' + mi[2] + '), ' +
-            'brightness = traffic, hue = &lambda; mix' + (P.health > 0.01 ? ', red = nodes down' : '') + '.';
     }
 
     function reset() {
@@ -155,15 +140,15 @@
 
     K.on('data', function () {
         var np = readParams();
-        if (np.epoch !== lastEpoch) { P = np; lastEpoch = np.epoch; reset(); caption(); }
-        else { P = np; caption(); }
+        if (np.epoch !== lastEpoch) { P = np; lastEpoch = np.epoch; reset(); }
+        else { P = np; }
     });
 
     window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
     window.KATZEN_OVERLAYS.push({
         id: 'buddhabrot', name: 'Nebulabrot', el: el,
         onShow: function () {
-            P = readParams(); lastEpoch = P.epoch; caption();
+            P = readParams(); lastEpoch = P.epoch;
             t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : 0;
             if (!running) { running = true; raf = requestAnimationFrame(loop); }
         },
