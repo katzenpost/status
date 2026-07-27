@@ -10,13 +10,19 @@
     el.id = 'buddhabrot-overlay';
     el.style.cssText = 'position:fixed;inset:0;z-index:25;display:none;background:#000;overflow:hidden';
     var canvas = document.createElement('canvas');
-    canvas.style.cssText = 'position:absolute;top:50%;left:50%;width:auto;height:96vmin;' +
+    canvas.style.cssText = 'position:absolute;top:50%;left:50%;display:block;width:96vmin;height:96vmin;' +
         'transform:translate(-50%,-50%) rotate(90deg);will-change:transform';
     el.appendChild(canvas);
     var cap = document.createElement('div');
     cap.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:26;' +
         'max-width:calc(100vw - 24px);text-align:center;color:#9fb3c2;font:11px/1.5 monospace;' +
-        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 12px';
+        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 26px 6px 12px';
+    var capText = document.createElement('span');
+    var capX = document.createElement('button');
+    capX.textContent = 'x'; capX.setAttribute('aria-label', 'Close');
+    capX.style.cssText = 'position:absolute;top:2px;right:5px;background:none;border:none;color:#9fb3c2;cursor:pointer;font:12px monospace;padding:2px 4px';
+    capX.addEventListener('click', function () { cap.style.display = 'none'; });
+    cap.appendChild(capText); cap.appendChild(capX);
     el.appendChild(cap);
     document.body.appendChild(el);
 
@@ -47,7 +53,7 @@
         var lp = pos(P.LambdaP), lm = pos(P.LambdaM), lg = pos(P.LambdaG);
         var w = [lp || 1, lm || 1, lg || 1];
         var rate = (typeof K.trafficRate === 'function' ? K.trafficRate() : 0) || 0;
-        var expo = 0.55 + Math.min(2.4, rate / 45);           // busier network -> brighter
+        var expo = 1.15 + Math.min(2.0, rate / 45);           // busier network -> brighter
         var by = (d.counts && d.counts.by_status) || {};
         var total = (d.counts && d.counts.total) || (d.nodes ? d.nodes.length : 0) || 1;
         var health = Math.max(0, Math.min(1, ((by.down || 0) + (by.unknown || 0)) / total));
@@ -103,7 +109,9 @@
             mxv[ch] = m;
         }
         var wsum = P.w[0] + P.w[1] + P.w[2];
-        var cw = [P.w[0] / wsum * 3, P.w[1] / wsum * 3, P.w[2] / wsum * 3];
+        // lambda mix modulates hue balance but never zeroes a channel, so the
+        // structure (mostly in the deep channel) always stays visible.
+        var cw = [0.7 + 1.1 * (P.w[0] / wsum), 0.7 + 1.1 * (P.w[1] / wsum), 0.7 + 1.1 * (P.w[2] / wsum)];
         var data = img.data, expo = P.expo, red = P.health;
         for (i = 0; i < W * H; i++) {
             var r = 0, g = 0, bl = 0;
@@ -125,7 +133,7 @@
 
     function caption() {
         var mi = P.maxIter;
-        cap.innerHTML = 'Loopix Nebulabrot &mdash; ambient art driven by live parameters. ' +
+        capText.innerHTML = 'Loopix Nebulabrot &mdash; ambient art driven by live parameters. ' +
             'Channels = mix layers (depth ' + mi[0] + '/' + mi[1] + '/' + mi[2] + '), ' +
             'brightness = traffic, hue = &lambda; mix' + (P.health > 0.01 ? ', red = nodes down' : '') + '.';
     }
