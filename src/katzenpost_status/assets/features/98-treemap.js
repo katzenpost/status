@@ -13,7 +13,7 @@
     el.id = 'treemap-overlay';
     el.style.cssText = 'position:fixed;inset:0;z-index:25;display:none;background:#030508;' +
         'box-sizing:border-box;padding:env(safe-area-inset-top) env(safe-area-inset-right) ' +
-        'env(safe-area-inset-bottom) env(safe-area-inset-left)';
+        'env(safe-area-inset-bottom) calc(env(safe-area-inset-left) + 60px)';
     var canvas = document.createElement('canvas');
     canvas.style.cssText = 'display:block;width:100%;height:100%';
     el.appendChild(canvas);

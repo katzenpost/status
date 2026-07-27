@@ -12,7 +12,7 @@
     el.style.cssText = 'position:fixed;inset:0;z-index:25;display:none;background:#030508;' +
         'overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;' +
         'padding:env(safe-area-inset-top) env(safe-area-inset-right) ' +
-        'env(safe-area-inset-bottom) env(safe-area-inset-left)';
+        'env(safe-area-inset-bottom) calc(env(safe-area-inset-left) + 60px)';
     var canvas = document.createElement('canvas');
     canvas.style.cssText = 'display:block';
     el.appendChild(canvas);
