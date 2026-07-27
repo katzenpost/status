@@ -16,7 +16,13 @@
     var cap = document.createElement('div');
     cap.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:26;' +
         'max-width:calc(100vw - 24px);text-align:center;color:#9fb3c2;font:11px/1.5 monospace;' +
-        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 12px';
+        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 26px 6px 12px';
+    var capText = document.createElement('span');
+    var capX = document.createElement('button');
+    capX.textContent = 'x'; capX.setAttribute('aria-label', 'Close');
+    capX.style.cssText = 'position:absolute;top:2px;right:5px;background:none;border:none;color:#9fb3c2;cursor:pointer;font:12px monospace;padding:2px 4px';
+    capX.addEventListener('click', function () { cap.style.display = 'none'; });
+    cap.appendChild(capText); cap.appendChild(capX);
     el.appendChild(cap);
     document.body.appendChild(el);
 
@@ -38,10 +44,12 @@
         var lp = pos(P.LambdaP), ll = pos(P.LambdaL), lm = pos(P.LambdaM), lg = pos(P.LambdaG), mu = pos(P.Mu);
         // Feed from the real-vs-loop traffic balance; kill from the per-hop delay.
         var realFrac = (lp + ll) > 0 ? lp / (lp + ll) : 0.5;
-        var f = 0.018 + realFrac * 0.05;                       // 0.018 .. 0.068
-        var k = 0.05 + Math.min(0.017, mu ? mu * 0.6 : 0.008);  // ~0.05 .. 0.067
+        // Keep f,k inside the persistent "worms/spots" Turing band so the field
+        // keeps evolving instead of collapsing to a uniform colour.
+        var f = 0.026 + realFrac * 0.013;                       // 0.026 .. 0.039
+        var k = 0.057 + Math.min(0.005, mu ? mu * 0.4 : 0.003);  // 0.057 .. 0.062
         var rate = (typeof K.trafficRate === 'function' ? K.trafficRate() : 0) || 0;
-        var steps = mob ? 6 : (8 + Math.min(8, Math.round(rate / 25)));
+        var steps = mob ? 4 : 6;                                // slow, watchable
         var by = (d.counts && d.counts.by_status) || {};
         var total = (d.counts && d.counts.total) || (d.nodes ? d.nodes.length : 0) || 1;
         var health = Math.max(0, Math.min(1, ((by.down || 0) + (by.unknown || 0)) / total));
@@ -50,18 +58,21 @@
     }
     var Pm = readParams();
 
+    function blob(cx, cy, r) {
+        for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+            var x = cx + dx, y = cy + dy;
+            if (x < 0 || x >= N || y < 0 || y >= N) continue;
+            if (dx * dx + dy * dy > r * r) continue;
+            V[y * N + x] = 0.5; U[y * N + x] = 0.25;
+        }
+    }
     function seed() {
         U.fill(1); V.fill(0);
         var blobs = 14 + ((Math.random() * 8) | 0);
-        for (var b = 0; b < blobs; b++) {
-            var cx = (Math.random() * N) | 0, cy = (Math.random() * N) | 0, r = 3 + ((Math.random() * 4) | 0);
-            for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
-                var x = cx + dx, y = cy + dy;
-                if (x < 0 || x >= N || y < 0 || y >= N) continue;
-                if (dx * dx + dy * dy > r * r) continue;
-                V[y * N + x] = 0.5; U[y * N + x] = 0.25;
-            }
-        }
+        for (var b = 0; b < blobs; b++) blob((Math.random() * N) | 0, (Math.random() * N) | 0, 3 + ((Math.random() * 4) | 0));
+    }
+    function perturb() {   // keep the field alive so it never settles to flat
+        for (var b = 0; b < 4; b++) blob((Math.random() * N) | 0, (Math.random() * N) | 0, 2 + ((Math.random() * 3) | 0));
     }
 
     function step(f, k) {
@@ -104,14 +115,16 @@
     }
 
     function caption() {
-        cap.innerHTML = 'Reaction-diffusion (Gray-Scott) &mdash; ambient art driven by live parameters. ' +
+        capText.innerHTML = 'Reaction-diffusion (Gray-Scott) &mdash; ambient art driven by live parameters. ' +
             'Feed ' + Pm.f.toFixed(3) + ' from real/loop &lambda; balance, kill ' + Pm.k.toFixed(3) +
             ' from delay Mu, hue = &lambda; mix' + (Pm.health > 0.01 ? ', red = nodes down' : '') + '.';
     }
 
+    var tick = 0;
     function loop() {
         if (!running) return;
         for (var s = 0; s < Pm.steps; s++) step(Pm.f, Pm.k);
+        if ((++tick % 220) === 0) perturb();   // occasional jolt keeps it evolving
         draw();
         raf = requestAnimationFrame(loop);
     }
