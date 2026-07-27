@@ -16,7 +16,13 @@
     var cap = document.createElement('div');
     cap.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:26;' +
         'max-width:calc(100vw - 24px);text-align:center;color:#9fb3c2;font:11px/1.5 monospace;' +
-        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 12px';
+        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 26px 6px 12px';
+    var capText = document.createElement('span');
+    var capX = document.createElement('button');
+    capX.textContent = 'x'; capX.setAttribute('aria-label', 'Close');
+    capX.style.cssText = 'position:absolute;top:2px;right:5px;background:none;border:none;color:#9fb3c2;cursor:pointer;font:12px monospace;padding:2px 4px';
+    capX.addEventListener('click', function () { cap.style.display = 'none'; });
+    cap.appendChild(capText); cap.appendChild(capX);
     el.appendChild(cap);
     document.body.appendChild(el);
 
@@ -92,7 +98,7 @@
     }
 
     function caption() {
-        cap.innerHTML = 'Loopix delay fireflies &mdash; each fades over a lifetime drawn from the ' +
+        capText.innerHTML = 'Loopix delay fireflies &mdash; each fades over a lifetime drawn from the ' +
             'exponential per-hop delay (mean 1/Mu ~ ' + Pm.meanSec.toFixed(2) + 's here), one column per ' +
             'mix layer; spawn rate follows live traffic' + (Pm.health > 0.01 ? '; dimmer as nodes go down' : '') + '.';
     }
