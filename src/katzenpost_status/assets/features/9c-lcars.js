@@ -8,7 +8,10 @@
     var css = document.createElement('style');
     css.textContent =
         '#lcars-overlay{position:fixed;inset:0;z-index:25;display:none;background:#000;overflow:auto;' +
-        'font-family:Arial,Helvetica,sans-serif;text-transform:uppercase;letter-spacing:1px;color:#ffcc99;padding:12px}' +
+        'font-family:Arial,Helvetica,sans-serif;text-transform:uppercase;letter-spacing:1px;color:#ffcc99;' +
+        // reserve the top-left strip for the hamburger + scene chooser so the
+        // board never sits under them.
+        'padding:calc(max(12px, env(safe-area-inset-top)) + 96px) 12px 12px}' +
         '#lcars-overlay *{box-sizing:border-box}' +
         '.lc-wrap{display:grid;grid-template-columns:150px 1fr;grid-gap:10px}' +
         '.lc-side{display:flex;flex-direction:column;gap:8px}' +
