@@ -13,17 +13,6 @@
     canvas.style.cssText = 'position:absolute;top:50%;left:50%;width:96vmin;height:96vmin;' +
         'transform:translate(-50%,-50%);image-rendering:pixelated';
     el.appendChild(canvas);
-    var cap = document.createElement('div');
-    cap.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:26;' +
-        'max-width:calc(100vw - 24px);text-align:center;color:#9fb3c2;font:11px/1.5 monospace;' +
-        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 26px 6px 12px';
-    var capText = document.createElement('span');
-    var capX = document.createElement('button');
-    capX.textContent = 'x'; capX.setAttribute('aria-label', 'Close');
-    capX.style.cssText = 'position:absolute;top:2px;right:5px;background:none;border:none;color:#9fb3c2;cursor:pointer;font:12px monospace;padding:2px 4px';
-    capX.addEventListener('click', function () { cap.style.display = 'none'; });
-    cap.appendChild(capText); cap.appendChild(capX);
-    el.appendChild(cap);
     document.body.appendChild(el);
 
     var mob = window.matchMedia('(max-width: 600px)').matches;
@@ -114,12 +103,6 @@
         ctx.putImageData(img, 0, 0);
     }
 
-    function caption() {
-        capText.innerHTML = 'Reaction-diffusion (Gray-Scott) &mdash; ambient art driven by live parameters. ' +
-            'Feed ' + Pm.f.toFixed(3) + ' from real/loop &lambda; balance, kill ' + Pm.k.toFixed(3) +
-            ' from delay Mu, hue = &lambda; mix' + (Pm.health > 0.01 ? ', red = nodes down' : '') + '.';
-    }
-
     var tick = 0;
     function loop() {
         if (!running) return;
@@ -133,14 +116,13 @@
         var np = readParams();
         if (np.epoch !== lastEpoch) { Pm = np; lastEpoch = np.epoch; seed(); }
         else { Pm = np; }
-        caption();
     });
 
     window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
     window.KATZEN_OVERLAYS.push({
         id: 'reaction', name: 'Reaction-diffusion', el: el,
         onShow: function () {
-            Pm = readParams(); lastEpoch = Pm.epoch; caption();
+            Pm = readParams(); lastEpoch = Pm.epoch;
             seed();
             if (!running) { running = true; raf = requestAnimationFrame(loop); }
         },

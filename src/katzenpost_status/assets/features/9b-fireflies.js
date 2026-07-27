@@ -13,17 +13,6 @@
     var canvas = document.createElement('canvas');
     canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
     el.appendChild(canvas);
-    var cap = document.createElement('div');
-    cap.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:26;' +
-        'max-width:calc(100vw - 24px);text-align:center;color:#9fb3c2;font:11px/1.5 monospace;' +
-        'background:rgba(6,10,16,0.72);border:1px solid rgba(120,140,170,0.3);border-radius:8px;padding:6px 26px 6px 12px';
-    var capText = document.createElement('span');
-    var capX = document.createElement('button');
-    capX.textContent = 'x'; capX.setAttribute('aria-label', 'Close');
-    capX.style.cssText = 'position:absolute;top:2px;right:5px;background:none;border:none;color:#9fb3c2;cursor:pointer;font:12px monospace;padding:2px 4px';
-    capX.addEventListener('click', function () { cap.style.display = 'none'; });
-    cap.appendChild(capText); cap.appendChild(capX);
-    el.appendChild(cap);
     document.body.appendChild(el);
 
     var ctx = canvas.getContext('2d');
@@ -97,20 +86,14 @@
         raf = requestAnimationFrame(frame);
     }
 
-    function caption() {
-        capText.innerHTML = 'Loopix delay fireflies &mdash; each fades over a lifetime drawn from the ' +
-            'exponential per-hop delay (mean 1/Mu ~ ' + Pm.meanSec.toFixed(2) + 's here), one column per ' +
-            'mix layer; spawn rate follows live traffic' + (Pm.health > 0.01 ? '; dimmer as nodes go down' : '') + '.';
-    }
-
-    K.on('data', function () { Pm = readParams(); caption(); });
+    K.on('data', function () { Pm = readParams(); });
     window.addEventListener('resize', function () { if (running) resize(); });
 
     window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
     window.KATZEN_OVERLAYS.push({
         id: 'fireflies', name: 'Delay fireflies', el: el,
         onShow: function () {
-            Pm = readParams(); caption(); resize(); flies = []; acc = 0; last = 0;
+            Pm = readParams(); resize(); flies = []; acc = 0; last = 0;
             if (!running) { running = true; raf = requestAnimationFrame(frame); }
         },
         onHide: function () { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; flies = []; }
