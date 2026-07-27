@@ -277,10 +277,45 @@
         document.addEventListener('keydown', function (e) {
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             var t = e.target, tag = t && t.tagName;
-            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' ||
-                (t && t.isContentEditable)) return;
-            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
+            // Leave text entry alone, but intercept f/h even over the scene
+            // chooser so its native type-ahead does not steal them.
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return;
+            var k = e.key.toLowerCase();
+            if (k === 'f') { e.preventDefault(); toggleFullscreen(); }
+            else if (k === 'h' || e.key === '?') { e.preventDefault(); toggleHelp(); }
         });
+    }
+
+    var helpEl = null;
+    function buildHelp() {
+        helpEl = document.createElement('div');
+        helpEl.id = 'help-overlay';
+        helpEl.style.cssText = 'position:fixed;inset:0;z-index:60;display:none;background:rgba(0,0,0,0.6);' +
+            'align-items:center;justify-content:center';
+        var box = document.createElement('div');
+        box.style.cssText = 'max-width:min(420px,calc(100vw - 32px));background:rgba(10,14,22,0.98);' +
+            'border:1px solid rgba(255,180,84,0.4);border-radius:10px;padding:16px 18px;color:#f0c98a;' +
+            'font:13px/1.7 monospace;box-shadow:0 12px 48px rgba(0,0,0,0.8)';
+        box.innerHTML = '<div style="font-size:15px;font-weight:700;color:#ffb454;margin-bottom:8px">Keyboard shortcuts</div>' +
+            '<div><b>f</b> &mdash; enter / exit fullscreen</div>' +
+            '<div><b>h</b> or <b>?</b> &mdash; show / hide this help</div>' +
+            '<div style="margin-top:10px;color:#9fb3c2;font-size:12px">Menu button (top-left): open / close controls.<br>' +
+            'Scene chooser (dropdown): switch the visualization.<br>' +
+            'Click a node for its details.</div>';
+        var x = document.createElement('button');
+        x.textContent = 'Close';
+        x.style.cssText = 'margin-top:14px;width:100%;background:rgba(255,180,84,0.14);border:1px solid rgba(255,180,84,0.4);' +
+            'color:#ffb454;border-radius:6px;padding:8px;cursor:pointer;font:12px monospace';
+        x.addEventListener('click', function () { toggleHelp(false); });
+        box.appendChild(x);
+        helpEl.appendChild(box);
+        helpEl.addEventListener('click', function (e) { if (e.target === helpEl) toggleHelp(false); });
+        document.body.appendChild(helpEl);
+    }
+    function toggleHelp(force) {
+        if (!helpEl) buildHelp();
+        var show = (force == null) ? (helpEl.style.display === 'none') : force;
+        helpEl.style.display = show ? 'flex' : 'none';
     }
 
     function toggleFullscreen() {
