@@ -320,6 +320,9 @@ class _StubResolver:
     def resolve_asn(self, ip):
         return {"asn": "AS64500", "org": "Test Net"} if ip else None
 
+    def attribution(self):
+        return None
+
 
 def test_epoch_timing_fields_in_payload():
     p = viz.build_viz_payload(

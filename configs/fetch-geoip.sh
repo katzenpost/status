@@ -14,6 +14,11 @@
 #
 # AS/operator names come from --asn-whois (no database), so this fetches only
 # the City database.
+#
+# Attribution: DB-IP City Lite is licensed CC BY 4.0 and requires visible
+# credit ("IP Geolocation by DB-IP"). The renderer reads the database type and
+# shows the required credit in the visualization whenever the database actually
+# places a node; a MaxMind GeoLite2 database gets its own required notice.
 set -eu
 
 DATADIR="${XDG_DATA_HOME:-$HOME/.local/share}/katzenpost-status"

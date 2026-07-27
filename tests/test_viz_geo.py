@@ -83,3 +83,22 @@ def test_asn_whois_uses_cache_without_network(tmp_path):
     assert r.resolve_asn("5.6.7.8") is None
     # A whois resolver without a cache entry AND with whois disabled -> None.
     assert viz_geo.GeoResolver(asn_whois=False).resolve_asn("9.9.9.9") is None
+
+
+def test_geoip_attribution_reflects_database_and_use():
+    """The GeoIP credit names the right provider and only appears once a
+    database actually placed a node."""
+    r = viz_geo.GeoResolver()
+    assert r.attribution() is None                       # no database at all
+
+    # DB-IP database, but nothing resolved from it yet -> no credit.
+    r._db = object()
+    r._db_type = "DBIP-City-Lite"
+    assert r.attribution() is None
+
+    # Once the database yields a location, the CC BY credit is required.
+    r._db_used = True
+    assert "DB-IP" in r.attribution()
+
+    r._db_type = "GeoLite2-City"
+    assert "MaxMind" in r.attribution()

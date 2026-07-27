@@ -545,6 +545,9 @@ def build_viz_payload(
             "layers": len(layers),
             "by_status": status_counts(),
         },
+        # Required attribution when a GeoIP database actually placed a node
+        # (DB-IP Lite is CC BY 4.0; MaxMind GeoLite2 carries its own notice).
+        "geoip_credit": geo_resolver.attribution(),
     }
 
 

@@ -73,6 +73,8 @@ class GeoResolver:
             overrides if overrides is not None else load_overrides()
         )
         self._db = None
+        self._db_type = ""
+        self._db_used = False
         self._asn = None
         self._asn_whois = asn_whois
         self._asn_cache_path = (
@@ -96,6 +98,24 @@ class GeoResolver:
             if maxminddb is not None:
                 self._db = _try_open(maxminddb, db_path)
                 self._asn = _try_open(maxminddb, asn_db_path)
+                if self._db is not None:
+                    try:
+                        self._db_type = str(self._db.metadata().database_type)
+                    except Exception:  # noqa: BLE001 - metadata is best-effort
+                        self._db_type = ""
+
+    def attribution(self) -> str | None:
+        """Required credit for the geolocation database, when one was used to
+        place a node. DB-IP Lite is CC BY 4.0; MaxMind GeoLite2 carries its own
+        required notice. Returns None if no database contributed a location."""
+        if self._db is None or not self._db_used:
+            return None
+        t = self._db_type.lower()
+        if "dbip" in t or "db-ip" in t:
+            return "IP geolocation by DB-IP (db-ip.com), CC BY 4.0"
+        if "geolite2" in t or "maxmind" in t:
+            return "Includes GeoLite2 data created by MaxMind (maxmind.com)"
+        return "IP geolocation from a third-party GeoIP database"
 
     def resolve_asn(self, ip: str | None) -> dict[str, Any] | None:
         """Return {asn, org} for an IP: from the ASN database if present, else
@@ -183,6 +203,7 @@ class GeoResolver:
             "en", ""
         )
         label = ", ".join(str(x) for x in (city, country) if x)
+        self._db_used = True
         return {
             "lat": float(lat),
             "lon": float(lon),

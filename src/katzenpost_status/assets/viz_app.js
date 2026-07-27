@@ -1068,6 +1068,8 @@
         if (cs.wire) bits.push('Wire link: ' + esc(cs.wire) + (cs.link_kem ? ' / ' + esc(cs.link_kem) : ''));
         if (DATA.generated_at) bits.push('Updated: ' + esc(DATA.generated_at) + ' UTC');
         document.getElementById('hud-meta').innerHTML = bits.join('<br>');
+        var gc = document.getElementById('geoip-credit');
+        if (gc) gc.textContent = DATA.geoip_credit ? (' ' + DATA.geoip_credit + '.') : '';
         document.title = (DATA.network_name || 'Katzenpost') + ' Mixnet - Live Consensus Visualization';
     }
 
