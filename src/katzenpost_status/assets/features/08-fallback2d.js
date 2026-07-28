@@ -243,6 +243,12 @@
             zoomAt(p.x, p.y, ev.deltaY < 0 ? 1.15 : 1 / 1.15);
         }, { passive: false });
         canvas.addEventListener('dblclick', function () { resetView(); });
+        // iOS Safari ignores user-scalable=no and pinch-zooms the whole page,
+        // which was stealing the map's pinch gesture. Swallow the non-standard
+        // gesture events so our pointer-based pinch (zoomAt) drives the zoom.
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+            canvas.addEventListener(t, function (ev) { ev.preventDefault(); }, { passive: false });
+        });
 
         function updateMeta() {
             var m = document.getElementById('hud-meta');
@@ -285,11 +291,12 @@
             msg.textContent = 'WebGL is blocked (Lockdown Mode?) - 2D map. ' +
                 'Tap a node for details; pinch or scroll to zoom, drag to pan, double-tap to reset.';
             var x = document.createElement('button');
-            x.textContent = 'x';
-            x.setAttribute('aria-label', 'Dismiss');
-            x.style.cssText = 'margin-left:10px;background:none;border:1px solid rgba(255,180,84,.4);' +
-                'color:#ffb454;border-radius:4px;cursor:pointer;font:inherit;padding:0 6px;line-height:1.4';
-            x.addEventListener('click', function () { ls.textContent = ''; });
+            x.textContent = 'Close x';
+            x.setAttribute('aria-label', 'Dismiss lockdown notice');
+            x.style.cssText = 'margin-left:12px;background:rgba(255,180,84,.16);' +
+                'border:1px solid rgba(255,180,84,.55);color:#ffb454;border-radius:6px;' +
+                'cursor:pointer;font:inherit;padding:6px 12px;min-height:32px;line-height:1';
+            x.addEventListener('click', function () { ls.textContent = ''; ls.style.display = 'none'; });
             ls.appendChild(msg); ls.appendChild(x);
         }
     }
