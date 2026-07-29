@@ -84,6 +84,24 @@
         if (vid.indexOf('overlay:') === 0) { showOverlay(vid.slice(8)); }
         else { hideOverlays(); setMode(vid); updateBtn(); }
         try { if (window.localStorage) localStorage.setItem('katzen.view', vid); } catch (e) { }
+        setViewParam(vid);
+    }
+    // Reflect the current view in the URL hash (preserving node/group params) so
+    // the address bar is shareable and reload restores it.
+    function setViewParam(vid) {
+        try {
+            var p = {};
+            (location.hash || '').replace(/^#/, '').split('&').forEach(function (kv) {
+                if (!kv) return; var q = kv.split('='); p[q[0]] = q.slice(1).join('=');
+            });
+            delete p.view; delete p.overlay;
+            if (vid.indexOf('overlay:') === 0) p.overlay = vid.slice(8);
+            else if (vid !== 'earth') p.view = vid;
+            var parts = Object.keys(p).filter(function (k) { return p[k] != null; })
+                .map(function (k) { return k + '=' + p[k]; });
+            var h = parts.length ? '#' + parts.join('&') : '';
+            if (h !== location.hash) history.replaceState(null, '', h || (location.pathname + location.search));
+        } catch (e) { }
     }
     function rebuildViewSelect() {
         if (!viewSelect) return;
@@ -158,6 +176,23 @@
     naBtn.style.flex = '1'; naBtn.textContent = 'N. America';
     regionRow.appendChild(euBtn); regionRow.appendChild(naBtn);
     wrap.appendChild(regionRow);
+    var shareBtn = document.createElement('button');
+    shareBtn.textContent = 'Copy link to this view';
+    shareBtn.style.cssText = 'width:100%;margin-top:6px';
+    shareBtn.addEventListener('click', function () {
+        setViewParam(curViewId());
+        var url = location.href, orig = shareBtn.textContent;
+        function done() { shareBtn.textContent = 'Link copied'; setTimeout(function () { shareBtn.textContent = orig; }, 1500); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, done);
+        else {
+            try {
+                var ta = document.createElement('textarea'); ta.value = url;
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            } catch (e) { }
+            done();
+        }
+    });
+    wrap.appendChild(shareBtn);
     euBtn.addEventListener('click', function () { if (mode === 'earth') frameSubset(function (ll) { return ll[1] > -15 && ll[1] < 45; }); });
     naBtn.addEventListener('click', function () { if (mode === 'earth') frameSubset(function (ll) { return ll[1] <= -15; }); });
     var hud = K.hudPanel();
