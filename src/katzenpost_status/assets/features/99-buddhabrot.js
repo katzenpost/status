@@ -25,7 +25,7 @@
     var TRAJ = 4000;
     var trx = new Float32Array(TRAJ), tryv = new Float32Array(TRAJ);
 
-    var renderer = null, scene = null, camera = null, world = null;
+    var renderer = null, scene = null, camera = null, world = null, controls = null;
     var points = null, geo = null, positions = null, colors = null, cursor = 0, filled = 0;
     var nodeGroup = null, nodePos = {}, pipeline = [];
     var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
@@ -65,7 +65,7 @@
     function hashPos(name) {
         var h = hashStr(name);
         var a = (h & 1023) / 1023, b = ((h >>> 10) & 1023) / 1023, c = ((h >>> 20) & 1023) / 1023;
-        return new THREE.Vector3((a * 2 - 1) * 17, (b * 2 - 1) * 12, (c * 2 - 1) * SZ * 1.2);
+        return new THREE.Vector3((a * 2 - 1) * 12, (b * 2 - 1) * 13, (c * 2 - 1) * SZ * 1.2);
     }
     function roleColor(n) {
         try { return new THREE.Color(K.groupColor({ data: n })); } catch (e) { return new THREE.Color(0x8aa0b4); }
@@ -129,7 +129,15 @@
         renderer.domElement.style.cssText = 'display:block;width:100%;height:100%';
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(55, 1, 0.1, 2000);
-        world = new THREE.Group(); world.rotation.x = -0.35; scene.add(world);
+        camera.position.set(0, 3, 46);
+        world = new THREE.Group(); scene.add(world);   // upright; the real axis is vertical
+        if (THREE.OrbitControls) {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; controls.dampingFactor = 0.08;
+            controls.autoRotate = true; controls.autoRotateSpeed = 0.7;   // spin around the vertical spine
+            controls.minDistance = 12; controls.maxDistance = 170;
+            controls.target.set(0, 0, 0);
+        }
 
         positions = new Float32Array(MAXPTS * 3); colors = new Float32Array(MAXPTS * 3);
         geo = new THREE.BufferGeometry();
@@ -160,7 +168,6 @@
         if (!renderer) return;
         var w = el.clientWidth || window.innerWidth, h = el.clientHeight || window.innerHeight;
         renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
-        camera.position.set(0, 14, 46); camera.lookAt(0, 0, 0);
     }
 
     function addBatch(target) {
@@ -181,12 +188,14 @@
             var t = TINT[ch], e = P.expo * P.cw[ch], r = t[0] * e, g = t[1] * e, b = t[2] * e;
             var wz = (cx - REMID) * SZ, lim = n < keep ? n : keep;
             for (var i = 0; i < lim && added < target; i++) {
-                var px = trx[i] * SX, py = tryv[i] * SY, o = cursor * 3;
-                positions[o] = px; positions[o + 1] = py; positions[o + 2] = wz;
+                // upright "sitting monk": horizontal = Im(z), vertical = -Re(z)
+                // (so the cardioid base is at the bottom and the antenna/head up).
+                var wx = tryv[i] * SX, wy = (REMID - trx[i]) * SY, o = cursor * 3;
+                positions[o] = wx; positions[o + 1] = wy; positions[o + 2] = wz;
                 colors[o] = r; colors[o + 1] = g; colors[o + 2] = b;
                 cursor = (cursor + 1) % MAXPTS; if (filled < MAXPTS) filled++; added++;
-                var o2 = cursor * 3;
-                positions[o2] = px; positions[o2 + 1] = -py; positions[o2 + 2] = wz;
+                var o2 = cursor * 3;                     // mirror across the vertical spine
+                positions[o2] = -wx; positions[o2 + 1] = wy; positions[o2 + 2] = wz;
                 colors[o2] = r; colors[o2 + 1] = g; colors[o2 + 2] = b;
                 cursor = (cursor + 1) % MAXPTS; if (filled < MAXPTS) filled++; added++;
             }
@@ -207,7 +216,7 @@
         spawnAcc += dt * (4 + Math.min(30, P.rate * 0.5));
         while (spawnAcc >= 1) { spawnPacket(); spawnAcc -= 1; }
         updatePackets(dt);
-        world.rotation.y += 0.0035;
+        if (controls) controls.update();   // damping + autoRotate around the vertical axis
         renderer.render(scene, camera);
         raf = requestAnimationFrame(loop);
     }
