@@ -283,7 +283,35 @@
             var k = e.key.toLowerCase();
             if (k === 'f') { e.preventDefault(); toggleFullscreen(); }
             else if (k === 'h' || e.key === '?') { e.preventDefault(); toggleHelp(); }
+            else if (k === 'm') { e.preventDefault(); toggleChrome(); }
         });
+        // Auto-hide the chrome after inactivity for a full-canvas view; any
+        // pointer movement brings it back.
+        ['pointermove', 'pointerdown', 'wheel'].forEach(function (ev) {
+            document.addEventListener(ev, pokeChrome, { passive: true });
+        });
+        pokeChrome();
+    }
+
+    var CHROME_SEL = '#menu-toggle,#view-select,#load-status,#node-info';
+    var chromeHidden = false, chromeTimer = 0;
+    function chromeEls() { return Array.prototype.slice.call(document.querySelectorAll(CHROME_SEL)); }
+    function setChrome(hidden) {
+        chromeHidden = hidden;
+        chromeEls().forEach(function (e) {
+            e.style.transition = 'opacity 0.4s ease';
+            e.style.opacity = hidden ? '0' : '';
+            e.style.pointerEvents = hidden ? 'none' : '';
+        });
+    }
+    function pokeChrome() {
+        if (chromeHidden) setChrome(false);
+        if (chromeTimer) clearTimeout(chromeTimer);
+        chromeTimer = setTimeout(function () { if (!menuVisible) setChrome(true); }, 3500);
+    }
+    function toggleChrome() {
+        if (chromeHidden) { setChrome(false); pokeChrome(); }
+        else { if (menuVisible) setMenuVisible(false); if (chromeTimer) clearTimeout(chromeTimer); chromeTimer = 0; setChrome(true); }
     }
 
     var helpEl = null;
@@ -298,8 +326,10 @@
             'font:13px/1.7 monospace;box-shadow:0 12px 48px rgba(0,0,0,0.8)';
         box.innerHTML = '<div style="font-size:15px;font-weight:700;color:#ffb454;margin-bottom:8px">Keyboard shortcuts</div>' +
             '<div><b>f</b> &mdash; enter / exit fullscreen</div>' +
+            '<div><b>m</b> &mdash; hide / show the menu and overlays</div>' +
             '<div><b>h</b> or <b>?</b> &mdash; show / hide this help</div>' +
-            '<div style="margin-top:10px;color:#9fb3c2;font-size:12px">Menu button (top-left): open / close controls.<br>' +
+            '<div style="margin-top:10px;color:#9fb3c2;font-size:12px">The menu also auto-hides; move the mouse to bring it back.<br>' +
+            'Menu button (top-left): open / close controls.<br>' +
             'Scene chooser (dropdown): switch the visualization.<br>' +
             'Click a node for its details.</div>';
         var x = document.createElement('button');
