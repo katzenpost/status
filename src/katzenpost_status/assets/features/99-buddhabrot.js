@@ -7,8 +7,9 @@
 
     // Full-screen overlay: a 3D Buddhabrot point cloud (three.js), oriented as
     // the upright "sitting monk". Nodes are not extra geometry -- each node
-    // illuminates an existing point on the fractal, and packets flow between
-    // those points. Rotates around the vertical spine; drag/zoom with the mouse.
+    // recolours a small cluster of existing cloud points so it reads as some
+    // illuminated points of the fractal; packets flow between those points.
+    // Rotates around the vertical spine; drag/zoom with the mouse.
     var el = document.createElement('div');
     el.id = 'buddhabrot-overlay';
     el.style.cssText = 'position:fixed;inset:0;z-index:25;display:none;background:#000;overflow:hidden';
@@ -25,7 +26,7 @@
 
     var renderer = null, scene = null, camera = null, controls = null, world = null;
     var points = null, geo = null, positions = null, colors = null, cursor = 0, filled = 0;
-    var nodeHi = null, nodeHiPos = null, nodeHiCol = null, nodeHiData = [], nodePos = {}, pipeline = [], nodesBuilt = false;
+    var nodePos = {}, nodeData = {}, pipeline = [], nodesBuilt = false;
     var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
     var running = false, raf = 0, lastEpoch = null;
 
@@ -50,8 +51,7 @@
         var xp = x + 1; return (xp * xp + y * y) <= 0.0625;
     }
     function hashStr(s) { var h = 2166136261, i; for (i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-    function rgbOf(hex) { var c = new THREE.Color(hex); return [c.r, c.g, c.b]; }
-    function roleRGB(n) { try { return rgbOf(K.groupColor({ data: n })); } catch (e) { return [0.6, 0.7, 0.8]; } }
+    function roleRGB(n) { try { var c = new THREE.Color(K.groupColor({ data: n })); return [c.r, c.g, c.b]; } catch (e) { return [0.6, 0.7, 0.8]; } }
 
     function initGL() {
         try { renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'low-power' }); }
@@ -79,17 +79,6 @@
         }));
         world.add(points);
 
-        nodeHiPos = new Float32Array(128 * 3); nodeHiCol = new Float32Array(128 * 3);
-        var ng = new THREE.BufferGeometry();
-        var na = new THREE.BufferAttribute(nodeHiPos, 3); na.setUsage(THREE.DynamicDrawUsage);
-        var nc = new THREE.BufferAttribute(nodeHiCol, 3); nc.setUsage(THREE.DynamicDrawUsage);
-        ng.setAttribute('position', na); ng.setAttribute('color', nc); ng.setDrawRange(0, 0);
-        nodeHi = new THREE.Points(ng, new THREE.PointsMaterial({
-            size: mob ? 1.6 : 1.3, vertexColors: true, transparent: true, opacity: 1,
-            blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
-        }));
-        world.add(nodeHi);
-
         packPos = new Float32Array(PACK_MAX * 3); packCol = new Float32Array(PACK_MAX * 3);
         var pg = new THREE.BufferGeometry();
         var ppa = new THREE.BufferAttribute(packPos, 3); ppa.setUsage(THREE.DynamicDrawUsage);
@@ -100,20 +89,27 @@
             blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
         }));
         world.add(packPts);
-        // Click an illuminated node point to select the real network node.
+
+        // Click near an illuminated node cluster to select the real node: raycast
+        // the cloud itself, then map the hit point to the nearest node.
         var ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), dx = 0, dy = 0;
-        ray.params.Points.threshold = 1.6;
+        ray.params.Points.threshold = 0.6;
         renderer.domElement.addEventListener('pointerdown', function (ev) { dx = ev.clientX; dy = ev.clientY; });
         renderer.domElement.addEventListener('pointerup', function (ev) {
-            if (!nodeHi || Math.abs(ev.clientX - dx) + Math.abs(ev.clientY - dy) > 6) return;
+            if (!nodesBuilt || Math.abs(ev.clientX - dx) + Math.abs(ev.clientY - dy) > 6) return;
             var rect = renderer.domElement.getBoundingClientRect();
             ptr.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
             ptr.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
             ray.setFromCamera(ptr, camera);
-            var hit = ray.intersectObject(nodeHi, false)[0];
-            if (hit && nodeHiData[hit.index] && K.reselect) {
-                var nd = nodeHiData[hit.index]; K.reselect(nd.name, nd.type);
-            }
+            var hit = ray.intersectObject(points, false)[0];
+            if (!hit || hit.index == null) return;
+            var o = hit.index * 3, hx = positions[o], hy = positions[o + 1], hz = positions[o + 2];
+            var best = null, bd = 9;   // nearest node within ~3 units
+            Object.keys(nodePos).forEach(function (nm) {
+                var np = nodePos[nm], d = Math.hypot(np.x - hx, np.y - hy, np.z - hz);
+                if (d < bd) { bd = d; best = nm; }
+            });
+            if (best && nodeData[best] && K.reselect) K.reselect(nodeData[best].name, nodeData[best].type);
         });
         onResize();
         return true;
@@ -157,25 +153,32 @@
         if (controls) { controls.target.set(cxm, cym, czm); camera.position.set(cxm, cym, czm + 46); controls.update(); }
     }
     function buildNodesFromCloud() {
-        // map each node to an existing fractal point (biased to dense contours,
-        // since dense regions hold more stored points), and illuminate it.
-        var d = K.data() || {}, nodes = d.nodes || [], byName = {};
-        nodePos = {}; pipeline = []; nodeHiData = [];
-        var k = 0;
+        var d = K.data() || {}, nodes = d.nodes || [];
+        nodePos = {}; nodeData = {}; pipeline = [];
+        var picks = [];   // {name, pos, rgb}
         nodes.forEach(function (nn) {
-            byName[nn.name] = nn;
-            if (k >= 128 || filled <= 0) return;
+            if (filled <= 0 || picks.length >= 128) return;
             var idx = hashStr(nn.name) % filled, o = idx * 3;
             var p = new THREE.Vector3(positions[o], positions[o + 1], positions[o + 2]);
-            nodePos[nn.name] = p; nodeHiData[k] = nn;
-            var rgb = roleRGB(nn), ko = k * 3;
-            nodeHiPos[ko] = p.x; nodeHiPos[ko + 1] = p.y; nodeHiPos[ko + 2] = p.z;
-            nodeHiCol[ko] = rgb[0]; nodeHiCol[ko + 1] = rgb[1]; nodeHiCol[ko + 2] = rgb[2];
-            k++;
+            nodePos[nn.name] = p; nodeData[nn.name] = nn;
+            picks.push({ pos: p, rgb: roleRGB(nn) });
         });
-        nodeHi.geometry.setDrawRange(0, k);
-        nodeHi.geometry.attributes.position.needsUpdate = true;
-        nodeHi.geometry.attributes.color.needsUpdate = true;
+        // recolour a small cluster of existing cloud points around each node so
+        // it lights up as part of the fractal (no separate geometry).
+        var r2 = 1.7 * 1.7;
+        for (var i = 0; i < filled; i++) {
+            var px = positions[i * 3], py = positions[i * 3 + 1], pz = positions[i * 3 + 2];
+            for (var j = 0; j < picks.length; j++) {
+                var np = picks[j].pos, ddx = px - np.x, ddy = py - np.y, ddz = pz - np.z;
+                if (ddx * ddx + ddy * ddy + ddz * ddz < r2) {
+                    var c = picks[j].rgb, o2 = i * 3;
+                    colors[o2] = c[0] * 1.5; colors[o2 + 1] = c[1] * 1.5; colors[o2 + 2] = c[2] * 1.5;
+                    break;
+                }
+            }
+        }
+        geo.attributes.color.needsUpdate = true;
+        // pipeline for packets: gateway -> mix layers -> service
         var byType = { gateway: [], mix: [], service: [] };
         nodes.forEach(function (n) { if (byType[n.type] && nodePos[n.name]) byType[n.type].push(n.name); });
         if (byType.gateway.length) pipeline.push(byType.gateway);
@@ -228,7 +231,7 @@
         raf = requestAnimationFrame(loop);
     }
 
-    function resetCloud() { cursor = 0; filled = 0; nodesBuilt = false; packets = []; if (geo) geo.setDrawRange(0, 0); if (nodeHi) nodeHi.geometry.setDrawRange(0, 0); }
+    function resetCloud() { cursor = 0; filled = 0; nodesBuilt = false; packets = []; if (geo) geo.setDrawRange(0, 0); }
 
     K.on('data', function () {
         var np = readParams();
