@@ -25,7 +25,7 @@
 
     var renderer = null, scene = null, camera = null, controls = null, world = null;
     var points = null, geo = null, positions = null, colors = null, cursor = 0, filled = 0;
-    var nodeHi = null, nodeHiPos = null, nodeHiCol = null, nodePos = {}, pipeline = [], nodesBuilt = false;
+    var nodeHi = null, nodeHiPos = null, nodeHiCol = null, nodeHiData = [], nodePos = {}, pipeline = [], nodesBuilt = false;
     var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
     var running = false, raf = 0, lastEpoch = null;
 
@@ -100,6 +100,21 @@
             blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
         }));
         world.add(packPts);
+        // Click an illuminated node point to select the real network node.
+        var ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), dx = 0, dy = 0;
+        ray.params.Points.threshold = 1.6;
+        renderer.domElement.addEventListener('pointerdown', function (ev) { dx = ev.clientX; dy = ev.clientY; });
+        renderer.domElement.addEventListener('pointerup', function (ev) {
+            if (!nodeHi || Math.abs(ev.clientX - dx) + Math.abs(ev.clientY - dy) > 6) return;
+            var rect = renderer.domElement.getBoundingClientRect();
+            ptr.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+            ptr.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+            ray.setFromCamera(ptr, camera);
+            var hit = ray.intersectObject(nodeHi, false)[0];
+            if (hit && nodeHiData[hit.index] && K.reselect) {
+                var nd = nodeHiData[hit.index]; K.reselect(nd.name, nd.type);
+            }
+        });
         onResize();
         return true;
     }
@@ -145,14 +160,14 @@
         // map each node to an existing fractal point (biased to dense contours,
         // since dense regions hold more stored points), and illuminate it.
         var d = K.data() || {}, nodes = d.nodes || [], byName = {};
-        nodePos = {}; pipeline = [];
+        nodePos = {}; pipeline = []; nodeHiData = [];
         var k = 0;
         nodes.forEach(function (nn) {
             byName[nn.name] = nn;
             if (k >= 128 || filled <= 0) return;
             var idx = hashStr(nn.name) % filled, o = idx * 3;
             var p = new THREE.Vector3(positions[o], positions[o + 1], positions[o + 2]);
-            nodePos[nn.name] = p;
+            nodePos[nn.name] = p; nodeHiData[k] = nn;
             var rgb = roleRGB(nn), ko = k * 3;
             nodeHiPos[ko] = p.x; nodeHiPos[ko + 1] = p.y; nodeHiPos[ko + 2] = p.z;
             nodeHiCol[ko] = rgb[0]; nodeHiCol[ko + 1] = rgb[1]; nodeHiCol[ko + 2] = rgb[2];
