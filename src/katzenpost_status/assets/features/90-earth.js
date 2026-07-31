@@ -1930,13 +1930,10 @@
         var qs = location.hash + location.search;
         var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(qs);
         if (om && findOverlay(om[1])) { showOverlay(om[1]); return; }
-        // With no view/overlay pinned in the URL, restore the last-selected
-        // view so the menu label and what is shown agree after a reload.
-        if (!/[?#&]view=/i.test(qs)) {
-            var saved = null;
-            try { saved = window.localStorage && localStorage.getItem('katzen.view'); } catch (e) { }
-            if (saved && saved !== curViewId() && viewIds().indexOf(saved) >= 0) gotoView(saved);
-        }
+        if (/[?#&]view=/i.test(qs)) return;   // explicit spatial view in the URL: keep it
+        // No deep link: start on a random visualization.
+        var ids = viewIds(), pick = ids[(Math.random() * ids.length) | 0];
+        if (pick && pick !== curViewId()) gotoView(pick);
     });
     K.on('boot', function () {
         fetch('katzenpost-viz/earth/land-110m.geo.json', { cache: 'force-cache' })
