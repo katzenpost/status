@@ -18,7 +18,7 @@
     var SPACING = 15, VS = 5.5, ZJIT = 3.5;
 
     var renderer = null, scene = null, camera = null, controls = null, world = null;
-    var nodeGroup = null, pipeGroup = null, cols = [], nodePos = {};
+    var nodeGroup = null, pipeGroup = null, cols = [], nodePos = {}, flowStart = 0, flowEnd = 0;
     var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
     var running = false, raf = 0;
 
@@ -31,14 +31,24 @@
         nodePos = {}; cols = [];
         var d = K.data() || {}, nodes = d.nodes || [], byName = {};
         nodes.forEach(function (n) { byName[n.name] = n; });
-        var gws = nodes.filter(function (n) { return n.type === 'gateway'; });
-        var svcs = nodes.filter(function (n) { return n.type === 'service'; });
+        // Show every node type as a column: dir-auth, gateways, mix layers,
+        // services, storage replicas, and out-of-consensus. Packets flow along
+        // the core gateway -> mix -> service span (flowStart..flowEnd).
+        var byType = {};
+        nodes.forEach(function (n) { (byType[n.type] || (byType[n.type] = [])).push(n); });
+        var dirauth = byType.dirauth || [], gws = byType.gateway || [], svcs = byType.service || [];
+        var storage = byType.storage || [], out = byType.out || [];
+        if (dirauth.length) cols.push(dirauth);
+        flowStart = cols.length;
         if (gws.length) cols.push(gws);
         (d.layers || []).forEach(function (names) {
             var arr = names.map(function (nm) { return byName[nm]; }).filter(Boolean);
             if (arr.length) cols.push(arr);
         });
         if (svcs.length) cols.push(svcs);
+        flowEnd = cols.length - 1;
+        if (storage.length) cols.push(storage);
+        if (out.length) cols.push(out);
         if (cols.length < 2) return;
 
         nodeGroup = new THREE.Group(); pipeGroup = new THREE.Group();
@@ -74,10 +84,10 @@
     }
 
     function spawnPacket() {
-        if (cols.length < 2 || packets.length >= PACK_MAX) return;
+        if (flowEnd <= flowStart || packets.length >= PACK_MAX) return;
         var path = [];
-        for (var i = 0; i < cols.length; i++) { var c = cols[i], n = c[(Math.random() * c.length) | 0]; path.push(nodePos[n.name]); }
-        packets.push({ path: path, seg: 0, t: 0, speed: 10 + Math.random() * 8 });
+        for (var i = flowStart; i <= flowEnd; i++) { var c = cols[i], n = c[(Math.random() * c.length) | 0]; path.push(nodePos[n.name]); }
+        if (path.length >= 2) packets.push({ path: path, seg: 0, t: 0, speed: 10 + Math.random() * 8 });
     }
     function updatePackets(dt) {
         var w = packPos, c = packCol, k = 0;
