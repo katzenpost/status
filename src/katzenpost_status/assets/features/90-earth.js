@@ -10,7 +10,7 @@
     var _vh = location.hash + location.search;
     var mode = /view=flat/.test(_vh) ? 'flat' : /view=rings/.test(_vh) ? 'rings'
         : /view=cascade/.test(_vh) ? 'cascade' : /view=radial/.test(_vh) ? 'radial' : /view=depend/.test(_vh) ? 'depend' : /view=jenga/.test(_vh) ? 'jenga' : /view=spire/.test(_vh) ? 'spire' : /view=shells/.test(_vh) ? 'shells' : /view=arch/.test(_vh) ? 'arch' : /view=tree/.test(_vh) ? 'tree' : /view=suspend/.test(_vh) ? 'suspend'
-            : /view=spiral/.test(_vh) ? 'spiral' : /view=fibsphere/.test(_vh) ? 'fibsphere'
+            : /view=spiral/.test(_vh) ? 'spiral' : /view=fibsphere/.test(_vh) ? 'fibsphere' : /view=flower/.test(_vh) ? 'flower'
                 : /view=hypercube/.test(_vh) ? 'hypercube' : /view=torus/.test(_vh) ? 'torus'
                     : /view=helix/.test(_vh) ? 'helix' : /view=mobius/.test(_vh) ? 'mobius' : /view=tspiral/.test(_vh) ? 'tspiral'
                         : /view=force/.test(_vh) ? 'force' : 'earth';
@@ -44,11 +44,11 @@
     var btn = document.createElement('button');
     btn.style.width = '100%';
     var MODE_ORDER = ['earth', 'flat', 'rings', 'cascade', 'radial', 'depend', 'jenga', 'spire', 'shells', 'arch', 'tree', 'suspend', 'spiral', 'fibsphere',
-        'hypercube', 'torus', 'helix', 'mobius', 'tspiral', 'force'];
+        'flower', 'hypercube', 'torus', 'helix', 'mobius', 'tspiral', 'force'];
     var MODE_NAME = {
         earth: 'Earth', flat: 'Flat map', rings: 'Rings', cascade: 'Cascade', radial: 'Radial',
         depend: 'Dependency', jenga: 'Quorum stack', spire: 'Threshold spire', shells: 'Nested shells', arch: 'Keystone arch', tree: 'Root tree', suspend: 'Suspension', spiral: 'Spiral', fibsphere: 'Fib sphere', hypercube: 'Hypercube',
-        torus: 'Trefoil', helix: 'Helix', mobius: 'Mobius strip', tspiral: 'Time spiral', force: 'Force graph'
+        flower: 'Flower of Life', torus: 'Trefoil', helix: 'Helix', mobius: 'Mobius strip', tspiral: 'Time spiral', force: 'Force graph'
     };
     function nextMode(m) { return MODE_ORDER[(MODE_ORDER.indexOf(m) + 1) % MODE_ORDER.length]; }
     var curOverlay = null;
@@ -896,6 +896,60 @@
         K.snapTo(dist * 0.55, dist * 0.28, dist * 0.75, 0, 0, 0);
     }
 
+    // Flower of Life: nodes on concentric hex rings by tier (gateways central,
+    // mix layers outward, services on the rim); the overlapping circles are
+    // drawn as scenery. Logical placement, face-on.
+    var flowerExtras = [], maxFlowerRing = 0, FLOWER_S = 6;
+    function computeFlower(ns) {
+        var order = ns.slice().sort(tierSort);
+        maxFlowerRing = 0;
+        order.forEach(function (o, idx) {
+            var r = 0, base = 0;
+            while (base + (r === 0 ? 1 : 6 * r) <= idx) { base += (r === 0 ? 1 : 6 * r); r++; }
+            var cap = r === 0 ? 1 : 6 * r, rad = r * FLOWER_S;
+            var ang = cap > 0 ? (idx - base) / cap * Math.PI * 2 : 0;
+            if (r > maxFlowerRing) maxFlowerRing = r;
+            o.flowerPos = new THREE.Vector3(Math.cos(ang) * rad, Math.sin(ang) * rad, (r % 2 ? 1 : -1) * 1.6);
+        });
+    }
+    function clearFlowerExtras() {
+        flowerExtras.forEach(function (s) { K.worldRoot().remove(s); if (s.geometry) s.geometry.dispose(); if (s.material) s.material.dispose(); });
+        flowerExtras = [];
+    }
+    function drawFlowerCircles() {
+        var seg = 40;
+        for (var r = 0; r <= maxFlowerRing; r++) {
+            var cnt = r === 0 ? 1 : 6 * r;
+            for (var k = 0; k < cnt; k++) {
+                var a = (k / cnt) * Math.PI * 2, cx = Math.cos(a) * r * FLOWER_S, cy = Math.sin(a) * r * FLOWER_S, pts = [];
+                for (var i = 0; i <= seg; i++) { var t = (i / seg) * Math.PI * 2; pts.push(new THREE.Vector3(cx + Math.cos(t) * FLOWER_S, cy + Math.sin(t) * FLOWER_S, 0)); }
+                var cir = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),
+                    new THREE.LineBasicMaterial({ color: 0x2ec4b6, transparent: true, opacity: 0.13 }));
+                cir.renderOrder = -1; K.worldRoot().add(cir); flowerExtras.push(cir);
+            }
+        }
+    }
+    function enterFlower() {
+        clearFlowerExtras();
+        K.setLinkBuilder(straightLinkBuilder('flowerPos'));
+        structLinksOn();
+        K.setSegmentInterpolator(null); K.setPathBuilder(null);
+        K.setOrbitOrigin(false); K.setPlanar(true); K.setClusterFilter(null);
+        K.worldRoot().rotation.set(0, 0, 0);
+        setSceneryVisible(false);
+        drawFlowerCircles();
+        K.rebuildLinks(); K.drawSelectionPath();
+        var c = K.controls(); if (c) { c.minDistance = 8; c.maxDistance = 260; }
+    }
+    function leaveFlower() { clearFlowerExtras(); }
+    function frameFlower() {
+        var span = (maxFlowerRing + 1) * FLOWER_S;
+        var fov = K.camera().fov, tan = Math.tan(THREE.MathUtils.degToRad(fov * 0.5));
+        var dist = (span / tan) * 1.15 + 10;
+        K.worldRoot().rotation.set(0, 0, 0);
+        K.snapTo(0, 0, dist, 0, 0, 0);
+    }
+
     var FIB_R = 26;
     function computeFib(ns) {
         var order = ns.slice().sort(function (a, b) {
@@ -1664,6 +1718,7 @@
         else if (mode === 'force') leaveForce();
         else if (mode === 'depend') leaveDepend();
         else if (mode === 'jenga' || mode === 'spire' || mode === 'shells' || mode === 'arch' || mode === 'tree' || mode === 'suspend') clearStructExtras();
+        else if (mode === 'flower') leaveFlower();
         mode = m;
         updateBtn();
         if (mode === 'earth') { enterEarth(); frameCluster(); }
@@ -1679,6 +1734,7 @@
         else if (mode === 'suspend') { enterSuspend(); frameSuspend(); }
         else if (mode === 'spiral') { enterSpiral(); frameSpiral(); }
         else if (mode === 'fibsphere') { enterFib(); frameFib(); }
+        else if (mode === 'flower') { enterFlower(); frameFlower(); }
         else if (mode === 'hypercube') { enterHyper(); frameHyper(); }
         else if (mode === 'torus') { enterTorus(); frameTorus(); }
         else if (mode === 'helix') { enterHelix(); frameHelix(); }
@@ -1785,6 +1841,7 @@
         else if (mode === 'suspend') computeSuspend(ns);
         computeSpiral(ns);
         computeFib(ns);
+        computeFlower(ns);
         computeHyper(ns);
         computeTorus(ns);
         computeHelix(ns);
@@ -1808,6 +1865,7 @@
         else if (mode === 'suspend') enterSuspend();
         else if (mode === 'spiral') enterSpiral();
         else if (mode === 'fibsphere') enterFib();
+        else if (mode === 'flower') enterFlower();
         else if (mode === 'hypercube') enterHyper();
         else if (mode === 'torus') enterTorus();
         else if (mode === 'helix') enterHelix();
@@ -1829,6 +1887,7 @@
             else if (mode === 'suspend') frameSuspend();
             else if (mode === 'spiral') frameSpiral();
             else if (mode === 'fibsphere') frameFib();
+            else if (mode === 'flower') frameFlower();
             else if (mode === 'hypercube') frameHyper();
             else if (mode === 'torus') frameTorus();
             else if (mode === 'helix') frameHelix();
@@ -1843,7 +1902,7 @@
         if (mode === 'hypercube' || mode === 'force') return null;   // positions set per frame
         return mode === 'earth' ? o.earthPos : mode === 'flat' ? o.flatPos
             : mode === 'cascade' ? o.cascadePos : mode === 'radial' ? o.radialPos
-                : mode === 'spiral' ? o.spiralPos : mode === 'fibsphere' ? o.fibPos
+                : mode === 'spiral' ? o.spiralPos : mode === 'fibsphere' ? o.fibPos : mode === 'flower' ? o.flowerPos
                     : mode === 'torus' ? o.torusPos : mode === 'helix' ? o.helixPos
                         : mode === 'mobius' ? o.mobiusPos : mode === 'tspiral' ? o.tspiralPos : mode === 'depend' ? o.dependPos : mode === 'jenga' ? o.jengaPos : mode === 'spire' ? o.spirePos : mode === 'shells' ? o.shellsPos : mode === 'arch' ? o.archPos : mode === 'tree' ? o.treePos : mode === 'suspend' ? o.suspendPos : o.ringPos;
     }
