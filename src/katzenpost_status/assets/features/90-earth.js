@@ -741,12 +741,16 @@
         function pick(a) { return a && a.length ? a[Math.floor(Math.random() * a.length)] : null; }
         var nFlow = Math.min(7, Math.max(4, (clients && clients.length) || 4));
         for (var i = 0; i < nFlow; i++) {
-            var stops = [pick(gws)];
+            // Start at THIS client's own gateway so the dot follows the drawn
+            // client->gateway line instead of flying off to a random gateway.
+            var client = (clients && clients.length) ? clients[i % clients.length] : null;
+            var gw = (client && client.gw) ? client.gw : pick(gws);
+            if (!gw) continue;
+            var stops = [gw];
             for (var L = 0; L <= maxL; L++) { var m = pick(mixByLayer[L]); if (m) stops.push(m); }
             if (svcs.length) stops.push(pick(svcs));
             stops = stops.filter(Boolean);
-            if (stops.length < 2) continue;
-            var cpos = (clients && clients.length) ? clients[i % clients.length].pos.clone() : stops[0].cascadePos || stops[0].mesh.position.clone();
+            var cpos = client ? client.pos.clone() : (gw.cascadePos || gw.mesh.position).clone();
             var dot = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 10),
                 new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
             dot.renderOrder = 4; K.worldRoot().add(dot); cascadeExtras.push(dot);

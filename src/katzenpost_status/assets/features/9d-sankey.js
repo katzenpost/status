@@ -51,7 +51,7 @@
                 var p = new THREE.Vector3(x, y, z);
                 nodePos[n.name] = p;
                 var m = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: roleColor(n) }));
-                m.position.copy(p); nodeGroup.add(m);
+                m.position.copy(p); m.userData = { node: n }; nodeGroup.add(m);
             });
         });
         // pipes: full bipartite between consecutive columns (the carrying paths)
@@ -123,6 +123,20 @@
             blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
         }));
         world.add(packPts);
+        // Click a node to select the real network node (shows its info panel).
+        var ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), dx = 0, dy = 0;
+        renderer.domElement.addEventListener('pointerdown', function (ev) { dx = ev.clientX; dy = ev.clientY; });
+        renderer.domElement.addEventListener('pointerup', function (ev) {
+            if (!nodeGroup || Math.abs(ev.clientX - dx) + Math.abs(ev.clientY - dy) > 6) return;   // a drag, not a click
+            var rect = renderer.domElement.getBoundingClientRect();
+            ptr.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+            ptr.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+            ray.setFromCamera(ptr, camera);
+            var hit = ray.intersectObjects(nodeGroup.children, false)[0];
+            if (hit && hit.object.userData.node && K.reselect) {
+                var nd = hit.object.userData.node; K.reselect(nd.name, nd.type);
+            }
+        });
         onResize();
         return true;
     }
