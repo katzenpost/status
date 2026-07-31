@@ -123,6 +123,15 @@
         tip.style.top = (ev.clientY + 12) + 'px';
     });
     canvas.addEventListener('pointerleave', function () { tip.style.display = 'none'; });
+    canvas.addEventListener('click', function (ev) {
+        var rect = canvas.getBoundingClientRect(), mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+        for (var i = 0; i < cells.length; i++) {
+            var c = cells[i];
+            if (mx >= c.x && mx <= c.x + c.w && my >= c.y && my <= c.y + c.h) {
+                if (K.reselect) K.reselect(c.name); return;
+            }
+        }
+    });
 
     function build(index) {
         var evs = (index || []).filter(function (e) { return e && e.epoch; })
