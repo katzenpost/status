@@ -1117,27 +1117,69 @@
         K.snapTo(dist * 0.7, 0, dist * 0.7, 0, 0, 0);
     }
 
+    // Mobius strip as one continuous edge curve: nodes sit in order along the
+    // single boundary line (which loops twice through the half-twist), and both
+    // the links and the packets flow along that line.
+    var MOB_R = 20, MOB_W = 6, mobiusExtras = [], mobiusRoute = {};
+    function mobiusEdge(u) {
+        var half = u / 2, rad = MOB_R + MOB_W * Math.cos(half);
+        return new THREE.Vector3(Math.cos(u) * rad, MOB_W * Math.sin(half), Math.sin(u) * rad);
+    }
     function computeMobius(ns) {
         var order = ns.slice().sort(tierSort), n = order.length;
-        var Rm = 22, wid = 7;   // loop radius; half-width of the band
         order.forEach(function (o, i) {
-            var u = (i / n) * Math.PI * 2;
-            var v = ((i % 3) - 1) * wid;        // three lanes across the width
-            var half = u / 2, rad = Rm + v * Math.cos(half);
-            o.mobiusPos = new THREE.Vector3(
-                Math.cos(u) * rad, v * Math.sin(half), Math.sin(u) * rad);
+            o.mobiusU = (i / n) * Math.PI * 4;   // spread along the full single edge
+            o.mobiusPos = mobiusEdge(o.mobiusU);
         });
     }
+    function mobiusArc(ua, ub, segs) {
+        var pts = []; for (var i = 0; i <= segs; i++) pts.push(mobiusEdge(ua + (ub - ua) * (i / segs))); return pts;
+    }
+    function mobiusLinkBuilder(aObj, bObj, hex, opacity, rscale) {
+        if (aObj.mobiusU == null || bObj.mobiusU == null) return null;
+        return K.makeTube(mobiusArc(aObj.mobiusU, bObj.mobiusU, 22), 0.16 * (rscale || 1), hex, opacity == null ? 0.85 : opacity);
+    }
+    function computeMobiusRoutes() {
+        mobiusRoute = {};
+        (K.topoPairs() || []).forEach(function (pr) {
+            if (!pr[0] || !pr[1] || pr[0].mobiusU == null || pr[1].mobiusU == null) return;
+            var arc = mobiusArc(pr[0].mobiusU, pr[1].mobiusU, 22), cum = [0];
+            for (var j = 1; j < arc.length; j++) cum.push(cum[j - 1] + arc[j].distanceTo(arc[j - 1]));
+            var rp = { pts: arc, cum: cum, total: cum[cum.length - 1] || 1 };
+            mobiusRoute[keyOf(pr[0].mobiusPos) + '>' + keyOf(pr[1].mobiusPos)] = { rp: rp, fwd: true };
+            mobiusRoute[keyOf(pr[1].mobiusPos) + '>' + keyOf(pr[0].mobiusPos)] = { rp: rp, fwd: false };
+        });
+    }
+    function mobiusSegInterp(a, b, t) {
+        var e = mobiusRoute[keyOf(a) + '>' + keyOf(b)];
+        if (!e) return a.clone().lerp(b, t);
+        return sampleRoute(e, t);
+    }
+    function clearMobiusExtras() {
+        mobiusExtras.forEach(function (s) { K.worldRoot().remove(s); if (s.geometry) s.geometry.dispose(); if (s.material) s.material.dispose(); });
+        mobiusExtras = [];
+    }
+    function drawMobiusEdge() {
+        var pts = [], S = 260;
+        for (var i = 0; i <= S; i++) pts.push(mobiusEdge(i / S * Math.PI * 4));
+        var line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+            new THREE.LineBasicMaterial({ color: 0x9b5de5, transparent: true, opacity: 0.5 }));
+        line.renderOrder = -1; K.worldRoot().add(line); mobiusExtras.push(line);
+    }
     function enterMobius() {
-        K.setLinkBuilder(straightLinkBuilder('mobiusPos'));
+        clearMobiusExtras();
+        K.setLinkBuilder(mobiusLinkBuilder);
         structLinksOn();
-        K.setSegmentInterpolator(null); K.setPathBuilder(null);
+        K.setSegmentInterpolator(mobiusSegInterp); K.setPathBuilder(null);
         K.setOrbitOrigin(true); K.setPlanar(false); K.setClusterFilter(null);
         K.worldRoot().rotation.set(0, 0, 0);
         setSceneryVisible(false);
+        drawMobiusEdge();
+        computeMobiusRoutes();
         K.rebuildLinks(); K.drawSelectionPath();
         var c = K.controls(); if (c) { c.minDistance = 8; c.maxDistance = 240; }
     }
+    function leaveMobius() { clearMobiusExtras(); }
     function frameMobius() {
         var fov = K.camera().fov, tan = Math.tan(THREE.MathUtils.degToRad(fov * 0.5));
         var dist = (30 / tan) * 1.25 + 12;
@@ -1719,6 +1761,7 @@
         else if (mode === 'depend') leaveDepend();
         else if (mode === 'jenga' || mode === 'spire' || mode === 'shells' || mode === 'arch' || mode === 'tree' || mode === 'suspend') clearStructExtras();
         else if (mode === 'flower') leaveFlower();
+        else if (mode === 'mobius') leaveMobius();
         mode = m;
         updateBtn();
         if (mode === 'earth') { enterEarth(); frameCluster(); }
