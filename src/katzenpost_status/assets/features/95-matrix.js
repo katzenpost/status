@@ -20,6 +20,7 @@
         'font:11px/1.4 monospace;padding:5px 8px;border-radius:5px';
     el.appendChild(tip);
     document.body.appendChild(el);
+    if (window.KATZEN_CRT) window.KATZEN_CRT(el);
     var ctx = canvas.getContext('2d');
 
     var PAD_T = 104, PAD_B = 40, GAP = 12;   // PAD_T clears the title and the top controls

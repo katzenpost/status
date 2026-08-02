@@ -16,6 +16,7 @@
     canvas.style.cssText = 'display:block';
     el.appendChild(canvas);
     document.body.appendChild(el);
+    if (window.KATZEN_CRT) window.KATZEN_CRT(el);
     var ctx = canvas.getContext('2d');
 
     var PAD_T = 104, PAD_B = 46, ROW_MIN = 16, RIGHT = 20;   // PAD_T clears title, legend, top controls

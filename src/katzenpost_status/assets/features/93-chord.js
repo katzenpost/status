@@ -21,6 +21,7 @@
     canvas.style.cssText = 'display:block;width:100%;height:100%';
     el.appendChild(canvas);
     document.body.appendChild(el);
+    if (window.KATZEN_CRT) window.KATZEN_CRT(el);
     var ctx = canvas.getContext('2d');
 
     function nodesByRole() {

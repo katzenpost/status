@@ -54,6 +54,7 @@
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
                 el.appendChild(renderer.domElement);
                 renderer.domElement.style.cssText = 'display:block;width:100%;height:100%';
+        if (window.KATZEN_CRT) window.KATZEN_CRT(el);
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera(52, 1, 0.1, 4000);
                 camera.position.set(0, (opts.camY || 0), opts.camZ || 60);
