@@ -83,21 +83,33 @@
         g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
     }
 
+    function meanDwell() {
+        var d = K.data() || {}, mu = (d.parameters && d.parameters.Mu) || 0;
+        return mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
+    }
     function spawnPacket() {
         if (flowEnd <= flowStart || packets.length >= PACK_MAX) return;
         var path = [];
         for (var i = flowStart; i <= flowEnd; i++) { var c = cols[i], n = c[(Math.random() * c.length) | 0]; path.push(nodePos[n.name]); }
-        if (path.length >= 2) packets.push({ path: path, seg: 0, t: 0, speed: 10 + Math.random() * 8 });
+        if (path.length < 2) return;
+        if (Math.random() < 0.5) path = path.slice().reverse();   // both directions
+        packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: 10 + Math.random() * 8 });
     }
     function updatePackets(dt) {
-        var w = packPos, c = packCol, k = 0;
+        var w = packPos, c = packCol, k = 0, md = meanDwell();
         for (var i = packets.length - 1; i >= 0; i--) {
-            var pk = packets[i], a = pk.path[pk.seg], b = pk.path[pk.seg + 1], segLen = a.distanceTo(b) || 1;
+            var pk = packets[i], a = pk.path[pk.seg], b = pk.path[pk.seg + 1];
+            if (pk.dwell > 0) {   // queued at the mix: dwell an exponential delay, leave shuffled
+                pk.dwell -= dt;
+                if (k < PACK_MAX) { var o0 = k * 3; w[o0] = b.x; w[o0 + 1] = b.y; w[o0 + 2] = b.z; c[o0] = 1.0; c[o0 + 1] = 0.7; c[o0 + 2] = 0.3; k++; }
+                if (pk.dwell <= 0) { pk.seg++; pk.t = 0; if (pk.seg >= pk.path.length - 1) packets.splice(i, 1); }
+                continue;
+            }
+            var segLen = a.distanceTo(b) || 1;
             pk.t += dt * pk.speed / segLen;
-            while (pk.t >= 1 && pk.seg < pk.path.length - 2) { pk.t -= 1; pk.seg++; a = pk.path[pk.seg]; b = pk.path[pk.seg + 1]; segLen = a.distanceTo(b) || 1; }
-            if (pk.seg >= pk.path.length - 1 || (pk.seg === pk.path.length - 2 && pk.t >= 1)) { packets.splice(i, 1); continue; }
+            if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; }
             if (k < PACK_MAX) {
-                var t = pk.t < 0 ? 0 : pk.t > 1 ? 1 : pk.t, o = k * 3;
+                var t = pk.t, o = k * 3;
                 w[o] = a.x + (b.x - a.x) * t; w[o + 1] = a.y + (b.y - a.y) * t; w[o + 2] = a.z + (b.z - a.z) * t;
                 c[o] = 1.0; c[o + 1] = 0.96; c[o + 2] = 0.55; k++;
             }
