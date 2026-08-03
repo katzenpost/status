@@ -40,7 +40,11 @@
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
             var running = false, raf = 0;
 
-            function roleColor(n) { try { return new THREE.Color(K.groupColor({ data: n })); } catch (e) { return new THREE.Color(0x8aa0b4); } }
+            // Colour nodes by STATUS, matching the Earth and the other views.
+            function roleColor(n) {
+                try { if (n && n.status && K.statusColor) return new THREE.Color(K.statusColor(n.status)); } catch (e) { }
+                try { return new THREE.Color(K.groupColor({ data: n })); } catch (e2) { return new THREE.Color(0x8aa0b4); }
+            }
             function onResize() {
                 if (!renderer) return;
                 var w = el.clientWidth || window.innerWidth, h = el.clientHeight || window.innerHeight;
@@ -99,9 +103,12 @@
                 var nodes = lay.nodes || [], edges = lay.edges || [];
                 nodeGroup = new THREE.Group();
                 var sph = new THREE.SphereGeometry(mob ? 0.9 : 0.7, 12, 12);
+                var statusByName = {};   // layouts drop status; look it up for correct colours
+                ((K.data() || {}).nodes || []).forEach(function (x) { statusByName[x.name] = x.status; });
                 nodes.forEach(function (nd) {
                     nodePos[nd.name] = nd.pos;
-                    var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: roleColor(nd) }));
+                    var col = roleColor({ status: nd.status || statusByName[nd.name], type: nd.type, name: nd.name });
+                    var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: col }));
                     m.position.copy(nd.pos); m.userData = { node: nd }; nodeGroup.add(m);
                 });
                 world.add(nodeGroup);

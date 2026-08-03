@@ -51,7 +51,11 @@
         var xp = x + 1; return (xp * xp + y * y) <= 0.0625;
     }
     function hashStr(s) { var h = 2166136261, i; for (i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-    function roleRGB(n) { try { var c = new THREE.Color(K.groupColor({ data: n })); return [c.r, c.g, c.b]; } catch (e) { return [0.6, 0.7, 0.8]; } }
+    function roleRGB(n) {
+        var hex = 0x8aa0b4;
+        try { hex = (n && n.status && K.statusColor) ? K.statusColor(n.status) : K.groupColor({ data: n }); } catch (e) { }
+        var c = new THREE.Color(hex); return [c.r, c.g, c.b];
+    }
 
     function initGL() {
         try { renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'low-power' }); }

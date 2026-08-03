@@ -23,7 +23,10 @@
     var running = false, raf = 0;
 
     function pos(x) { return (typeof x === 'number' && x > 0) ? x : 0; }
-    function roleColor(n) { try { return new THREE.Color(K.groupColor({ data: n })); } catch (e) { return new THREE.Color(0x8aa0b4); } }
+    function roleColor(n) {
+        try { if (n && n.status && K.statusColor) return new THREE.Color(K.statusColor(n.status)); } catch (e) { }
+        try { return new THREE.Color(K.groupColor({ data: n })); } catch (e2) { return new THREE.Color(0x8aa0b4); }
+    }
 
     function buildGraph() {
         if (nodeGroup) { world.remove(nodeGroup); nodeGroup = null; }
