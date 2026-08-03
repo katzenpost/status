@@ -27,6 +27,46 @@
             if (svcs.length) cols.push(svcs);
             return cols;
         },
+        // Place nodes in pipeline order along a curve (array of Vector3) and
+        // flow packets along the curve between the first and last column.
+        curveLayout: function (d, THREE, pts, color, edgeStep) {
+            var self = this, edges = [], i, st = edgeStep || 1;
+            for (i = 0; i + st < pts.length; i += st) edges.push({ a: pts[i], b: pts[i + st], color: color });
+            var cols = self.columns(d), ordered = [];
+            cols.forEach(function (c) { c.forEach(function (n) { ordered.push(n); }); });
+            (d.nodes || []).forEach(function (n) { if (ordered.indexOf(n) < 0) ordered.push(n); });
+            var nodes = [], nodePos = {}, idxOf = {}, n = ordered.length;
+            ordered.forEach(function (nd, k) { var ci = n <= 1 ? 0 : Math.round(k / (n - 1) * (pts.length - 1)); var p = pts[ci].clone(); nodes.push({ name: nd.name, type: nd.type, pos: p }); nodePos[nd.name] = p; idxOf[nd.name] = ci; });
+            function spawn() {
+                if (cols.length < 2) return null;
+                var s = cols[0], e = cols[cols.length - 1];
+                var a = idxOf[s[(Math.random() * s.length) | 0].name], b = idxOf[e[(Math.random() * e.length) | 0].name];
+                if (a == null || b == null) return null;
+                var lo = Math.min(a, b), hi = Math.max(a, b), path = [];
+                for (var i = lo; i <= hi; i++) path.push(pts[i]);
+                return path.length >= 2 ? path : null;
+            }
+            return { nodes: nodes, edges: edges, spawn: spawn };
+        },
+        // Place nodes on a set of anchor points (cycling), with given edges, and
+        // flow packets along the gateway->mix->service pipeline.
+        anchorLayout: function (d, THREE, anchors, edges) {
+            var self = this, order = (d.nodes || []).slice().sort(function (a, b) { return (a.type + a.name).localeCompare(b.type + b.name); });
+            var nodes = [], nodePos = {};
+            order.forEach(function (n, i) {
+                var p = anchors.length ? anchors[i % anchors.length].clone() : new THREE.Vector3();
+                if (i >= anchors.length) p.multiplyScalar(0.7);
+                nodes.push({ name: n.name, type: n.type, pos: p }); nodePos[n.name] = p;
+            });
+            var cols = self.columns(d);
+            function spawn() {
+                if (cols.length < 2) return null;
+                var path = [];
+                for (var ci = 0; ci < cols.length; ci++) { var c = cols[ci], nm = c[(Math.random() * c.length) | 0].name; if (nodePos[nm]) path.push(nodePos[nm]); }
+                return path;
+            }
+            return { nodes: nodes, edges: edges, spawn: spawn };
+        },
         create: function (opts) {
             var el = document.createElement('div');
             el.id = opts.id + '-overlay';
