@@ -30,4 +30,9 @@
         var a = 0.2, b = 0.2, c = 5.7;
         return [p[0] + dt * (-p[1] - p[2]), p[1] + dt * (p[0] + a * p[1]), p[2] + dt * (b + p[2] * (p[0] - c))];
     }, [0.1, 0, 0], 0.03, 3400, 1.3, [0, 0, 6], 0x4d8bf0, 72);
+
+    attractor('thomas', 'Thomas attractor', function (p, dt) {
+        var b = 0.208;
+        return [p[0] + dt * (Math.sin(p[1]) - b * p[0]), p[1] + dt * (Math.sin(p[2]) - b * p[1]), p[2] + dt * (Math.sin(p[0]) - b * p[2])];
+    }, [1.1, 1.1, -0.1], 0.06, 4000, 5.0, [0, 0, 0], 0x9b5de5, 66);
 })();
