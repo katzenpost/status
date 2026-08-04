@@ -16,4 +16,19 @@
             return G.anchorLayout(d, THREE, anchors, edges);
         }
     });
+
+    // Torus (donut): a grid mesh; packets route around it.
+    G.create({
+        id: 'torusgrid', name: 'Torus', rotateSpeed: 0.4, camZ: 60,
+        layout: function (d, THREE) {
+            var R = 16, r = 6, Nu = 16, Nv = 8, anchors = [], idx = {}, edges = [], i, j;
+            function Pt(i, j) { var th = (i % Nu) / Nu * Math.PI * 2, ph = (j % Nv) / Nv * Math.PI * 2; return new THREE.Vector3((R + r * Math.cos(ph)) * Math.cos(th), (R + r * Math.cos(ph)) * Math.sin(th), r * Math.sin(ph)); }
+            for (i = 0; i < Nu; i++) for (j = 0; j < Nv; j++) { idx[i + '_' + j] = anchors.length; anchors.push(Pt(i, j)); }
+            for (i = 0; i < Nu; i++) for (j = 0; j < Nv; j++) {
+                edges.push({ a: anchors[idx[i + '_' + j]], b: anchors[idx[((i + 1) % Nu) + '_' + j]], color: 0x2ec4b6 });
+                edges.push({ a: anchors[idx[i + '_' + j]], b: anchors[idx[i + '_' + ((j + 1) % Nv)]], color: 0x2ec4b6 });
+            }
+            return G.anchorLayout(d, THREE, anchors, edges);
+        }
+    });
 })();
