@@ -57,4 +57,17 @@
             return placeOnVerts(d, THREE, verts, edges, 0xffb454);
         }
     });
+
+    // Stellated octahedron (stella octangula): two interpenetrating tetrahedra.
+    G.create({
+        id: 'stellaoctangula', name: 'Stella octangula', rotateSpeed: 0.5, camZ: 54,
+        layout: function (d, THREE) {
+            var S = 11, tA = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]], tB = [[-1, -1, -1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]];
+            var verts = tA.concat(tB).map(function (b) { return new THREE.Vector3(b[0] * S, b[1] * S, b[2] * S); }), edges = [];
+            [[0, 1, 2, 3], [4, 5, 6, 7]].forEach(function (t) {
+                for (var i = 0; i < 4; i++) for (var j = i + 1; j < 4; j++) edges.push({ a: verts[t[i]], b: verts[t[j]] });
+            });
+            return placeOnVerts(d, THREE, verts, edges, 0xffd23f);
+        }
+    });
 })();
