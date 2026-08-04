@@ -31,4 +31,42 @@
             return G.anchorLayout(d, THREE, anchors, edges);
         }
     });
+
+    // Klein bottle (figure-8 immersion): one curve winding over the surface;
+    // packets ride the curve.
+    G.create({
+        id: 'klein', name: 'Klein bottle', rotateSpeed: 0.4, camZ: 60,
+        layout: function (d, THREE) {
+            var A = 8, S = 3.2, N = 900, pts = [], i;
+            for (i = 0; i <= N; i++) {
+                var u = i / N * Math.PI * 2, v = i / N * Math.PI * 2 * 8;
+                var r = A + Math.cos(u / 2) * Math.sin(v) - Math.sin(u / 2) * Math.sin(2 * v);
+                pts.push(new THREE.Vector3(r * Math.cos(u) * S / 4, (Math.sin(u / 2) * Math.sin(v) + Math.cos(u / 2) * Math.sin(2 * v)) * S, r * Math.sin(u) * S / 4));
+            }
+            return G.curveLayout(d, THREE, pts, 0x9b5de5);
+        }
+    });
+
+    // Hopf fibration (interlocking rings): a chain of linked circles.
+    G.create({
+        id: 'hopf', name: 'Hopf fibration', rotateSpeed: 0.35, camZ: 60,
+        layout: function (d, THREE) {
+            var M = 10, R = 15, r = 7, anchors = [], edges = [], segs = 32, k;
+            for (k = 0; k < M; k++) {
+                var base = k / M * Math.PI * 2, cx = Math.cos(base) * R, cy = Math.sin(base) * R;
+                // ring lies in the tangent-vertical plane so it links its neighbours
+                var ux = -Math.sin(base), uy = Math.cos(base), prev = null, first = null;
+                for (var s = 0; s <= segs; s++) {
+                    var a = s / segs * Math.PI * 2, ca = Math.cos(a) * r, sa = Math.sin(a) * r;
+                    var p = new THREE.Vector3(cx + ca * ux, cy + ca * uy, sa);
+                    if (s % 4 === 0) anchors.push(p);
+                    if (prev) edges.push({ a: prev, b: p, color: 0x4d8bf0 });
+                    else first = p;
+                    prev = p;
+                }
+                if (first && prev) edges.push({ a: prev, b: first, color: 0x4d8bf0 });
+            }
+            return G.anchorLayout(d, THREE, anchors, edges);
+        }
+    });
 })();
