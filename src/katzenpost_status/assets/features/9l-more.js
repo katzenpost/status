@@ -67,6 +67,18 @@
         }
     });
 
+    // Fruit of Life: thirteen circles on a hexagonal lattice.
+    G.create({
+        id: 'fruitoflife', name: 'Fruit of Life', rotateSpeed: 0.35, camZ: 62,
+        layout: function (d, THREE) {
+            var R = 6, centers = [new THREE.Vector3(0, 0, 0)], i, a;
+            for (i = 0; i < 6; i++) { a = i * Math.PI / 3; centers.push(new THREE.Vector3(Math.cos(a) * 2 * R, Math.sin(a) * 2 * R, 0)); }
+            for (i = 0; i < 6; i++) { a = i * Math.PI / 3 + Math.PI / 6; centers.push(new THREE.Vector3(Math.cos(a) * 2 * Math.sqrt(3) * R, Math.sin(a) * 2 * Math.sqrt(3) * R, 0)); }
+            var edges = []; centers.forEach(function (c) { circleEdges(c.x, c.y, R, 40, 0x2ec4b6, THREE, edges); });
+            return placeAnchors(d, THREE, centers, edges);
+        }
+    });
+
     // Vesica Piscis: two overlapping circles.
     G.create({
         id: 'vesica', name: 'Vesica Piscis', rotateSpeed: 0.35, camZ: 52,
