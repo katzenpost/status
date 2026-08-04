@@ -43,6 +43,8 @@
     polyView('octahedron', 'Octahedron', function (T) { return new T.OctahedronGeometry(18); }, 0x00d2a0, 52);
     polyView('icosahedron', 'Icosahedron', function (T) { return new T.IcosahedronGeometry(18); }, 0x4d8bf0, 54);
     polyView('dodecahedron', 'Dodecahedron', function (T) { return new T.DodecahedronGeometry(18); }, 0x9b5de5, 56);
+    polyView('tetrahedron', 'Tetrahedron', function (T) { return new T.TetrahedronGeometry(19); }, 0x2ec4b6, 52);
+    polyView('geodesic', 'Geodesic sphere', function (T) { return new T.IcosahedronGeometry(18, 1); }, 0x00d2a0, 54);
 
     // Cuboctahedron (Vector Equilibrium): 12 vertices = permutations of (+-1,+-1,0)
     G.create({
