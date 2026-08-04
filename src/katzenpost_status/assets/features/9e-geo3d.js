@@ -77,6 +77,7 @@
             var PACK_MAX = mob ? 120 : 320;
             var renderer = null, scene = null, camera = null, controls = null, world = null;
             var nodeGroup = null, edgeLines = null, nodePos = {}, spawnFn = null;
+            var gVerts = [], gAdj = [], nodeVert = {}, pipeCols = [];   // edge graph for routing
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
             var running = false, raf = 0;
 
@@ -169,7 +170,81 @@
                     world.add(edgeLines);
                 }
                 spawnFn = lay.spawn || null;
+                buildGraph(edges, nodes);
                 if (controls && lay.target) { controls.target.copy(lay.target); controls.update(); }
+            }
+
+            // Build a routing graph from the edges (merging near-coincident
+            // endpoints) so packets can follow the geometry's lines, and snap
+            // each node to its nearest graph vertex.
+            function buildGraph(edges, nodes) {
+                gVerts = []; gAdj = []; nodeVert = {};
+                var vmap = {}, Q = opts.snap || 0.35;
+                function vidx(v) {
+                    var k = Math.round(v.x / Q) + '_' + Math.round(v.y / Q) + '_' + Math.round(v.z / Q);
+                    if (vmap[k] == null) { vmap[k] = gVerts.length; gVerts.push(v.clone()); gAdj.push([]); }
+                    return vmap[k];
+                }
+                edges.forEach(function (e) {
+                    var ia = vidx(e.a), ib = vidx(e.b);
+                    if (ia !== ib) { if (gAdj[ia].indexOf(ib) < 0) gAdj[ia].push(ib); if (gAdj[ib].indexOf(ia) < 0) gAdj[ib].push(ia); }
+                });
+                // Connect disconnected components (e.g. the separate circles of a
+                // Seed of Life) with a short bridge to the nearest other vertex,
+                // so packets can still route along the lines across the pattern.
+                var comp = new Array(gVerts.length), nc = 0, s;
+                for (s = 0; s < gVerts.length; s++) comp[s] = -1;
+                for (s = 0; s < gVerts.length; s++) {
+                    if (comp[s] >= 0) continue;
+                    var stack = [s]; comp[s] = nc;
+                    while (stack.length) { var u = stack.pop(); for (var t = 0; t < gAdj[u].length; t++) { var w2 = gAdj[u][t]; if (comp[w2] < 0) { comp[w2] = nc; stack.push(w2); } } }
+                    nc++;
+                }
+                if (nc > 1 && gVerts.length < 1500) {
+                    for (var cc = 1; cc < nc; cc++) {
+                        var bi = -1, bj = -1, bd = Infinity;
+                        for (var i = 0; i < gVerts.length; i++) {
+                            if (comp[i] !== cc) continue;
+                            for (var j = 0; j < gVerts.length; j++) { if (comp[j] >= cc) continue; var dd = gVerts[i].distanceToSquared(gVerts[j]); if (dd < bd) { bd = dd; bi = i; bj = j; } }
+                        }
+                        if (bi >= 0) { gAdj[bi].push(bj); gAdj[bj].push(bi); }
+                    }
+                }
+                nodes.forEach(function (nd) {
+                    var best = -1, bd = Infinity;
+                    for (var i = 0; i < gVerts.length; i++) { var dd = gVerts[i].distanceToSquared(nd.pos); if (dd < bd) { bd = dd; best = i; } }
+                    nodeVert[nd.name] = best;
+                });
+                pipeCols = window.KATZEN_GEO3D.columns(K.data() || {});
+            }
+            function bfs(src, dst) {
+                if (src < 0 || dst < 0) return null;
+                if (src === dst) return [src];
+                var prev = {}, q = [src], seen = {}, head = 0; seen[src] = 1;
+                while (head < q.length) {
+                    var u = q[head++], nb = gAdj[u];
+                    for (var i = 0; i < nb.length; i++) {
+                        var w = nb[i];
+                        if (!seen[w]) {
+                            seen[w] = 1; prev[w] = u;
+                            if (w === dst) { var path = [dst], c = dst; while (c !== src) { c = prev[c]; path.push(c); } path.reverse(); return path; }
+                            q.push(w);
+                        }
+                    }
+                }
+                return null;
+            }
+            function routeAlongEdges() {
+                if (!pipeCols || pipeCols.length < 2 || !gVerts.length) return null;
+                var chosen = [], ci;
+                for (ci = 0; ci < pipeCols.length; ci++) { var c = pipeCols[ci]; chosen.push(c[(Math.random() * c.length) | 0]); }
+                var pts = [];
+                for (var i = 0; i < chosen.length - 1; i++) {
+                    var vp = bfs(nodeVert[chosen[i].name], nodeVert[chosen[i + 1].name]);
+                    if (!vp) return null;   // disconnected: caller falls back
+                    for (var k = 0; k < vp.length; k++) { if (i > 0 && k === 0) continue; pts.push(gVerts[vp[k]]); }
+                }
+                return pts.length >= 2 ? pts : null;
             }
 
             function meanDwell() {
@@ -177,8 +252,9 @@
                 return mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
             }
             function spawnPacket() {
-                if (!spawnFn || packets.length >= PACK_MAX) return;
-                var p = spawnFn();
+                if (packets.length >= PACK_MAX) return;
+                var p = routeAlongEdges();   // packets follow the geometry's lines
+                if (!p && spawnFn) p = spawnFn();   // fall back only if the graph is disconnected
                 if (!p || p.length < 2) return;
                 if (Math.random() < 0.5) p = p.slice().reverse();   // flows in both directions
                 packets.push({ path: p, seg: 0, t: 0, dwell: 0, speed: 10 + Math.random() * 8 });
