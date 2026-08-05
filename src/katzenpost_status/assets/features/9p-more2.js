@@ -49,4 +49,42 @@
             return G.anchorLayout(d, THREE, anchors, edges);
         }
     });
+
+    // Penrose tiling (P3): fat and thin rhombi from Robinson-triangle deflation.
+    G.create({
+        id: 'penrose', name: 'Penrose tiling', rotateSpeed: 0.25, camZ: 58,
+        layout: function (d, THREE) {
+            var phi = (1 + Math.sqrt(5)) / 2;
+            function cx(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+            function sub(a, b) { return { re: a.re - b.re, im: a.im - b.im }; }
+            function div(a, s) { return { re: a.re / s, im: a.im / s }; }
+            function lerp(a, b) { return cx(a, div(sub(b, a), phi)); }   // a + (b-a)/phi
+            var tris = [], i, S = 26;
+            for (i = 0; i < 10; i++) {
+                var b = { re: Math.cos((2 * i - 1) * Math.PI / 10) * S, im: Math.sin((2 * i - 1) * Math.PI / 10) * S };
+                var c = { re: Math.cos((2 * i + 1) * Math.PI / 10) * S, im: Math.sin((2 * i + 1) * Math.PI / 10) * S };
+                if (i % 2 === 0) { var t = b; b = c; c = t; }
+                tris.push([0, { re: 0, im: 0 }, b, c]);
+            }
+            for (var g = 0; g < 5; g++) {
+                var next = [];
+                tris.forEach(function (tr) {
+                    var col = tr[0], A = tr[1], B = tr[2], C = tr[3];
+                    if (col === 0) { var P = lerp(A, B); next.push([0, C, P, B], [1, P, C, A]); }
+                    else { var Q = lerp(B, A), R = lerp(B, C); next.push([1, R, C, A], [1, Q, R, B], [0, R, Q, A]); }
+                });
+                tris = next;
+            }
+            var seen = {}, edges = [], anchors = [], anchSeen = {};
+            function push(p, q) {
+                var k = Math.round(p.re * 8) + ',' + Math.round(p.im * 8) + '|' + Math.round(q.re * 8) + ',' + Math.round(q.im * 8);
+                var k2 = Math.round(q.re * 8) + ',' + Math.round(q.im * 8) + '|' + Math.round(p.re * 8) + ',' + Math.round(p.im * 8);
+                if (seen[k] || seen[k2]) return; seen[k] = 1;
+                edges.push({ a: new THREE.Vector3(p.re, p.im, 0), b: new THREE.Vector3(q.re, q.im, 0), color: 0x4d8bf0 });
+            }
+            function anch(p) { var k = Math.round(p.re * 8) + ',' + Math.round(p.im * 8); if (anchSeen[k]) return; anchSeen[k] = 1; anchors.push(new THREE.Vector3(p.re, p.im, 0)); }
+            tris.forEach(function (tr) { var A = tr[1], B = tr[2], C = tr[3]; push(A, B); push(A, C); push(B, C); anch(A); anch(B); anch(C); });
+            return G.anchorLayout(d, THREE, anchors, edges);
+        }
+    });
 })();
