@@ -20,10 +20,12 @@
         }
     }
     function placeAnchors(d, THREE, anchors, edges) {
-        var order = (d.nodes || []).slice().sort(byTN), nodes = [], nodePos = {};
+        var order = (d.nodes || []).slice().sort(byTN), nodes = [], nodePos = {}, cnt = order.length, used = {};
         order.forEach(function (n, i) {
-            var p = anchors.length ? anchors[i % anchors.length].clone() : new THREE.Vector3();
-            if (i >= anchors.length) p.z += Math.floor(i / anchors.length) * 2.4;
+            var ai = anchors.length ? Math.floor(i * anchors.length / cnt) % anchors.length : 0;
+            var p = anchors.length ? anchors[ai].clone() : new THREE.Vector3();
+            if (used[ai]) p.z += 2.4;   // stack duplicates off the plane
+            used[ai] = true;
             nodes.push({ name: n.name, type: n.type, pos: p }); nodePos[n.name] = p;
         });
         return { nodes: nodes, edges: edges, spawn: pipeSpawn(G.columns(d), nodePos) };
