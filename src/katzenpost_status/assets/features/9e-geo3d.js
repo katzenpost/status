@@ -52,10 +52,12 @@
         // flow packets along the gateway->mix->service pipeline.
         anchorLayout: function (d, THREE, anchors, edges) {
             var self = this, order = (d.nodes || []).slice().sort(function (a, b) { return (a.type + a.name).localeCompare(b.type + b.name); });
-            var nodes = [], nodePos = {};
+            var nodes = [], nodePos = {}, cnt = order.length, used = {};
             order.forEach(function (n, i) {
-                var p = anchors.length ? anchors[i % anchors.length].clone() : new THREE.Vector3();
-                if (i >= anchors.length) p.multiplyScalar(0.7);
+                var ai = anchors.length ? Math.floor(i * anchors.length / cnt) % anchors.length : 0;
+                var p = anchors.length ? anchors[ai].clone() : new THREE.Vector3();
+                if (used[ai]) p.multiplyScalar(0.82);   // nudge duplicates onto an inner shell
+                used[ai] = true;
                 nodes.push({ name: n.name, type: n.type, pos: p }); nodePos[n.name] = p;
             });
             var cols = self.columns(d);
