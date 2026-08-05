@@ -60,4 +60,23 @@
             return G.curveLayout(d, THREE, v, 0x4d8bf0);
         }
     });
+
+    // Menger sponge: a cube with its fractal holes; packets route the lattice.
+    G.create({
+        id: 'menger', name: 'Menger sponge', rotateSpeed: 0.35, camZ: 60,
+        layout: function (d, THREE) {
+            var D = 2, N = 9, s = 3.6, off = (N - 1) / 2, anchors = [], edges = [], x, y, z;
+            function survives(a, b, c) { for (var l = 0; l < D; l++) { var m = 0; if (a % 3 === 1) m++; if (b % 3 === 1) m++; if (c % 3 === 1) m++; if (m >= 2) return false; a = (a / 3) | 0; b = (b / 3) | 0; c = (c / 3) | 0; } return true; }
+            var corners = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
+            var wire = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+            for (x = 0; x < N; x++) for (y = 0; y < N; y++) for (z = 0; z < N; z++) {
+                if (!survives(x, y, z)) continue;
+                var cx = (x - off) * s, cy = (y - off) * s, cz = (z - off) * s, h = s / 2;
+                var vs = corners.map(function (c) { return new THREE.Vector3(cx + c[0] * h, cy + c[1] * h, cz + c[2] * h); });
+                anchors.push(new THREE.Vector3(cx, cy, cz));
+                wire.forEach(function (w) { edges.push({ a: vs[w[0]], b: vs[w[1]], color: 0x9b5de5 }); });
+            }
+            return G.anchorLayout(d, THREE, anchors, edges);
+        }
+    });
 })();
