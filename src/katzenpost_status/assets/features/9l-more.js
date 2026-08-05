@@ -79,6 +79,46 @@
         }
     });
 
+    // Apollonian gasket: mutually tangent circles filled by Descartes' theorem.
+    G.create({
+        id: 'apollonian', name: 'Apollonian gasket', rotateSpeed: 0.3, camZ: 56,
+        layout: function (d, THREE) {
+            function cmul(a, b) { return { re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }; }
+            function cadd(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+            function csqrt(a) { var r = Math.sqrt(a.re * a.re + a.im * a.im); return { re: Math.sqrt(Math.max(0, (r + a.re) / 2)), im: (a.im < 0 ? -1 : 1) * Math.sqrt(Math.max(0, (r - a.re) / 2)) }; }
+            function C(x, y, k) { return { x: x, y: y, k: k, zk: { re: x * k, im: y * k } }; }
+            var R0 = 22, circles = [C(0, 0, -1 / R0), C(-R0 / 2, 0, 2 / R0), C(R0 / 2, 0, 2 / R0)];
+            var seen = {};
+            function key(c) { return Math.round(c.x) + ',' + Math.round(c.y) + ',' + Math.round(Math.abs(1 / c.k)); }
+            circles.forEach(function (c) { seen[key(c)] = true; });
+            function fourth(a, b, c, sign) {
+                var k = a.k + b.k + c.k, disc = a.k * b.k + b.k * c.k + c.k * a.k;
+                if (disc < 0) return null;
+                var k4 = k + sign * 2 * Math.sqrt(disc);
+                if (Math.abs(k4) < 1e-4) return null;
+                var s = cadd(cadd(a.zk, b.zk), c.zk);
+                var root = csqrt(cadd(cadd(cmul(a.zk, b.zk), cmul(b.zk, c.zk)), cmul(c.zk, a.zk)));
+                var z4 = { re: s.re + sign * 2 * root.re, im: s.im + sign * 2 * root.im };
+                var nx = z4.re / k4, ny = z4.im / k4, nr = Math.abs(1 / k4);
+                if (nr < 0.6) return null;
+                return C(nx, ny, k4);
+            }
+            function recurse(a, b, c, depth) {
+                if (depth <= 0 || circles.length > 70) return;
+                [1, -1].forEach(function (sg) {
+                    var f = fourth(a, b, c, sg);
+                    if (!f || seen[key(f)]) return;
+                    seen[key(f)] = true; circles.push(f);
+                    recurse(a, b, f, depth - 1); recurse(a, c, f, depth - 1); recurse(b, c, f, depth - 1);
+                });
+            }
+            recurse(circles[0], circles[1], circles[2], 5);
+            var edges = [], anchors = [];
+            circles.forEach(function (c) { var rr = Math.abs(1 / c.k); circleEdges(c.x, c.y, rr, Math.max(16, Math.round(rr * 3)), c.k < 0 ? 0xffd23f : 0x2ec4b6, THREE, edges); anchors.push(new THREE.Vector3(c.x, c.y, 0)); });
+            return placeAnchors(d, THREE, anchors, edges);
+        }
+    });
+
     // Vesica Piscis: two overlapping circles.
     G.create({
         id: 'vesica', name: 'Vesica Piscis', rotateSpeed: 0.35, camZ: 52,
