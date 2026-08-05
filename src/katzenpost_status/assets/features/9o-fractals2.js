@@ -22,4 +22,18 @@
             return G.anchorLayout(d, THREE, anchors, edges);
         }
     });
+
+    // Dragon curve (Heighway): one folded continuous line; packets ride it.
+    G.create({
+        id: 'dragon', name: 'Dragon curve', rotateSpeed: 0.3, camZ: 58,
+        layout: function (d, THREE) {
+            var turns = [], i, j;
+            for (i = 0; i < 11; i++) { var t = turns.slice(); turns.push(1); for (j = t.length - 1; j >= 0; j--) turns.push(t[j] ? 0 : 1); }
+            var dir = 0, x = 0, y = 0, step = 1.15, raw = [[0, 0]];
+            for (i = 0; i < turns.length; i++) { x += Math.cos(dir) * step; y += Math.sin(dir) * step; raw.push([x, y]); dir += turns[i] ? Math.PI / 2 : -Math.PI / 2; }
+            var cx = 0, cy = 0; raw.forEach(function (p) { cx += p[0]; cy += p[1]; }); cx /= raw.length; cy /= raw.length;
+            var pts = raw.map(function (p) { return new THREE.Vector3((p[0] - cx) * 0.55, (p[1] - cy) * 0.55, 0); });
+            return G.curveLayout(d, THREE, pts, 0xff8f3f);
+        }
+    });
 })();
