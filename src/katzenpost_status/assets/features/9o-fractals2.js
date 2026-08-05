@@ -36,4 +36,28 @@
             return G.curveLayout(d, THREE, pts, 0xff8f3f);
         }
     });
+
+    // Koch snowflake: the Koch curve applied to a triangle; a closed fractal
+    // boundary the packets trace.
+    G.create({
+        id: 'koch', name: 'Koch snowflake', rotateSpeed: 0.28, camZ: 56,
+        layout: function (d, THREE) {
+            var R = 20, pts = [], i;
+            for (i = 0; i < 3; i++) { var a = Math.PI / 2 + i * Math.PI * 2 / 3; pts.push({ x: Math.cos(a) * R, y: Math.sin(a) * R }); }
+            pts.push(pts[0]);
+            for (var it = 0; it < 4; it++) {
+                var out = [];
+                for (i = 0; i < pts.length - 1; i++) {
+                    var A = pts[i], B = pts[i + 1], dx = B.x - A.x, dy = B.y - A.y;
+                    var p1 = { x: A.x + dx / 3, y: A.y + dy / 3 }, p3 = { x: A.x + 2 * dx / 3, y: A.y + 2 * dy / 3 };
+                    var ang = Math.atan2(dy, dx) - Math.PI / 3, len = Math.sqrt(dx * dx + dy * dy) / 3;
+                    var p2 = { x: p1.x + Math.cos(ang) * len, y: p1.y + Math.sin(ang) * len };
+                    out.push(A, p1, p2, p3);
+                }
+                out.push(pts[pts.length - 1]); pts = out;
+            }
+            var v = pts.map(function (p) { return new THREE.Vector3(p.x, p.y, 0); });
+            return G.curveLayout(d, THREE, v, 0x4d8bf0);
+        }
+    });
 })();
