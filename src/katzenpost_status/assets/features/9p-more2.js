@@ -18,4 +18,35 @@
             return G.anchorLayout(d, THREE, pts, edges);
         }
     });
+
+    function uniqueVerts(geo, THREE) {
+        var pos = geo.attributes.position, seen = {}, out = [], i;
+        for (i = 0; i < pos.count; i++) {
+            var v = new THREE.Vector3().fromBufferAttribute(pos, i), k = Math.round(v.x * 40) + ',' + Math.round(v.y * 40) + ',' + Math.round(v.z * 40);
+            if (!seen[k]) { seen[k] = 1; out.push(v); }
+        }
+        return out;
+    }
+    function geoEdges(geo, THREE, color) {
+        var eg = new THREE.EdgesGeometry(geo, 1), ep = eg.attributes.position, edges = [], i;
+        for (i = 0; i < ep.count; i += 2) edges.push({ a: new THREE.Vector3().fromBufferAttribute(ep, i), b: new THREE.Vector3().fromBufferAttribute(ep, i + 1), color: color });
+        eg.dispose();
+        return edges;
+    }
+
+    // Stellated dodecahedron: a dodecahedron spiked along its dual directions.
+    G.create({
+        id: 'stellateddodec', name: 'Stellated dodecahedron', rotateSpeed: 0.42, camZ: 66,
+        layout: function (d, THREE) {
+            var dg = new THREE.DodecahedronGeometry(15), dv = uniqueVerts(dg, THREE), edges = geoEdges(dg, THREE, 0x9b5de5); dg.dispose();
+            var ig = new THREE.IcosahedronGeometry(1), iv = uniqueVerts(ig, THREE); ig.dispose();
+            var anchors = dv.slice();
+            iv.forEach(function (dir) {
+                var sp = dir.clone().normalize().multiplyScalar(26); anchors.push(sp);
+                var d5 = dv.map(function (v, i) { return [v.distanceTo(sp), i]; }).sort(function (a, b) { return a[0] - b[0]; }).slice(0, 5);
+                d5.forEach(function (pr) { edges.push({ a: sp, b: dv[pr[1]], color: 0xffd23f }); });
+            });
+            return G.anchorLayout(d, THREE, anchors, edges);
+        }
+    });
 })();
