@@ -36,6 +36,11 @@
         return [p[0] + dt * (Math.sin(p[1]) - b * p[0]), p[1] + dt * (Math.sin(p[2]) - b * p[1]), p[2] + dt * (Math.sin(p[0]) - b * p[2])];
     }, [1.1, 1.1, -0.1], 0.06, 4000, 5.0, [0, 0, 0], 0x9b5de5, 66);
 
+    attractor('halvorsen', 'Halvorsen attractor', function (p, dt) {
+        var a = 1.89, x = p[0], y = p[1], z = p[2];
+        return [x + dt * (-a * x - 4 * y - 4 * z - y * y), y + dt * (-a * y - 4 * z - 4 * x - z * z), z + dt * (-a * z - 4 * x - 4 * y - x * x)];
+    }, [-1.48, -1.51, 2.04], 0.007, 4000, 3.2, [-2.7, -2.7, -2.7], 0x00d2a0, 60);
+
     attractor('aizawa', 'Aizawa attractor', function (p, dt) {
         var a = 0.95, b = 0.7, c = 0.6, e = 0.25, f = 0.1, dd = 3.5, x = p[0], y = p[1], z = p[2];
         return [x + dt * ((z - b) * x - dd * y), y + dt * (dd * x + (z - b) * y), z + dt * (c + a * z - z * z * z / 3 - (x * x + y * y) * (1 + e * z) + f * z * x * x * x)];
