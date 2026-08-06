@@ -36,4 +36,6 @@
     tk('knot35', '(3,5) torus knot', 3, 5, 0xff8f3f);
 
     tk('septafoil', 'Septafoil knot', 2, 7, 0xff5d8f);
+
+    tk('knot45', '(4,5) torus knot', 4, 5, 0x00d2a0);
 })();
