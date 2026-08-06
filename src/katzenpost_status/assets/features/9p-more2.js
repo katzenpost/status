@@ -87,4 +87,27 @@
             return G.anchorLayout(d, THREE, anchors, edges);
         }
     });
+
+    // Chladni figure (cymatics): the nodal lines of a vibrating square plate,
+    // traced by marching squares. Packets ride the standing-wave nodes.
+    G.create({
+        id: 'chladni', name: 'Chladni figure', rotateSpeed: 0.2, camZ: 52,
+        layout: function (d, THREE) {
+            var n = 4, m = 3, N = 60, S = 44, edges = [], anchors = [], anchSeen = {};
+            function f(u, v) { return Math.cos(n * Math.PI * u) * Math.cos(m * Math.PI * v) - Math.cos(m * Math.PI * u) * Math.cos(n * Math.PI * v); }
+            function XY(u, v) { return new THREE.Vector3((u - 0.5) * S, (v - 0.5) * S, 0); }
+            function anch(p) { var k = Math.round(p.x) + ',' + Math.round(p.y); if (anchSeen[k]) return; anchSeen[k] = 1; anchors.push(p); }
+            var i, j;
+            for (i = 0; i < N; i++) for (j = 0; j < N; j++) {
+                var u0 = i / N, u1 = (i + 1) / N, v0 = j / N, v1 = (j + 1) / N;
+                var f00 = f(u0, v0), f10 = f(u1, v0), f11 = f(u1, v1), f01 = f(u0, v1), cross = [];
+                if ((f00 < 0) !== (f10 < 0)) cross.push(XY(u0 + (u1 - u0) * (f00 / (f00 - f10)), v0));
+                if ((f10 < 0) !== (f11 < 0)) cross.push(XY(u1, v0 + (v1 - v0) * (f10 / (f10 - f11))));
+                if ((f11 < 0) !== (f01 < 0)) cross.push(XY(u1 + (u0 - u1) * (f11 / (f11 - f01)), v1));
+                if ((f01 < 0) !== (f00 < 0)) cross.push(XY(u0, v1 + (v0 - v1) * (f01 / (f01 - f00))));
+                if (cross.length >= 2) { edges.push({ a: cross[0], b: cross[1], color: 0x2ec4b6 }); anch(cross[0]); anch(cross[1]); if (cross.length === 4) { edges.push({ a: cross[2], b: cross[3], color: 0x2ec4b6 }); anch(cross[2]); anch(cross[3]); } }
+            }
+            return G.anchorLayout(d, THREE, anchors, edges);
+        }
+    });
 })();
