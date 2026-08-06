@@ -82,6 +82,7 @@
             var gVerts = [], gAdj = [], nodeVert = {}, pipeCols = [];   // edge graph for routing
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
             var running = false, raf = 0;
+            var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
 
             // Colour nodes by STATUS, matching the Earth and the other views.
             function roleColor(n) {
@@ -122,6 +123,14 @@
                     blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
                 }));
                 world.add(packPts);
+
+                // Onion-peel / heartbeat ring pool: thin annuli we scale + fade.
+                var cgeo = new THREE.RingGeometry(0.82, 1.0, 44), ci;
+                for (ci = 0; ci < 30; ci++) {
+                    var lm = new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+                    var ring = new THREE.Mesh(cgeo, lm); ring.visible = false; ring.scale.set(0.01, 0.01, 0.01);
+                    world.add(ring); shellPool.push({ mesh: ring, active: false, age: 0, max: 1, grow: 6 });
+                }
 
                 var ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), dx = 0, dy = 0;
                 renderer.domElement.addEventListener('pointerdown', function (ev) { dx = ev.clientX; dy = ev.clientY; });
@@ -261,6 +270,24 @@
                 if (Math.random() < 0.5) p = p.slice().reverse();   // flows in both directions
                 packets.push({ path: p, seg: 0, t: 0, dwell: 0, speed: 10 + Math.random() * 8 });
             }
+            function triggerShell(pos, color, max, grow) {
+                for (var i = 0; i < shellPool.length; i++) {
+                    var s = shellPool[i];
+                    if (s.active) continue;
+                    s.active = true; s.age = 0; s.max = max; s.grow = grow;
+                    s.mesh.visible = true; s.mesh.position.copy(pos); s.mesh.material.color.setHex(color);
+                    s.mesh.scale.set(0.01, 0.01, 0.01); s.mesh.material.opacity = 0.9;
+                    return;
+                }
+            }
+            function updateShells(dt) {
+                for (var i = 0; i < shellPool.length; i++) {
+                    var s = shellPool[i]; if (!s.active) continue;
+                    s.age += dt; var f = s.age / s.max;
+                    if (f >= 1) { s.active = false; s.mesh.visible = false; continue; }
+                    var r = 0.01 + s.age * s.grow; s.mesh.scale.set(r, r, r); s.mesh.material.opacity = 0.9 * (1 - f);
+                }
+            }
             function updatePackets(dt) {
                 var w = packPos, c = packCol, k = 0, md = meanDwell();
                 for (var i = packets.length - 1; i >= 0; i--) {
@@ -275,7 +302,7 @@
                     }
                     var segLen = a.distanceTo(b) || 1;
                     pk.t += dt * pk.speed / segLen;
-                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; }   // arrive -> mix/queue
+                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; triggerShell(b, 0xffc24d, 1.0, 9); }   // arrive -> shed a layer, mix/queue
                     if (k < PACK_MAX) {
                         var t = pk.t, o = k * 3;
                         w[o] = a.x + (b.x - a.x) * t; w[o + 1] = a.y + (b.y - a.y) * t; w[o + 2] = a.z + (b.z - a.z) * t;
@@ -294,7 +321,10 @@
                 var rate = (typeof K.trafficRate === 'function' ? K.trafficRate() : 0) || 0;
                 spawnAcc += dt * (6 + Math.min(40, rate * 0.6));
                 while (spawnAcc >= 1) { spawnPacket(); spawnAcc -= 1; }
+                heartAcc += dt;
+                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, 0x00f3ff, 2.6, 22); }   // epoch heartbeat
                 updatePackets(dt);
+                updateShells(dt);
                 if (controls) controls.update();
                 renderer.render(scene, camera);
                 raf = requestAnimationFrame(loop);
