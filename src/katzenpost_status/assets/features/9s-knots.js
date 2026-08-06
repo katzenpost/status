@@ -55,4 +55,6 @@
             e2.forEach(function (x) { x.a.x += gx * 9; x.a.y += gy * 9; x.b.x += gx * 9; x.b.y += gy * 9; e.push(x); });
         }
     }, 58);
+
+    tk('turkshead', "Turk's-head weave", 3, 7, 0xffb454);
 })();
