@@ -38,4 +38,12 @@
     tk('septafoil', 'Septafoil knot', 2, 7, 0xff5d8f);
 
     tk('knot45', '(4,5) torus knot', 4, 5, 0x00d2a0);
+
+    linkView('borromean', 'Borromean rings', function (a, e, T) {
+        var R = 12, b = 7;
+        // three mutually interlocking ellipses in orthogonal planes
+        for (var s = 0; s <= 60; s++) { var t = s / 60 * PI2; }
+        function ell(ax) { var prev = null, first = null; for (var s = 0; s <= 64; s++) { var t = s / 64 * PI2, x = Math.cos(t) * R, y = Math.sin(t) * b, p; if (ax === 0) p = new T.Vector3(x, y, 0); else if (ax === 1) p = new T.Vector3(0, x, y); else p = new T.Vector3(y, 0, x); if (s % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0xffd23f }); else first = p; prev = p; } e.push({ a: prev, b: first, color: 0xffd23f }); }
+        ell(0); ell(1); ell(2);
+    }, 54);
 })();
