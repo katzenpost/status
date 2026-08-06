@@ -48,4 +48,11 @@
     }, 54);
 
     linkView('hopflink', 'Hopf link', function (a, e, T) { ring(a, e, T, 2, 12, 64, 0x4d8bf0); var e2 = []; ring(a, e2, T, 1, 12, 64, 0xff8f3f); e2.forEach(function (x) { x.a.x += 12; x.b.x += 12; e.push(x); }); }, 52);
+
+    linkView('chainmail', 'Chain-mail lattice', function (a, e, T) {
+        for (var gx = -1; gx <= 1; gx++) for (var gy = -1; gy <= 1; gy++) {
+            var ax = ((gx + gy) & 1) ? 1 : 2, e2 = []; ring(a, e2, T, ax, 6, 40, 0x2ec4b6);
+            e2.forEach(function (x) { x.a.x += gx * 9; x.a.y += gy * 9; x.b.x += gx * 9; x.b.y += gy * 9; e.push(x); });
+        }
+    }, 58);
 })();
