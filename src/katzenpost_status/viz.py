@@ -564,6 +564,48 @@ def _feature_files() -> list[str]:
     return sorted(p.name for p in FEATURES_SRC.glob("*.js"))
 
 
+def _asset_version(path: Path) -> str:
+    """Short content hash so a changed asset gets a fresh URL (cache-bust)."""
+    try:
+        return hashlib.md5(path.read_bytes()).hexdigest()[:8]
+    except OSError:
+        return ""
+
+
+def _resolve_asset_source(rel_url: str) -> Path | None:
+    """Map a shell asset URL (e.g. 'katzenpost-viz/features/9e-geo3d.js') back
+    to its source file so we can hash it for cache-busting."""
+    prefix = ASSETS_SUBDIR + "/"
+    if not rel_url.startswith(prefix):
+        return None
+    rest = rel_url[len(prefix) :]
+    if rest == APP_JS_NAME:
+        return APP_JS_PATH
+    if rest.startswith(FEATURES_SUBDIR + "/"):
+        return FEATURES_SRC / rest.split("/", 1)[1]
+    return VENDOR_DIR / rest
+
+
+def _cache_bust(html: str) -> str:
+    """Append a content-hash query string to every local .js asset URL. Feature
+    and app files keep fixed names, so without this a browser or CDN serves the
+    stale cached copy after a redeploy (e.g. the old routing-less geometry JS);
+    a per-file hash re-fetches only what actually changed."""
+    pattern = re.compile(
+        r'src="(' + re.escape(ASSETS_SUBDIR) + r'/[^"?]+\.js)"'
+    )
+
+    def repl(match: re.Match[str]) -> str:
+        url = match.group(1)
+        src = _resolve_asset_source(url)
+        if src is None or not src.exists():
+            return match.group(0)
+        ver = _asset_version(src)
+        return f'src="{url}?v={ver}"' if ver else match.group(0)
+
+    return pattern.sub(repl, html)
+
+
 def render_shell_html(
     network_name: str,
     data_file: str,
@@ -571,13 +613,14 @@ def render_shell_html(
 ) -> str:
     """Render the small, static HTML shell that loads the local JS assets and
     the data file. This content does not depend on the live data, so it is the
-    same every run (idempotent)."""
+    same every run (idempotent), apart from the per-asset cache-busting hashes
+    which change only when an asset's content changes."""
     shell = SHELL_PATH.read_text(encoding="utf-8")
     feature_tags = "\n    ".join(
         f'<script src="{ASSETS_SUBDIR}/{FEATURES_SUBDIR}/{name}"></script>'
         for name in _feature_files()
     )
-    return (
+    html = (
         shell.replace("__NETWORK_NAME__", html_escape(network_name))
         .replace("__ASSETS_DIR__", ASSETS_SUBDIR)
         .replace("__APP_JS__", APP_JS_NAME)
@@ -585,6 +628,7 @@ def render_shell_html(
         .replace("__POLL_SECONDS__", str(int(poll_seconds)))
         .replace("__FEATURE_SCRIPTS__", feature_tags)
     )
+    return _cache_bust(html)
 
 
 def _write_if_changed(path: Path, content: str) -> bool:

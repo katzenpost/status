@@ -265,6 +265,19 @@ def test_shell_references_only_local_paths(tmp_path):
     assert "window.KATZEN_POLL_SECONDS" in html
 
 
+def test_assets_are_cache_busted(tmp_path):
+    # Every local .js asset URL carries a content-hash query string, so a
+    # redeploy of a changed file (e.g. the geometry routing JS) is re-fetched
+    # instead of served stale from the browser/CDN cache.
+    html = _generate(tmp_path).read_text()
+    for needle in (
+        f"{viz.ASSETS_SUBDIR}/three.min.js",
+        f"{viz.ASSETS_SUBDIR}/{viz.APP_JS_NAME}",
+        f"{viz.ASSETS_SUBDIR}/{viz.FEATURES_SUBDIR}/9e-geo3d.js",
+    ):
+        assert re.search(re.escape(needle) + r'\?v=[0-9a-f]{6,}"', html), needle
+
+
 def test_data_file_is_plain_parseable_json(tmp_path):
     _generate(tmp_path)
     # The data file is pure JSON (not JS), so it parses directly.
