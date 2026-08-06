@@ -46,4 +46,6 @@
         function ell(ax) { var prev = null, first = null; for (var s = 0; s <= 64; s++) { var t = s / 64 * PI2, x = Math.cos(t) * R, y = Math.sin(t) * b, p; if (ax === 0) p = new T.Vector3(x, y, 0); else if (ax === 1) p = new T.Vector3(0, x, y); else p = new T.Vector3(y, 0, x); if (s % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0xffd23f }); else first = p; prev = p; } e.push({ a: prev, b: first, color: 0xffd23f }); }
         ell(0); ell(1); ell(2);
     }, 54);
+
+    linkView('hopflink', 'Hopf link', function (a, e, T) { ring(a, e, T, 2, 12, 64, 0x4d8bf0); var e2 = []; ring(a, e2, T, 1, 12, 64, 0xff8f3f); e2.forEach(function (x) { x.a.x += 12; x.b.x += 12; e.push(x); }); }, 52);
 })();
