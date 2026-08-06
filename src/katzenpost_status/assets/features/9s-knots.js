@@ -28,4 +28,6 @@
     }
 
     curve('figure8', 'Figure-eight knot', function (t, T) { var u = t * PI2, s = 6; return new T.Vector3((2 + Math.cos(2 * u)) * Math.cos(3 * u) * s, (2 + Math.cos(2 * u)) * Math.sin(3 * u) * s, Math.sin(4 * u) * s); }, 0x2ec4b6, 58, 480);
+
+    tk('cinquefoil', 'Cinquefoil knot', 2, 5, 0x4d8bf0);
 })();
