@@ -34,4 +34,6 @@
     lcurve('peano', 'Peano curve', 'F', { F: 'F-F+F+F+F-F-F-F+F' }, 3, 90, 'F', 0x2ec4b6, 52);
 
     lcurve('moore', 'Moore curve', 'LFL+F+LFL', { L: '-RF+LFL+FR-', R: '+LF-RFR-FL+' }, 4, 90, 'F', 0x4d8bf0, 52);
+
+    lcurve('gosper', 'Gosper flowsnake', 'A', { A: 'A-B--B+A++AA+B-', B: '+A-BB--B-A++A+B' }, 3, 60, 'AB', 0x9b5de5, 54);
 })();
