@@ -32,4 +32,6 @@
     attractor('nosehoover', 'Nose-Hoover attractor', function (p, dt) { var a = 1.5, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * (-x + y * z), z + dt * (a - y * y)]; }, [0.1, 0.1, 0], 0.02, 4200, 5.5, [0, 0, 0], 0x00d2a0, 60);
 
     attractor('fourwing', 'Four-wing attractor', function (p, dt) { var a = 0.2, b = 0.01, c = -0.4, x = p[0], y = p[1], z = p[2]; return [x + dt * (a * x + y * z), y + dt * (b * x + c * y - x * z), z + dt * (-z - x * y)]; }, [1, -1, 1], 0.02, 4400, 6.5, [0, 0, 0], 0xff5d8f, 58);
+
+    attractor('sprottb', 'Sprott-B attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (y * z), y + dt * (x - y), z + dt * (1 - x * y)]; }, [0.5, 0.5, 0.5], 0.02, 4200, 6.5, [0, 0, 0], 0xffd23f, 60);
 })();
