@@ -40,4 +40,6 @@
     lcurve('arrowhead', 'Sierpinski arrowhead', 'A', { A: 'B-A-B', B: 'A+B+A' }, 6, 60, 'AB', 0xff8f3f, 54);
 
     lcurve('levyc', 'Levy C curve', 'F', { F: '+F--F+' }, 12, 45, 'F', 0xff5d8f, 54);
+
+    lcurve('terdragon', 'Terdragon curve', 'F', { F: 'F+F-F' }, 7, 120, 'F', 0x00d2a0, 54);
 })();
