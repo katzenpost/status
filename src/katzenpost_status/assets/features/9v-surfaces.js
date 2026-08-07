@@ -44,4 +44,6 @@
     tpms('schwarzp', 'Schwarz P surface', function (x, y, z) { return Math.cos(x) + Math.cos(y) + Math.cos(z); }, Math.PI * 1.3, 0.2, 4.6, 0x4d8bf0, 58);
 
     tpms('schwarzd', 'Schwarz D surface', function (x, y, z) { return Math.sin(x) * Math.sin(y) * Math.sin(z) + Math.sin(x) * Math.cos(y) * Math.cos(z) + Math.cos(x) * Math.sin(y) * Math.cos(z) + Math.cos(x) * Math.cos(y) * Math.sin(z); }, Math.PI * 1.3, 0.2, 4.6, 0x9b5de5, 58);
+
+    surf('catenoid', 'Catenoid', function (u, v, T) { var a = u * PI2var, b = (v - 0.5) * 2.4, c = 5; return new T.Vector3(c * Math.cosh(b) * Math.cos(a), c * Math.cosh(b) * Math.sin(a), c * b * 2); }, 40, 18, 0x00d2a0, 62);
 })();
