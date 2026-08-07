@@ -52,4 +52,6 @@
     surf('enneper', 'Enneper surface', function (u, v, T) { var a = (u - 0.5) * 4, b = (v - 0.5) * 4, s = 2.2; return new T.Vector3((a - a * a * a / 3 + a * b * b) * s, (b - b * b * b / 3 + b * a * a) * s, (a * a - b * b) * s); }, 34, 34, 0xff5d8f, 60);
 
     surf('dini', 'Dini surface', function (u, v, T) { var a = u * PI2var * 2, b = 0.05 + v * 1.9, s = 5; return new T.Vector3(s * Math.cos(a) * Math.sin(b), s * Math.sin(a) * Math.sin(b), s * (Math.cos(b) + Math.log(Math.tan(b / 2))) + 2.4 * a); }, 60, 24, 0xffd23f, 54);
+
+    surf('seashell', 'Seashell surface', function (u, v, T) { var a = u * PI2var, b = v * PI2var * 3, n = 1, h = 1.2; var r = 1.2 * (1 - v) ; var x = h * v * 8 ; return new T.Vector3((1.6 * (1 - v) * Math.cos(b) * (1 + Math.cos(a)) + 0.0) * 2.6, (1.6 * (1 - v) * Math.sin(b) * (1 + Math.cos(a)) + 0.0) * 2.6, (14 * v - 8) + 1.6 * (1 - v) * Math.sin(a) * 2.6); }, 34, 90, 0x00d2a0, 60);
 })();
