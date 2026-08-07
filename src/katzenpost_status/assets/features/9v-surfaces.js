@@ -50,4 +50,6 @@
     surf('helicoid', 'Helicoid', function (u, v, T) { var th = u * PI2var * 1.5, r = (v - 0.5) * 34; return new T.Vector3(r * Math.cos(th), r * Math.sin(th), th * 3); }, 60, 20, 0xffb454, 62);
 
     surf('enneper', 'Enneper surface', function (u, v, T) { var a = (u - 0.5) * 4, b = (v - 0.5) * 4, s = 2.2; return new T.Vector3((a - a * a * a / 3 + a * b * b) * s, (b - b * b * b / 3 + b * a * a) * s, (a * a - b * b) * s); }, 34, 34, 0xff5d8f, 60);
+
+    surf('dini', 'Dini surface', function (u, v, T) { var a = u * PI2var * 2, b = 0.05 + v * 1.9, s = 5; return new T.Vector3(s * Math.cos(a) * Math.sin(b), s * Math.sin(a) * Math.sin(b), s * (Math.cos(b) + Math.log(Math.tan(b / 2))) + 2.4 * a); }, 60, 24, 0xffd23f, 54);
 })();
