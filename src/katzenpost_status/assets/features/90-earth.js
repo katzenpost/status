@@ -886,10 +886,11 @@
         K.snapTo(dist * 0.55, dist * 0.28, dist * 0.75, 0, 0, 0);
     }
 
-    // Flower of Life: nodes on concentric hex rings by tier (gateways central,
-    // mix layers outward, services on the rim); the overlapping circles are
-    // drawn as scenery. Logical placement, face-on.
+    // Flower of Life: nodes sit at the centres of the overlapping circles; the
+    // links and packets travel ALONG the circle arcs (a routed web via BFS over
+    // the arc graph), not straight across. Logical placement by tier, face-on.
     var flowerExtras = [], maxFlowerRing = 0, FLOWER_S = 6;
+    var flowerVerts = [], flowerAdj = [], flowerNodeVert = {}, flowerRoute = {};
     function computeFlower(ns) {
         var order = ns.slice().sort(tierSort);
         maxFlowerRing = 0;
@@ -901,6 +902,78 @@
             if (r > maxFlowerRing) maxFlowerRing = r;
             o.flowerPos = new THREE.Vector3(Math.cos(ang) * rad, Math.sin(ang) * rad, (r % 2 ? 1 : -1) * 1.6);
         });
+        buildFlowerGraph(order);
+    }
+    // Sample every drawn circle into a merged vertex graph so packets can follow
+    // the arcs; snap each node (a circle centre) to its nearest arc vertex.
+    function buildFlowerGraph(order) {
+        flowerVerts = []; flowerAdj = []; flowerNodeVert = {};
+        var vmap = {}, Q = 1.1, seg = 48, r, k, i;
+        function vidx(v) {
+            var key = Math.round(v.x / Q) + '_' + Math.round(v.y / Q);
+            if (vmap[key] == null) { vmap[key] = flowerVerts.length; flowerVerts.push(v.clone()); flowerAdj.push([]); }
+            return vmap[key];
+        }
+        for (r = 0; r <= maxFlowerRing; r++) {
+            var cnt = r === 0 ? 1 : 6 * r;
+            for (k = 0; k < cnt; k++) {
+                var a = (k / cnt) * Math.PI * 2, cx = Math.cos(a) * r * FLOWER_S, cy = Math.sin(a) * r * FLOWER_S, prev = -1;
+                for (i = 0; i <= seg; i++) {
+                    var t = (i / seg) * Math.PI * 2, vi = vidx(new THREE.Vector3(cx + Math.cos(t) * FLOWER_S, cy + Math.sin(t) * FLOWER_S, 0));
+                    if (i > 0 && vi !== prev) { if (flowerAdj[prev].indexOf(vi) < 0) flowerAdj[prev].push(vi); if (flowerAdj[vi].indexOf(prev) < 0) flowerAdj[vi].push(prev); }
+                    prev = vi;
+                }
+            }
+        }
+        order.forEach(function (o) {
+            if (!o.flowerPos) return;
+            var best = -1, bd = Infinity;
+            for (var j = 0; j < flowerVerts.length; j++) { var dd = flowerVerts[j].distanceToSquared(o.flowerPos); if (dd < bd) { bd = dd; best = j; } }
+            flowerNodeVert[keyOf(o.flowerPos)] = best;
+        });
+    }
+    function flowerBfs(src, dst) {
+        if (src < 0 || dst < 0) return null;
+        if (src === dst) return [src];
+        var prev = {}, q = [src], seen = {}, head = 0; seen[src] = 1;
+        while (head < q.length) {
+            var u = q[head++], nb = flowerAdj[u];
+            for (var i = 0; i < nb.length; i++) {
+                var w = nb[i];
+                if (!seen[w]) { seen[w] = 1; prev[w] = u; if (w === dst) { var path = [dst], c = dst; while (c !== src) { c = prev[c]; path.push(c); } path.reverse(); return path; } q.push(w); }
+            }
+        }
+        return null;
+    }
+    function flowerArcPts(a, b) {
+        var sv = flowerNodeVert[keyOf(a)], dv = flowerNodeVert[keyOf(b)];
+        if (sv == null || dv == null) return [a.clone(), b.clone()];
+        var vp = flowerBfs(sv, dv);
+        if (!vp) return [a.clone(), b.clone()];
+        var pts = [a.clone()], j;
+        for (j = 0; j < vp.length; j++) pts.push(flowerVerts[vp[j]].clone());
+        pts.push(b.clone());
+        return pts;
+    }
+    function flowerLinkBuilder(aObj, bObj, hex, opacity, rscale) {
+        if (!aObj.flowerPos || !bObj.flowerPos) return null;
+        return K.makeTube(flowerArcPts(aObj.flowerPos, bObj.flowerPos), 0.16 * (rscale || 1), hex, opacity == null ? 0.85 : opacity);
+    }
+    function computeFlowerRoutes() {
+        flowerRoute = {};
+        (K.topoPairs() || []).forEach(function (pr) {
+            if (!pr[0] || !pr[1] || !pr[0].flowerPos || !pr[1].flowerPos) return;
+            var arc = flowerArcPts(pr[0].flowerPos, pr[1].flowerPos), cum = [0];
+            for (var j = 1; j < arc.length; j++) cum.push(cum[j - 1] + arc[j].distanceTo(arc[j - 1]));
+            var rp = { pts: arc, cum: cum, total: cum[cum.length - 1] || 1 };
+            flowerRoute[keyOf(pr[0].flowerPos) + '>' + keyOf(pr[1].flowerPos)] = { rp: rp, fwd: true };
+            flowerRoute[keyOf(pr[1].flowerPos) + '>' + keyOf(pr[0].flowerPos)] = { rp: rp, fwd: false };
+        });
+    }
+    function flowerSegInterp(a, b, t) {
+        var e = flowerRoute[keyOf(a) + '>' + keyOf(b)];
+        if (!e) return a.clone().lerp(b, t);
+        return sampleRoute(e, t);
     }
     function clearFlowerExtras() {
         flowerExtras.forEach(function (s) { K.worldRoot().remove(s); if (s.geometry) s.geometry.dispose(); if (s.material) s.material.dispose(); });
@@ -921,13 +994,14 @@
     }
     function enterFlower() {
         clearFlowerExtras();
-        K.setLinkBuilder(straightLinkBuilder('flowerPos'));
+        K.setLinkBuilder(flowerLinkBuilder);
         structLinksOn();
-        K.setSegmentInterpolator(null); K.setPathBuilder(null);
+        K.setSegmentInterpolator(flowerSegInterp); K.setPathBuilder(null);
         K.setOrbitOrigin(false); K.setPlanar(true); K.setClusterFilter(null);
         K.worldRoot().rotation.set(0, 0, 0);
         setSceneryVisible(false);
         drawFlowerCircles();
+        computeFlowerRoutes();
         K.rebuildLinks(); K.drawSelectionPath();
         var c = K.controls(); if (c) { c.minDistance = 8; c.maxDistance = 260; }
     }
