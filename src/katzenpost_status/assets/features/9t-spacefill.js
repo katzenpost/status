@@ -44,4 +44,6 @@
     lcurve('terdragon', 'Terdragon curve', 'F', { F: 'F+F-F' }, 7, 120, 'F', 0x00d2a0, 54);
 
     lcurve('cesaro', 'Cesaro fractal', 'F', { F: 'F+F--F+F' }, 4, 85, 'F', 0xffd23f, 52);
+
+    lcurve('hilbert2d', 'Hilbert curve (2D)', 'A', { A: '-BF+AFA+FB-', B: '+AF-BFB-FA+' }, 5, 90, 'F', 0x4d8bf0, 52);
 })();
