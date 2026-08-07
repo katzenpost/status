@@ -131,7 +131,8 @@
         if (window.KATZEN_CRT) window.KATZEN_CRT(el);
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera(52, 1, 0.1, 4000);
-                camera.position.set(0, (opts.camY || 0), opts.camZ || 60);
+                // elevated 3/4 view by default so stellated relief reads as 3D
+                camera.position.set(0, (opts.camY != null ? opts.camY : (opts.camZ || 60) * 0.42), opts.camZ || 60);
                 world = new THREE.Group(); scene.add(world);
                 if (THREE.OrbitControls) {
                     controls = new THREE.OrbitControls(camera, renderer.domElement);
