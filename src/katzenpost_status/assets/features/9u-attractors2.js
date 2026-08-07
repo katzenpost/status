@@ -38,4 +38,6 @@
     attractor('lorenz84', 'Lorenz-84 attractor', function (p, dt) { var a = 0.25, b = 4, F = 8, GG = 1, x = p[0], y = p[1], z = p[2]; return [x + dt * (-y * y - z * z - a * x + a * F), y + dt * (x * y - b * x * z - y + GG), z + dt * (b * x * y + x * z - z)]; }, [1, 0, 0], 0.03, 4200, 7.5, [3, 0, 0], 0x2ec4b6, 60);
 
     attractor('sprottf', 'Sprott-Linz F attractor', function (p, dt) { var a = 0.5, x = p[0], y = p[1], z = p[2]; return [x + dt * (y + z), y + dt * (-x + a * y), z + dt * (x * x - z)]; }, [0.1, 0, 0], 0.02, 4400, 7.0, [0, 0, 1.5], 0x9b5de5, 60);
+
+    attractor('duffing', 'Duffing oscillator', function (p, dt) { var de = 0.3, ga = 0.5, w = 1.2, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * (-de * y + x - x * x * x + ga * Math.cos(z)), z + dt * w]; }, [0.1, 0, 0], 0.02, 4400, 9.0, [0, 0, 0], 0xff8f3f, 56);
 })();
