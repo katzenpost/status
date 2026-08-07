@@ -42,4 +42,6 @@
     lcurve('levyc', 'Levy C curve', 'F', { F: '+F--F+' }, 12, 45, 'F', 0xff5d8f, 54);
 
     lcurve('terdragon', 'Terdragon curve', 'F', { F: 'F+F-F' }, 7, 120, 'F', 0x00d2a0, 54);
+
+    lcurve('cesaro', 'Cesaro fractal', 'F', { F: 'F+F--F+F' }, 4, 85, 'F', 0xffd23f, 52);
 })();
