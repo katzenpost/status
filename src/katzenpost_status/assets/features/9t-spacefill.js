@@ -46,4 +46,10 @@
     lcurve('cesaro', 'Cesaro fractal', 'F', { F: 'F+F--F+F' }, 4, 85, 'F', 0xffd23f, 52);
 
     lcurve('hilbert2d', 'Hilbert curve (2D)', 'A', { A: '-BF+AFA+FB-', B: '+AF-BFB-FA+' }, 5, 90, 'F', 0x4d8bf0, 52);
+
+    areaFractal('carpet', 'Sierpinski carpet', function () {
+        var cells = [[0, 0, 42]];
+        for (var it = 0; it < 3; it++) { var out = []; cells.forEach(function (c) { var s = c[2] / 3; for (var i = -1; i <= 1; i++) for (var j = -1; j <= 1; j++) { if (i === 0 && j === 0) continue; out.push([c[0] + i * s, c[1] + j * s, s]); } }); cells = out; }
+        return cells;
+    }, 0x9b5de5, 56);
 })();
