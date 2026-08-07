@@ -40,4 +40,6 @@
     }
 
     tpms('gyroid', 'Gyroid (TPMS)', function (x, y, z) { return Math.sin(x) * Math.cos(y) + Math.sin(y) * Math.cos(z) + Math.sin(z) * Math.cos(x); }, Math.PI * 1.5, 0.16, 4.0, 0x2ec4b6, 58);
+
+    tpms('schwarzp', 'Schwarz P surface', function (x, y, z) { return Math.cos(x) + Math.cos(y) + Math.cos(z); }, Math.PI * 1.3, 0.2, 4.6, 0x4d8bf0, 58);
 })();
