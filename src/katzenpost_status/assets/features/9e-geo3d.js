@@ -48,6 +48,32 @@
             }
             return { nodes: nodes, edges: edges, spawn: spawn };
         },
+        // Stellate a planar layout into a 3D crown so no shape stays flat:
+        // deterministically displace z as a function of (x,y) - a central apex
+        // plus K-fold star points at the rim - applied to node AND edge points
+        // alike so the routed lines follow the new relief. Already-3D layouts
+        // (metatron, polyhedra, attractors, ...) are detected and left alone.
+        stellate: function (lay, THREE) {
+            if (!lay || !lay.nodes) return lay;
+            var all = [], i;
+            lay.nodes.forEach(function (n) { if (n.pos) all.push(n.pos); });
+            (lay.edges || []).forEach(function (e) { if (e.a) all.push(e.a); if (e.b) all.push(e.b); });
+            if (all.length < 3) return lay;
+            var cx = 0, cy = 0, minz = Infinity, maxz = -Infinity;
+            all.forEach(function (p) { cx += p.x; cy += p.y; if (p.z < minz) minz = p.z; if (p.z > maxz) maxz = p.z; });
+            cx /= all.length; cy /= all.length;
+            var maxr = 0;
+            all.forEach(function (p) { var dx = p.x - cx, dy = p.y - cy, r = Math.sqrt(dx * dx + dy * dy); if (r > maxr) maxr = r; });
+            if (maxr < 1e-3) return lay;
+            if ((maxz - minz) > 0.18 * maxr) return lay;   // already a 3D shape
+            var A = 0.55 * maxr, K = 6;
+            all.forEach(function (p) {
+                if (p.__stel) return; p.__stel = 1;
+                var dx = p.x - cx, dy = p.y - cy, r = Math.sqrt(dx * dx + dy * dy), u = Math.min(1, r / maxr), th = Math.atan2(dy, dx);
+                p.z += A * (Math.pow(1 - u, 0.5) + 0.62 * u * Math.cos(K * th));
+            });
+            return lay;
+        },
         // Place nodes on a set of anchor points (cycling), with given edges, and
         // flow packets along the gateway->mix->service pipeline.
         anchorLayout: function (d, THREE, anchors, edges) {
@@ -152,6 +178,7 @@
                 if (edgeLines) { world.remove(edgeLines); disposeGroup(edgeLines); edgeLines = null; }
                 nodePos = {}; spawnFn = null;
                 var lay = opts.layout(K.data() || {}, THREE, K) || {};
+                if (opts.stellate !== false) window.KATZEN_GEO3D.stellate(lay, THREE);   // no shape stays flat
                 var nodes = lay.nodes || [], edges = lay.edges || [];
                 nodeGroup = new THREE.Group();
                 var sph = new THREE.SphereGeometry(mob ? 0.9 : 0.7, 12, 12);
