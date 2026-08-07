@@ -29,8 +29,8 @@
     function tpms(id, name, f, span, eps, sc, color, camZ) {
         G.create({ id: id, name: name, rotateSpeed: 0.32, camZ: camZ || 58,
             layout: function (d, THREE) {
-                var N = 30, pts = [], i, j, l;
-                for (i = 0; i <= N && pts.length < 520; i++) for (j = 0; j <= N && pts.length < 520; j++) for (l = 0; l <= N && pts.length < 520; l++) {
+                var N = 44, pts = [], i, j, l;
+                for (i = 0; i <= N && pts.length < 900; i++) for (j = 0; j <= N && pts.length < 900; j++) for (l = 0; l <= N && pts.length < 900; l++) {
                     var x = -span + 2 * span * i / N, y = -span + 2 * span * j / N, z = -span + 2 * span * l / N;
                     if (Math.abs(f(x, y, z)) < eps) pts.push(new THREE.Vector3(x * sc, y * sc, z * sc));
                 }
@@ -39,11 +39,11 @@
             } });
     }
 
-    tpms('gyroid', 'Gyroid (TPMS)', function (x, y, z) { return Math.sin(x) * Math.cos(y) + Math.sin(y) * Math.cos(z) + Math.sin(z) * Math.cos(x); }, Math.PI * 1.5, 0.16, 4.0, 0x2ec4b6, 58);
+    tpms('gyroid', 'Gyroid (TPMS)', function (x, y, z) { return Math.sin(x) * Math.cos(y) + Math.sin(y) * Math.cos(z) + Math.sin(z) * Math.cos(x); }, Math.PI * 1.5, 0.24, 5.2, 0x2ec4b6, 58);
 
-    tpms('schwarzp', 'Schwarz P surface', function (x, y, z) { return Math.cos(x) + Math.cos(y) + Math.cos(z); }, Math.PI * 1.3, 0.2, 4.6, 0x4d8bf0, 58);
+    tpms('schwarzp', 'Schwarz P surface', function (x, y, z) { return Math.cos(x) + Math.cos(y) + Math.cos(z); }, Math.PI * 1.3, 0.3, 5.4, 0x4d8bf0, 58);
 
-    tpms('schwarzd', 'Schwarz D surface', function (x, y, z) { return Math.sin(x) * Math.sin(y) * Math.sin(z) + Math.sin(x) * Math.cos(y) * Math.cos(z) + Math.cos(x) * Math.sin(y) * Math.cos(z) + Math.cos(x) * Math.cos(y) * Math.sin(z); }, Math.PI * 1.3, 0.2, 4.6, 0x9b5de5, 58);
+    tpms('schwarzd', 'Schwarz D surface', function (x, y, z) { return Math.sin(x) * Math.sin(y) * Math.sin(z) + Math.sin(x) * Math.cos(y) * Math.cos(z) + Math.cos(x) * Math.sin(y) * Math.cos(z) + Math.cos(x) * Math.cos(y) * Math.sin(z); }, Math.PI * 1.3, 0.3, 5.4, 0x9b5de5, 58);
 
     surf('catenoid', 'Catenoid', function (u, v, T) { var a = u * PI2var, b = (v - 0.5) * 2.4, c = 5; return new T.Vector3(c * Math.cosh(b) * Math.cos(a), c * Math.cosh(b) * Math.sin(a), c * b * 2); }, 40, 18, 0x00d2a0, 62);
 
@@ -51,11 +51,11 @@
 
     surf('enneper', 'Enneper surface', function (u, v, T) { var a = (u - 0.5) * 4, b = (v - 0.5) * 4, s = 2.2; return new T.Vector3((a - a * a * a / 3 + a * b * b) * s, (b - b * b * b / 3 + b * a * a) * s, (a * a - b * b) * s); }, 34, 34, 0xff5d8f, 60);
 
-    surf('dini', 'Dini surface', function (u, v, T) { var a = u * PI2var * 2, b = 0.05 + v * 1.9, s = 5; return new T.Vector3(s * Math.cos(a) * Math.sin(b), s * Math.sin(a) * Math.sin(b), s * (Math.cos(b) + Math.log(Math.tan(b / 2))) + 2.4 * a); }, 60, 24, 0xffd23f, 54);
+    surf('dini', 'Dini surface', function (u, v, T) { var a = u * PI2var * 1.2, b = 0.3 + v * 1.5, s = 5; return new T.Vector3(s * Math.cos(a) * Math.sin(b), s * Math.sin(a) * Math.sin(b), s * (Math.cos(b) + Math.log(Math.tan(b / 2))) + 1.2 * a); }, 60, 22, 0xffd23f, 54);
 
     surf('seashell', 'Seashell surface', function (u, v, T) { var a = u * PI2var, b = v * PI2var * 3, n = 1, h = 1.2; var r = 1.2 * (1 - v) ; var x = h * v * 8 ; return new T.Vector3((1.6 * (1 - v) * Math.cos(b) * (1 + Math.cos(a)) + 0.0) * 2.6, (1.6 * (1 - v) * Math.sin(b) * (1 + Math.cos(a)) + 0.0) * 2.6, (14 * v - 8) + 1.6 * (1 - v) * Math.sin(a) * 2.6); }, 34, 90, 0x00d2a0, 60);
 
-    surf('kuen', 'Kuen surface', function (u, v, T) { var uu = (u - 0.5) * 9, vv = 0.08 + v * (Math.PI - 0.16), dn = 1 + uu * uu * Math.sin(vv) * Math.sin(vv), s = 5.5; return new T.Vector3(s * 2 * (Math.cos(uu) + uu * Math.sin(uu)) * Math.sin(vv) / dn, s * 2 * (Math.sin(uu) - uu * Math.cos(uu)) * Math.sin(vv) / dn, s * (Math.log(Math.tan(vv / 2)) + 2 * Math.cos(vv) / dn)); }, 48, 44, 0x9b5de5, 54);
+    surf('kuen', 'Kuen surface', function (u, v, T) { var uu = (u - 0.5) * 9, vv = 0.5 + v * (Math.PI - 1.0), dn = 1 + uu * uu * Math.sin(vv) * Math.sin(vv), s = 4; return new T.Vector3(s * 2 * (Math.cos(uu) + uu * Math.sin(uu)) * Math.sin(vv) / dn, s * 2 * (Math.sin(uu) - uu * Math.cos(uu)) * Math.sin(vv) / dn, s * (Math.log(Math.tan(vv / 2)) + 2 * Math.cos(vv) / dn)); }, 48, 40, 0x9b5de5, 54);
 
     surf('breather', 'Breather surface', function (u, v, T) { var aa = 0.4, w = Math.sqrt(1 - aa * aa), uu = (u - 0.5) * 26, vv = (v - 0.5) * 74; var dn = aa * (Math.pow(w * Math.cosh(aa * uu), 2) + Math.pow(aa * Math.sin(w * vv), 2)); var s = 4; return new T.Vector3(s * (-uu + 2 * w * w * Math.cosh(aa * uu) * Math.sinh(aa * uu) / dn), s * 2 * w * Math.cosh(aa * uu) * (-w * Math.cos(vv) * Math.cos(w * vv) - Math.sin(vv) * Math.sin(w * vv)) / dn, s * 2 * w * Math.cosh(aa * uu) * (-w * Math.sin(vv) * Math.cos(w * vv) + Math.cos(vv) * Math.sin(w * vv)) / dn); }, 60, 50, 0xff8f3f, 54);
 })();
