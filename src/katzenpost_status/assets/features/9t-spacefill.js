@@ -38,4 +38,6 @@
     lcurve('gosper', 'Gosper flowsnake', 'A', { A: 'A-B--B+A++AA+B-', B: '+A-BB--B-A++A+B' }, 3, 60, 'AB', 0x9b5de5, 54);
 
     lcurve('arrowhead', 'Sierpinski arrowhead', 'A', { A: 'B-A-B', B: 'A+B+A' }, 6, 60, 'AB', 0xff8f3f, 54);
+
+    lcurve('levyc', 'Levy C curve', 'F', { F: '+F--F+' }, 12, 45, 'F', 0xff5d8f, 54);
 })();
