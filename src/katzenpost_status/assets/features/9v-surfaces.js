@@ -54,4 +54,6 @@
     surf('dini', 'Dini surface', function (u, v, T) { var a = u * PI2var * 2, b = 0.05 + v * 1.9, s = 5; return new T.Vector3(s * Math.cos(a) * Math.sin(b), s * Math.sin(a) * Math.sin(b), s * (Math.cos(b) + Math.log(Math.tan(b / 2))) + 2.4 * a); }, 60, 24, 0xffd23f, 54);
 
     surf('seashell', 'Seashell surface', function (u, v, T) { var a = u * PI2var, b = v * PI2var * 3, n = 1, h = 1.2; var r = 1.2 * (1 - v) ; var x = h * v * 8 ; return new T.Vector3((1.6 * (1 - v) * Math.cos(b) * (1 + Math.cos(a)) + 0.0) * 2.6, (1.6 * (1 - v) * Math.sin(b) * (1 + Math.cos(a)) + 0.0) * 2.6, (14 * v - 8) + 1.6 * (1 - v) * Math.sin(a) * 2.6); }, 34, 90, 0x00d2a0, 60);
+
+    surf('kuen', 'Kuen surface', function (u, v, T) { var uu = (u - 0.5) * 9, vv = 0.08 + v * (Math.PI - 0.16), dn = 1 + uu * uu * Math.sin(vv) * Math.sin(vv), s = 5.5; return new T.Vector3(s * 2 * (Math.cos(uu) + uu * Math.sin(uu)) * Math.sin(vv) / dn, s * 2 * (Math.sin(uu) - uu * Math.cos(uu)) * Math.sin(vv) / dn, s * (Math.log(Math.tan(vv / 2)) + 2 * Math.cos(vv) / dn)); }, 48, 44, 0x9b5de5, 54);
 })();
