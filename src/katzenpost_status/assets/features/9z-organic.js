@@ -38,4 +38,6 @@
     tree('coral', 'Coral (3D L-system)', { branches: 3, spread: 0.55, up: 0.5, ratio: 0.74, len: 9, depth: 6, y0: -20 }, 0xff5d8f, 62);
 
     tree('dendrite', 'Neuron dendrite', { branches: 3, spread: 1.0, up: 0.0, ratio: 0.72, len: 8, depth: 6, y0: 0 }, 0x9b5de5, 60);
+
+    G.create({ id: 'lichtenberg', name: 'Lichtenberg figure', rotateSpeed: 0.2, camZ: 58, layout: function (d, THREE) { var a = [], e = []; function grow(pos, dir, len, depth) { var end = pos.clone(); end.x += dir.x * len; end.y += dir.y * len; end.z += rand(0.6); e.push({ a: pos, b: end, color: 0x4d8bf0 }); a.push(end); if (depth <= 0) return; var nb = 1 + (Math.random() < 0.55 ? 1 : 0); for (var b = 0; b < nb; b++) { var ang = Math.atan2(dir.y, dir.x) + rand(0.9); var nd = new THREE.Vector3(Math.cos(ang), Math.sin(ang), 0); grow(end, nd, len * 0.82, depth - 1); } } a.push(new THREE.Vector3(0, -22, 0)); for (var s = 0; s < 6; s++) { var ang = -Math.PI / 2 + rand(0.5) + s * 0.0; grow(new THREE.Vector3(0, -22, 0), new THREE.Vector3(Math.cos(-Math.PI / 2 + (s - 2.5) * 0.4), Math.sin(-Math.PI / 2 + (s - 2.5) * 0.4) * -1, 0), 7, 7); } return G.anchorLayout(d, THREE, a, e); } });
 })();
