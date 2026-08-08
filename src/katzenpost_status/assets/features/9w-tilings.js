@@ -40,4 +40,6 @@
     tiling('rhombille', 'Rhombille tiling', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * 1.5, cy = j * S3 + (i & 1 ? S3 / 2 : 0); for (var k = 0; k < 6; k += 2) { var a = k / 6 * Math.PI * 2, b = (k + 1) / 6 * Math.PI * 2; poly([[cx, cy], [cx + Math.cos(a), cy + Math.sin(a)], [cx + Math.cos(a) + Math.cos(b), cy + Math.sin(a) + Math.sin(b)], [cx + Math.cos(b), cy + Math.sin(b)]]); } } }, 0xffd23f, 56);
 
     tiling('snubsq', 'Snub square tiling', function (poly) { var d = 1 + S3 / 2 * 0 + 1.9319; for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * d, cy = j * d, rot = (i + j) & 1 ? Math.PI / 12 : -Math.PI / 12; poly(ngon(cx, cy, 0.707, 4, rot)); } }, 0x9b5de5, 58);
+
+    tiling('cairo', 'Cairo pentagonal tiling', function (poly) { var pent = [[0, 0], [1, 0], [1.31, 0.95], [0.5, 1.54], [-0.31, 0.95]]; for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * 2.62, cy = j * 2.62; for (var r = 0; r < 4; r++) { var ca = Math.cos(r * Math.PI / 2), sa = Math.sin(r * Math.PI / 2); poly(pent.map(function (p) { return [cx + p[0] * ca - p[1] * sa, cy + p[0] * sa + p[1] * ca]; })); } } }, 0x4d8bf0, 58);
 })();
