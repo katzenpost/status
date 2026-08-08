@@ -45,4 +45,6 @@
     poly4('tesseract', 'Tesseract (8-cell)', function () { var V = [], a, b, c, e; for (a = -1; a <= 1; a += 2) for (b = -1; b <= 1; b += 2) for (c = -1; c <= 1; c += 2) for (e = -1; e <= 1; e += 2) V.push([a, b, c, e]); return V; }, 0x2ec4b6, 56);
 
     poly4('sixteencell', '16-cell', function () { var V = [], i, s; for (i = 0; i < 4; i++) for (s = -1; s <= 1; s += 2) { var v = [0, 0, 0, 0]; v[i] = s; V.push(v); } return V; }, 0x4d8bf0, 54);
+
+    poly4('twentyfourcell', '24-cell', function () { var V = [], i, j, si, sj; for (i = 0; i < 4; i++) for (j = i + 1; j < 4; j++) for (si = -1; si <= 1; si += 2) for (sj = -1; sj <= 1; sj += 2) { var v = [0, 0, 0, 0]; v[i] = si; v[j] = sj; V.push(v); } return V; }, 0x9b5de5, 56);
 })();
