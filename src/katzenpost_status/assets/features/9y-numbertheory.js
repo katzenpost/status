@@ -42,4 +42,6 @@
     anchorsEdges('sternbrocot', 'Stern-Brocot tree', function (a, e, T, color) { var D = 6, sp = 46; function rec(depth, x, w, py) { var y = 18 - depth * 6; var p = new T.Vector3(x, y, 0); a.push(p); if (py) e.push({ a: py, b: p, color: color }); if (depth < D) { rec(depth + 1, x - w / 2, w / 2, p); rec(depth + 1, x + w / 2, w / 2, p); } } rec(0, 0, sp, null); }, 0xffb454, 56);
 
     G.create({ id: 'fibsphere', name: 'Fibonacci sphere', rotateSpeed: 0.4, camZ: 56, layout: function (d, THREE) { var N = 360, pts = [], i; for (i = 0; i < N; i++) { var y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * GA; pts.push(new THREE.Vector3(Math.cos(th) * r * 20, y * 20, Math.sin(th) * r * 20)); } return G.anchorLayout(d, THREE, pts, knn(pts, THREE, 3, 0x4d8bf0)); } });
+
+    G.create({ id: 'goldencone', name: 'Phyllotaxis cone', rotateSpeed: 0.4, camZ: 60, layout: function (d, THREE) { var N = 420, pts = [], i; for (i = 0; i < N; i++) { var f = i / N, r = Math.sqrt(i) * 1.5, th = i * GA; pts.push(new THREE.Vector3(Math.cos(th) * r, (f - 0.5) * 34, Math.sin(th) * r)); } return G.anchorLayout(d, THREE, pts, knn(pts, THREE, 2, 0xffd23f)); } });
 })();
