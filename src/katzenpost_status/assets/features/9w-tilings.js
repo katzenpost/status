@@ -26,4 +26,6 @@
     var R = 4;   // lattice half-extent
 
     tiling('hextiling', 'Hexagonal tiling', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * 1.5, cy = j * S3 + (i & 1 ? S3 / 2 : 0); poly(ngon(cx, cy, 1, 6, 0)); } }, 0x2ec4b6, 56);
+
+    tiling('tritiling', 'Triangular tiling', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var x = i + j * 0.5, y = j * S3 / 2; poly([[x, y], [x + 1, y], [x + 0.5, y + S3 / 2]]); poly([[x + 1, y], [x + 1.5, y + S3 / 2], [x + 0.5, y + S3 / 2]]); } }, 0x4d8bf0, 56);
 })();
