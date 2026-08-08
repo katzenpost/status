@@ -55,4 +55,10 @@
     surfMesh('ripple', 'Ripple field', function (u, v, T) { var x = (u - 0.5) * 40, y = (v - 0.5) * 40, r = Math.hypot(x, y); return new T.Vector3(x, y, 7 * Math.cos(r * 0.6) / (1 + r * 0.12)); }, 46, 46, 0x4d8bf0, 62);
 
     curve('harmonograph', 'Harmonograph', function (t, T) { var s = t * 40, e1 = Math.exp(-0.012 * s), e2 = Math.exp(-0.008 * s); return new T.Vector3(18 * e1 * Math.sin(2.01 * s + 0.3), 18 * e2 * Math.sin(3.0 * s), 10 * e1 * Math.sin(1.51 * s + 1.1)); }, 0xff5d8f, 60, 1400);
+
+    G.create({ id: 'dipole', name: 'Dipole field lines', rotateSpeed: 0.3, camZ: 56, layout: function (d, THREE) {
+        var edges = [], anchors = [], L;
+        for (L = 1; L <= 7; L++) { for (var s = 0; s < 2; s++) { var prev = null; for (var i = 0; i <= 120; i++) { var th = Math.PI * i / 120, r = L * 3 * Math.sin(th) * Math.sin(th), x = r * Math.sin(th) * (s ? 1 : -1), y = r * Math.cos(th); var p = new THREE.Vector3(x, y, 0); if (i % 6 === 0) anchors.push(p); if (prev) edges.push({ a: prev, b: p, color: 0xffb454 }); prev = p; } } }
+        return G.anchorLayout(d, THREE, anchors, edges);
+    } });
 })();
