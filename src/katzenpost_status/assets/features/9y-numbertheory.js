@@ -34,4 +34,6 @@
         var sc = 1.1;
         for (i = 1; i < xs.length; i++) { var x0 = xs[i - 1] * sc, x1 = xs[i] * sc, cx = (x0 + x1) / 2, rr = Math.abs(x1 - x0) / 2, up = (i & 1) ? 1 : -1, prev = null; for (var s = 0; s <= 24; s++) { var th = Math.PI * s / 24, p = new T.Vector3(cx - Math.cos(th) * rr * Math.sign(x1 - x0), up * Math.sin(th) * rr, 0); if (s % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } }
     }, 0xff5d8f, 54);
+
+    anchorsEdges('timestable', 'Times-table cardioid', function (a, e, T, color) { var N = 200, mult = 2, R = 20, i; var pt = function (k) { var th = (k % N) / N * PI2 - Math.PI / 2; return new T.Vector3(Math.cos(th) * R, Math.sin(th) * R, 0); }; for (i = 0; i < N; i++) { var p = pt(i), q = pt(i * mult); a.push(p); e.push({ a: p, b: q, color: color }); } }, 0x9b5de5, 52);
 })();
