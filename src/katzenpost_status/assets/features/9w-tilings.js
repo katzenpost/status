@@ -30,4 +30,6 @@
     tiling('tritiling', 'Triangular tiling', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var x = i + j * 0.5, y = j * S3 / 2; poly([[x, y], [x + 1, y], [x + 0.5, y + S3 / 2]]); poly([[x + 1, y], [x + 1.5, y + S3 / 2], [x + 0.5, y + S3 / 2]]); } }, 0x4d8bf0, 56);
 
     tiling('sqtiling', 'Square tiling', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) poly([[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]]); }, 0x9b5de5, 56);
+
+    tiling('trihex', 'Trihexagonal (kagome)', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * 2 + j, cy = j * S3; poly(ngon(cx, cy, 1, 6, 0)); poly([[cx + 1, cy], [cx + 2, cy], [cx + 1.5, cy + S3 / 2]]); poly([[cx + 0.5, cy + S3 / 2], [cx + 1.5, cy + S3 / 2], [cx + 1, cy + S3]]); } }, 0xff8f3f, 58);
 })();
