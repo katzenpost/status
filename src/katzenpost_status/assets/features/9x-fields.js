@@ -61,4 +61,10 @@
         for (L = 1; L <= 7; L++) { for (var s = 0; s < 2; s++) { var prev = null; for (var i = 0; i <= 120; i++) { var th = Math.PI * i / 120, r = L * 3 * Math.sin(th) * Math.sin(th), x = r * Math.sin(th) * (s ? 1 : -1), y = r * Math.cos(th); var p = new THREE.Vector3(x, y, 0); if (i % 6 === 0) anchors.push(p); if (prev) edges.push({ a: prev, b: p, color: 0xffb454 }); prev = p; } } }
         return G.anchorLayout(d, THREE, anchors, edges);
     } });
+
+    G.create({ id: 'spiralwaves', name: 'Spiral waves (BZ)', rotateSpeed: 0.3, camZ: 58, layout: function (d, THREE) {
+        var edges = [], anchors = [], arm;
+        for (arm = 0; arm < 3; arm++) { var prev = null, off = arm / 3 * PI2; for (var i = 0; i <= 260; i++) { var t = i / 260 * PI2 * 3, r = 1 + t * 1.05, x = Math.cos(t + off) * r, y = Math.sin(t + off) * r; var p = new THREE.Vector3(x, y, 0); if (i % 8 === 0) anchors.push(p); if (prev) edges.push({ a: prev, b: p, color: 0xff5d8f }); prev = p; } }
+        return G.anchorLayout(d, THREE, anchors, edges);
+    } });
 })();
