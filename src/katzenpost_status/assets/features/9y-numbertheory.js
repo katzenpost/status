@@ -25,4 +25,6 @@
     constellation('sacks', 'Sacks spiral', function (n) { var r = Math.sqrt(n) * 1.9, th = Math.sqrt(n) * PI2; return [Math.cos(th) * r, Math.sin(th) * r, 0]; }, 1200, true, 0x4d8bf0, 60);
 
     constellation('sunflower', 'Phyllotaxis sunflower', function (n) { var r = Math.sqrt(n) * 1.5, th = n * GA; return [Math.cos(th) * r, Math.sin(th) * r, 0]; }, 700, false, 0xffd23f, 60);
+
+    constellation('fermat', 'Fermat spiral', function (n) { var t = n * 0.16, r = Math.sqrt(t) * 8, s = (n & 1) ? 1 : -1; return [Math.cos(t) * r * s, Math.sin(t) * r * s, 0]; }, 500, false, 0xff8f3f, 60);
 })();
