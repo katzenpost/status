@@ -27,4 +27,11 @@
     constellation('sunflower', 'Phyllotaxis sunflower', function (n) { var r = Math.sqrt(n) * 1.5, th = n * GA; return [Math.cos(th) * r, Math.sin(th) * r, 0]; }, 700, false, 0xffd23f, 60);
 
     constellation('fermat', 'Fermat spiral', function (n) { var t = n * 0.16, r = Math.sqrt(t) * 8, s = (n & 1) ? 1 : -1; return [Math.cos(t) * r * s, Math.sin(t) * r * s, 0]; }, 500, false, 0xff8f3f, 60);
+
+    anchorsEdges('recaman', 'Recaman sequence', function (a, e, T, color) {
+        var seen = {}, cur = 0, N = 70, xs = [cur], i; seen[0] = 1;
+        for (i = 1; i <= N; i++) { var nx = cur - i; if (nx < 0 || seen[nx]) nx = cur + i; seen[nx] = 1; xs.push(nx); cur = nx; }
+        var sc = 1.1;
+        for (i = 1; i < xs.length; i++) { var x0 = xs[i - 1] * sc, x1 = xs[i] * sc, cx = (x0 + x1) / 2, rr = Math.abs(x1 - x0) / 2, up = (i & 1) ? 1 : -1, prev = null; for (var s = 0; s <= 24; s++) { var th = Math.PI * s / 24, p = new T.Vector3(cx - Math.cos(th) * rr * Math.sign(x1 - x0), up * Math.sin(th) * rr, 0); if (s % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } }
+    }, 0xff5d8f, 54);
 })();
