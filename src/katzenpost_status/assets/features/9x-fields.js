@@ -51,4 +51,6 @@
     eca('rule110', 'Rule 110 automaton', ruleFn(110), 0x00d2a0, 58);
 
     surfMesh('standingwave', 'Standing wave', function (u, v, T) { var x = (u - 0.5) * 40, y = (v - 0.5) * 40; return new T.Vector3(x, y, 8 * Math.sin(x * 0.4) * Math.sin(y * 0.4)); }, 40, 40, 0xffd23f, 62);
+
+    surfMesh('ripple', 'Ripple field', function (u, v, T) { var x = (u - 0.5) * 40, y = (v - 0.5) * 40, r = Math.hypot(x, y); return new T.Vector3(x, y, 7 * Math.cos(r * 0.6) / (1 + r * 0.12)); }, 46, 46, 0x4d8bf0, 62);
 })();
