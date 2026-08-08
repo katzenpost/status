@@ -44,4 +44,6 @@
     cloud('dla', 'Diffusion-limited aggregation', function (T) { var pts = [new T.Vector3(0, 0, 0)]; for (var i = 0; i < 460; i++) { var base = pts[(Math.random() * pts.length) | 0], a1 = Math.random() * PI2, a2 = Math.acos(rand(1)); pts.push(new T.Vector3(base.x + Math.sin(a2) * Math.cos(a1) * 1.4, base.y + Math.sin(a2) * Math.sin(a1) * 1.4, base.z + Math.cos(a2) * 1.4)); } return pts; }, 2, 0xffd23f, 56);
 
     cloud('physarum', 'Physarum network', function (T) { var pts = [], i; for (i = 0; i < 240; i++) { var a = Math.random() * PI2, r = Math.sqrt(Math.random()) * 22; pts.push(new T.Vector3(Math.cos(a) * r, Math.sin(a) * r, rand(2))); } return pts; }, 3, 0x00d2a0, 56);
+
+    cloud('foam', 'Soap foam (3D)', function (T) { var pts = [], i; for (i = 0; i < 300; i++) { var a1 = Math.random() * PI2, a2 = Math.acos(rand(1)), r = Math.pow(Math.random(), 0.33) * 20; pts.push(new T.Vector3(Math.sin(a2) * Math.cos(a1) * r, Math.sin(a2) * Math.sin(a1) * r, Math.cos(a2) * r)); } return pts; }, 5, 0x4d8bf0, 56);
 })();
