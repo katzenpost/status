@@ -23,4 +23,6 @@
     constellation('ulam', 'Ulam prime spiral', function (n) { var k = Math.ceil((Math.sqrt(n) - 1) / 2), t = 2 * k + 1, m = t * t, tt = t - 1, x, y; if (n >= m - tt) { x = k - (m - n); y = -k; } else { m -= tt; if (n >= m - tt) { x = -k; y = -k + (m - n); } else { m -= tt; if (n >= m - tt) { x = -k + (m - n); y = k; } else { x = k; y = k - (m - n - tt); } } } return [x * 1.4, y * 1.4, 0]; }, 900, true, 0x2ec4b6, 60);
 
     constellation('sacks', 'Sacks spiral', function (n) { var r = Math.sqrt(n) * 1.9, th = Math.sqrt(n) * PI2; return [Math.cos(th) * r, Math.sin(th) * r, 0]; }, 1200, true, 0x4d8bf0, 60);
+
+    constellation('sunflower', 'Phyllotaxis sunflower', function (n) { var r = Math.sqrt(n) * 1.5, th = n * GA; return [Math.cos(th) * r, Math.sin(th) * r, 0]; }, 700, false, 0xffd23f, 60);
 })();
