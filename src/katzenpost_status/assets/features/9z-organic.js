@@ -34,4 +34,6 @@
     anchorsEdges('dna', 'DNA double helix', function (a, e, T, color) { var N = 120, R = 8, H = 46; var s1 = [], s2 = []; for (var i = 0; i <= N; i++) { var t = i / N, th = t * PI2 * 4, y = (t - 0.5) * H; var p1 = new T.Vector3(Math.cos(th) * R, y, Math.sin(th) * R), p2 = new T.Vector3(Math.cos(th + Math.PI) * R, y, Math.sin(th + Math.PI) * R); s1.push(p1); s2.push(p2); a.push(p1); a.push(p2); if (i > 0) { e.push({ a: s1[i - 1], b: p1, color: 0x4d8bf0 }); e.push({ a: s2[i - 1], b: p2, color: 0xff8f3f }); } if (i % 5 === 0) e.push({ a: p1, b: p2, color: 0x9fb3c2 }); } }, 0x4d8bf0, 60);
 
     cloud('romanesco', 'Romanesco fractal', function (T) { var pts = [], M = 13, i, j; for (i = 0; i < M; i++) { var r = Math.sqrt(i) * 4.4, th = i * GA, cx = Math.cos(th) * r, cz = Math.sin(th) * r, cy = 18 - Math.sqrt(i) * 5; for (j = 0; j < 22; j++) { var rr = Math.sqrt(j) * 1.0, ph = j * GA; pts.push(new T.Vector3(cx + Math.cos(ph) * rr, cy + j * 0.28, cz + Math.sin(ph) * rr)); } } return pts; }, 3, 0x2ec4b6, 60);
+
+    tree('coral', 'Coral (3D L-system)', { branches: 3, spread: 0.55, up: 0.5, ratio: 0.74, len: 9, depth: 6, y0: -20 }, 0xff5d8f, 62);
 })();
