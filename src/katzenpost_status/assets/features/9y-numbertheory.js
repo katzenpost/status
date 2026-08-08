@@ -21,4 +21,6 @@
     function knn(pts, THREE, k, color) { var E = [], seen = {}, i, j, m; for (i = 0; i < pts.length; i++) { var ds = []; for (j = 0; j < pts.length; j++) if (j !== i) ds.push([pts[i].distanceToSquared(pts[j]), j]); ds.sort(function (a, b) { return a[0] - b[0]; }); for (m = 0; m < k && m < ds.length; m++) { var jj = ds[m][1], a = Math.min(i, jj), b = Math.max(i, jj), key = a + '_' + b; if (!seen[key]) { seen[key] = 1; E.push({ a: pts[i], b: pts[jj], color: color }); } } } return E; }
 
     constellation('ulam', 'Ulam prime spiral', function (n) { var k = Math.ceil((Math.sqrt(n) - 1) / 2), t = 2 * k + 1, m = t * t, tt = t - 1, x, y; if (n >= m - tt) { x = k - (m - n); y = -k; } else { m -= tt; if (n >= m - tt) { x = -k; y = -k + (m - n); } else { m -= tt; if (n >= m - tt) { x = -k + (m - n); y = k; } else { x = k; y = k - (m - n - tt); } } } return [x * 1.4, y * 1.4, 0]; }, 900, true, 0x2ec4b6, 60);
+
+    constellation('sacks', 'Sacks spiral', function (n) { var r = Math.sqrt(n) * 1.9, th = Math.sqrt(n) * PI2; return [Math.cos(th) * r, Math.sin(th) * r, 0]; }, 1200, true, 0x4d8bf0, 60);
 })();
