@@ -36,4 +36,6 @@
     cloud('romanesco', 'Romanesco fractal', function (T) { var pts = [], M = 13, i, j; for (i = 0; i < M; i++) { var r = Math.sqrt(i) * 4.4, th = i * GA, cx = Math.cos(th) * r, cz = Math.sin(th) * r, cy = 18 - Math.sqrt(i) * 5; for (j = 0; j < 22; j++) { var rr = Math.sqrt(j) * 1.0, ph = j * GA; pts.push(new T.Vector3(cx + Math.cos(ph) * rr, cy + j * 0.28, cz + Math.sin(ph) * rr)); } } return pts; }, 3, 0x2ec4b6, 60);
 
     tree('coral', 'Coral (3D L-system)', { branches: 3, spread: 0.55, up: 0.5, ratio: 0.74, len: 9, depth: 6, y0: -20 }, 0xff5d8f, 62);
+
+    tree('dendrite', 'Neuron dendrite', { branches: 3, spread: 1.0, up: 0.0, ratio: 0.72, len: 8, depth: 6, y0: 0 }, 0x9b5de5, 60);
 })();
