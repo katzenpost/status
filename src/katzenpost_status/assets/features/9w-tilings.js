@@ -34,4 +34,6 @@
     tiling('trihex', 'Trihexagonal (kagome)', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * 2 + j, cy = j * S3; poly(ngon(cx, cy, 1, 6, 0)); poly([[cx + 1, cy], [cx + 2, cy], [cx + 1.5, cy + S3 / 2]]); poly([[cx + 0.5, cy + S3 / 2], [cx + 1.5, cy + S3 / 2], [cx + 1, cy + S3]]); } }, 0xff8f3f, 58);
 
     tiling('truncsq', 'Truncated square (4.8.8)', function (poly) { var s = 1, d = s * (1 + S3); for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * d, cy = j * d; poly(ngon(cx, cy, s * 1.307, 8, Math.PI / 8)); poly(ngon(cx + d / 2, cy + d / 2, s * 0.707, 4, Math.PI / 4)); } }, 0xff5d8f, 58);
+
+    tiling('trunchex', 'Truncated hexagonal (3.12.12)', function (poly) { for (var i = -R; i <= R; i++) for (var j = -R; j <= R; j++) { var cx = i * 3 * S3 + (j & 1 ? 3 * S3 / 2 : 0), cy = j * 4.5; poly(ngon(cx, cy, S3 + 0.001, 12, Math.PI / 12)); } }, 0x00d2a0, 58);
 })();
