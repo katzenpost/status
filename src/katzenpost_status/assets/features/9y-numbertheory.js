@@ -5,14 +5,14 @@
     var G = window.KATZEN_GEO3D, PI2 = Math.PI * 2, PHI = (1 + Math.sqrt(5)) / 2, GA = PI2 * (1 - 1 / PHI);
 
     function sieve(N) { var p = []; for (var i = 0; i <= N; i++) p.push(i > 1); for (i = 2; i * i <= N; i++) if (p[i]) for (var j = i * i; j <= N; j += i) p[j] = false; return p; }
+    // Plot a number sequence as points and connect NEAREST neighbours (not the
+    // numeric successor), which reveals the spiral arms instead of a tangle.
     function constellation(id, name, ptsOfN, N, primesOnly, color, camZ) {
         G.create({ id: id, name: name, rotateSpeed: 0.28, camZ: camZ || 58,
             layout: function (d, THREE) {
-                var pr = sieve(N), seq = [], n;
-                for (n = 1; n <= N; n++) if (!primesOnly || pr[n]) seq.push(ptsOfN(n));
-                var edges = [], anchors = [], prev = null;
-                seq.forEach(function (p, i) { var v = new THREE.Vector3(p[0], p[1], p[2] || 0); anchors.push(v); if (prev) edges.push({ a: prev, b: v, color: color }); prev = v; });
-                return G.anchorLayout(d, THREE, anchors, edges);
+                var pr = sieve(N), pts = [], n;
+                for (n = 1; n <= N; n++) if (!primesOnly || pr[n]) { var p = ptsOfN(n); pts.push(new THREE.Vector3(p[0], p[1], p[2] || 0)); }
+                return G.anchorLayout(d, THREE, pts, knn(pts, THREE, 2, color));
             } });
     }
     function anchorsEdges(id, name, fn, color, camZ) {
