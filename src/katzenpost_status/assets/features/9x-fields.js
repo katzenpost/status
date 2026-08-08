@@ -49,4 +49,6 @@
     eca('rule90', 'Rule 90 automaton', ruleFn(90), 0x9b5de5, 58);
 
     eca('rule110', 'Rule 110 automaton', ruleFn(110), 0x00d2a0, 58);
+
+    surfMesh('standingwave', 'Standing wave', function (u, v, T) { var x = (u - 0.5) * 40, y = (v - 0.5) * 40; return new T.Vector3(x, y, 8 * Math.sin(x * 0.4) * Math.sin(y * 0.4)); }, 40, 40, 0xffd23f, 62);
 })();
