@@ -45,4 +45,6 @@
     contour('chladni2', 'Chladni figure (5,3)', function (u, v) { var n = 5, m = 3; return Math.cos(n * Math.PI * u) * Math.cos(m * Math.PI * v) - Math.cos(m * Math.PI * u) * Math.cos(n * Math.PI * v); }, 0x4d8bf0, 52);
 
     eca('rule30', 'Rule 30 automaton', ruleFn(30), 0xff8f3f, 58);
+
+    eca('rule90', 'Rule 90 automaton', ruleFn(90), 0x9b5de5, 58);
 })();
