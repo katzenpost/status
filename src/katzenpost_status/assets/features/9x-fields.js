@@ -41,4 +41,6 @@
     var PI2 = Math.PI * 2;
 
     contour('interference', 'Two-source interference', function (u, v) { var x = (u - 0.5) * 20, y = (v - 0.5) * 20, r1 = Math.hypot(x + 5, y), r2 = Math.hypot(x - 5, y); return Math.cos(r1 * 2) + Math.cos(r2 * 2); }, 0x2ec4b6, 54);
+
+    contour('chladni2', 'Chladni figure (5,3)', function (u, v) { var n = 5, m = 3; return Math.cos(n * Math.PI * u) * Math.cos(m * Math.PI * v) - Math.cos(m * Math.PI * u) * Math.cos(n * Math.PI * v); }, 0x4d8bf0, 52);
 })();
