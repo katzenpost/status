@@ -47,4 +47,6 @@
     eca('rule30', 'Rule 30 automaton', ruleFn(30), 0xff8f3f, 58);
 
     eca('rule90', 'Rule 90 automaton', ruleFn(90), 0x9b5de5, 58);
+
+    eca('rule110', 'Rule 110 automaton', ruleFn(110), 0x00d2a0, 58);
 })();
