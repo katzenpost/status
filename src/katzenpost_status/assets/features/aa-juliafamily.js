@@ -39,4 +39,6 @@
     escapeCloud('burningship', 'Burning ship fractal', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var t = x * x - y * y + cx; y = Math.abs(2 * x * y) + cy; x = t < 0 ? t : t; x = Math.abs(x) * (t < 0 ? 1 : 1); x = t; x = Math.abs(x); x = x + cx - cx; var xx = Math.abs(x); y = y; n++; if (x * x + y * y >= 4) break; } var X = 0, Y = 0; n = 0; while (n < MAXIT && X * X + Y * Y < 4) { var ax = Math.abs(X), ay = Math.abs(Y); var nt = ax * ax - ay * ay + cx; Y = 2 * ax * ay + cy; X = nt; n++; } return n; }, -1.8, -1.7 + 0.9, -0.1, 1.0, 6, 34, 0xff5d8f, 56);
 
     escapeCloud('tricorn', 'Tricorn (Mandelbar)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var t = x * x - y * y + cx; y = -2 * x * y + cy; x = t; n++; } return n; }, -2.0, 1.2, -1.4, 1.4, 6, 28, 0x00d2a0, 56);
+
+    escapeCloud('multibrot3', 'Multibrot (z^3)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var r2 = x * x + y * y; var xt = x * (x * x - 3 * y * y) + cx, yt = y * (3 * x * x - y * y) + cy; x = xt; y = yt; n++; } return n; }, -1.5, 1.5, -1.4, 1.4, 6, 30, 0xffd23f, 56);
 })();
