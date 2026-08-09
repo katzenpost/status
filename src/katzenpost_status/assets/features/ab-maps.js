@@ -37,4 +37,6 @@
     mapAttractor('svensson', 'Svensson attractor map', function (x, y) { var a = 1.5, b = -1.8, c = 1.6, d = 0.9; return [d * Math.sin(a * x) - Math.sin(b * y), c * Math.cos(a * x) + Math.cos(b * y)]; }, 0.1, 0.1, 0x4d8bf0, 56, 7, 6000);
 
     mapAttractor('bedhead', 'Bedhead attractor map', function (x, y) { var a = -0.81, b = -0.92; return [Math.sin(x * y / b) + Math.cos(a * x - y), x + Math.sin(y) / b]; }, 1, 1, 0x9b5de5, 56, 6, 6000);
+
+    mapAttractor('hopalong', 'Hopalong attractor map', function (x, y) { var a = 2.0, b = 1.0, c = 0.0; var xn = y - (x >= 0 ? 1 : -1) * Math.sqrt(Math.abs(b * x - c)); var yn = a - x; return [xn, yn]; }, 0.1, 0.1, 0xff8f3f, 56, 6, 6000);
 })();
