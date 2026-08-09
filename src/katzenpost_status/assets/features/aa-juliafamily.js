@@ -35,4 +35,6 @@
     escapeCloud('juliadendrite', 'Julia set (dendrite)', function (x, y) { return julia(x, y, 0.0, 1.0); }, -1.8, 1.8, -1.8, 1.8, 6, 34, 0x9b5de5, 56);
 
     escapeCloud('juliaspiral', 'Julia set (spiral)', function (x, y) { return julia(x, y, -0.8, 0.156); }, -1.7, 1.7, -1.2, 1.2, 5, 30, 0xff8f3f, 56);
+
+    escapeCloud('burningship', 'Burning ship fractal', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var t = x * x - y * y + cx; y = Math.abs(2 * x * y) + cy; x = t < 0 ? t : t; x = Math.abs(x) * (t < 0 ? 1 : 1); x = t; x = Math.abs(x); x = x + cx - cx; var xx = Math.abs(x); y = y; n++; if (x * x + y * y >= 4) break; } var X = 0, Y = 0; n = 0; while (n < MAXIT && X * X + Y * Y < 4) { var ax = Math.abs(X), ay = Math.abs(Y); var nt = ax * ax - ay * ay + cx; Y = 2 * ax * ay + cy; X = nt; n++; } return n; }, -1.8, -1.7 + 0.9, -0.1, 1.0, 6, 34, 0xff5d8f, 56);
 })();
