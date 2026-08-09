@@ -52,4 +52,6 @@
     }
 
     polyN('hexeract', 'Hexeract (6-cube)', function () { return hypercube(6); }, 0x2ec4b6, 56);
+
+    polyN('hepteract', 'Hepteract (7-cube)', function () { return hypercube(7); }, 0x4d8bf0, 56);
 })();
