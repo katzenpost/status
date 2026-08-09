@@ -17,4 +17,6 @@
     solid('truncatedcube', 'Truncated cube', function () { var x = RT2 - 1; return expand([[x, 1, 1]], false); }, 0x4d8bf0, 54);
 
     solid('rhombicuboctahedron', 'Rhombicuboctahedron', function () { return expand([[1, 1, 1 + RT2]], false); }, 0x9b5de5, 54);
+
+    solid('truncatedcuboctahedron', 'Truncated cuboctahedron', function () { return expand([[1, 1 + RT2, 1 + 2 * RT2]], false); }, 0xff8f3f, 56);
 })();
