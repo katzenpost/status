@@ -36,4 +36,6 @@
     contour('quasicrystal11', 'Quasicrystal (11-fold)', quasi(11), 0xff8f3f, 54);
 
     contour('quasicrystal13', 'Quasicrystal (13-fold)', quasi(13), 0xff5d8f, 54);
+
+    anchorsEdges('truchet', 'Truchet tiling (arcs)', function (a, e, T, color) { var R = 6, s = 5, i, j; for (i = -R; i <= R; i++) for (j = -R; j <= R; j++) { var cx = i * s, cy = j * s, h = s / 2, flip = ((i * 7 + j * 3 + i * j) & 1); function arc(ccx, ccy, a0) { var prev = null; for (var k = 0; k <= 8; k++) { var t = a0 + k / 8 * Math.PI / 2, p = new T.Vector3(ccx + Math.cos(t) * h, ccy + Math.sin(t) * h, 0); if (k === 0 || k === 8) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } } if (flip) { arc(cx - h, cy - h, 0); arc(cx + h, cy + h, Math.PI); } else { arc(cx + h, cy - h, Math.PI / 2); arc(cx - h, cy + h, -Math.PI / 2); } } }, 0x00d2a0, 56);
 })();
