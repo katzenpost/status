@@ -43,4 +43,6 @@
     escapeCloud('multibrot3', 'Multibrot (z^3)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var r2 = x * x + y * y; var xt = x * (x * x - 3 * y * y) + cx, yt = y * (3 * x * x - y * y) + cy; x = xt; y = yt; n++; } return n; }, -1.5, 1.5, -1.4, 1.4, 6, 30, 0xffd23f, 56);
 
     escapeCloud('multibrot5', 'Multibrot (z^5)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var r = Math.sqrt(x * x + y * y), th = Math.atan2(y, x), r5 = Math.pow(r, 5); x = r5 * Math.cos(5 * th) + cx; y = r5 * Math.sin(5 * th) + cy; n++; } return n; }, -1.4, 1.4, -1.4, 1.4, 6, 30, 0x4d8bf0, 56);
+
+    escapeCloud('newton', 'Newton fractal (z^3-1)', function (cx, cy) { var x = cx, y = cy, n = 0; for (n = 0; n < 40; n++) { var d = 3 * (x * x - y * y) * (x * x - y * y) + 3 * (2 * x * y) * (2 * x * y); if (d < 1e-9) break; var ax = x * x - y * y, ay = 2 * x * y; var fx = ax * x - ay * y - 1, fy = ax * y + ay * x; var nx = x - (fx * (ax) + fy * (ay)) / d * 1, ny = y - (fy * (ax) - fx * (ay)) / d * 1; var dx = nx - x, dy = ny - y; x = nx; y = ny; if (dx * dx + dy * dy < 1e-6) break; } return n; }, -1.6, 1.6, -1.6, 1.6, 5, 22, 0xff8f3f, 56);
 })();
