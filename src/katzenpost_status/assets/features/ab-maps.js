@@ -33,4 +33,6 @@
     mapAttractor('lozi', 'Lozi map', function (x, y) { var a = 1.7, b = 0.5; return [1 - a * Math.abs(x) + y, b * x]; }, 0.1, 0.1, 0x00d2a0, 56, 4, 3000);
 
     mapAttractor('gumowski', 'Gumowski-Mira map', function (x, y) { var a = 0.008, mu = -0.7; function f(v) { return mu * v + 2 * (1 - mu) * v * v / (1 + v * v); } var xn = y + a * (1 - 0.05 * y * y) * y + f(x); var yn = -x + f(xn); return [xn, yn]; }, 1, 1, 0xffd23f, 56, 5, 5000);
+
+    mapAttractor('svensson', 'Svensson attractor map', function (x, y) { var a = 1.5, b = -1.8, c = 1.6, d = 0.9; return [d * Math.sin(a * x) - Math.sin(b * y), c * Math.cos(a * x) + Math.cos(b * y)]; }, 0.1, 0.1, 0x4d8bf0, 56, 7, 6000);
 })();
