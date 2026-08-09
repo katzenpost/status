@@ -65,4 +65,6 @@
     duoprism('duoprism55', 'Pentagonal duoprism (5-5)', 5, 5, 0xff5d8f, 54);
 
     duoprism('duoprism88', 'Octagonal duoprism (8-8)', 8, 8, 0x4d8bf0, 54);
+
+    duoprism('cliffordtorus', 'Clifford torus', 20, 20, 0x2ec4b6, 54);
 })();
