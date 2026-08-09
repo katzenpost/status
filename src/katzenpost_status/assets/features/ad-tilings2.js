@@ -28,4 +28,6 @@
     function seg(e, x1, y1, x2, y2, color) { e.push({ a: new (window.KATZEN.THREE).Vector3(x1, y1, 0), b: new (window.KATZEN.THREE).Vector3(x2, y2, 0), color: color }); }
 
     contour('quasicrystal5', 'Quasicrystal (5-fold)', quasi(5), 0x2ec4b6, 54);
+
+    contour('quasicrystal7', 'Quasicrystal (7-fold)', quasi(7), 0x4d8bf0, 54);
 })();
