@@ -63,4 +63,6 @@
     duoprism('duoprism33', 'Triangular duoprism (3-3)', 3, 3, 0xffd23f, 54);
 
     duoprism('duoprism55', 'Pentagonal duoprism (5-5)', 5, 5, 0xff5d8f, 54);
+
+    duoprism('duoprism88', 'Octagonal duoprism (8-8)', 8, 8, 0x4d8bf0, 54);
 })();
