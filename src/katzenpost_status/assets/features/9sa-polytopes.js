@@ -67,4 +67,18 @@
     duoprism('duoprism88', 'Octagonal duoprism (8-8)', 8, 8, 0x4d8bf0, 54);
 
     duoprism('cliffordtorus', 'Clifford torus', 20, 20, 0x2ec4b6, 54);
+
+    G.create({ id: 'penteract', name: 'Penteract (5-cube)', rotateSpeed: 0.5, camZ: 56, layout: function (d, THREE) {
+        var V = [], t; for (t = 0; t < 32; t++) { V.push([(t & 1 ? 1 : -1), (t & 2 ? 1 : -1), (t & 4 ? 1 : -1), (t & 8 ? 1 : -1), (t & 16 ? 1 : -1)]); }
+        var A = 0.6, B = 0.4, C = 0.3, dist = 5, P = [];
+        V.forEach(function (v) { var x = v[0], y = v[1], z = v[2], w = v[3], u = v[4];
+            var x1 = x * Math.cos(A) - u * Math.sin(A), u1 = x * Math.sin(A) + u * Math.cos(A);
+            var y1 = y * Math.cos(B) - u1 * Math.sin(B), u2 = y * Math.sin(B) + u1 * Math.cos(B);
+            var z1 = z * Math.cos(C) - w * Math.sin(C), w1 = z * Math.sin(C) + w * Math.cos(C);
+            var s1 = dist / (dist - u2), s2 = dist / (dist - w1);
+            P.push(new THREE.Vector3(x1 * s1 * s2 * 5, y1 * s1 * s2 * 5, z1 * s2 * 5));
+        });
+        var edges = [], i, j; for (i = 0; i < 32; i++) for (j = i + 1; j < 32; j++) { var diff = i ^ j; if ((diff & (diff - 1)) === 0) edges.push({ a: P[i], b: P[j], color: 0x9b5de5 }); }
+        return G.anchorLayout(d, THREE, P, edges);
+    } });
 })();
