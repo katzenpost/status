@@ -29,4 +29,6 @@
     solid('rhombicosidodecahedron', 'Rhombicosidodecahedron', function () { return expand([[1, 1, P3]], true).concat(expand([[P2, PHI, 2 * PHI]], true)).concat(expand([[2 + PHI, 0, P2]], true)); }, 0x4d8bf0, 54);
 
     solid('rhombicdodecahedron', 'Rhombic dodecahedron', function () { var V = []; for (var a = -1; a <= 1; a += 2) for (var b = -1; b <= 1; b += 2) for (var c = -1; c <= 1; c += 2) V.push([a, b, c]); V = V.concat(expand([[2, 0, 0]], false)); return V; }, 0x9b5de5, 54);
+
+    solid('rhombictriacontahedron', 'Rhombic triacontahedron', function () { var ico = expand([[0, 1, PHI]], true); var dod = []; for (var a = -1; a <= 1; a += 2) for (var b = -1; b <= 1; b += 2) for (var c = -1; c <= 1; c += 2) dod.push([a, b, c]); dod = dod.concat(expand([[0, 1 / PHI, PHI]], true)); return ico.concat(dod); }, 0xffb454, 54);
 })();
