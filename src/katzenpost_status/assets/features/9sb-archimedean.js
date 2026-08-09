@@ -21,4 +21,6 @@
     solid('truncatedcuboctahedron', 'Truncated cuboctahedron', function () { return expand([[1, 1 + RT2, 1 + 2 * RT2]], false); }, 0xff8f3f, 56);
 
     solid('icosidodecahedron', 'Icosidodecahedron', function () { return expand([[0, 0, PHI]], false).concat(expand([[0.5, PHI / 2, P2 / 2]], true)); }, 0xff5d8f, 54);
+
+    solid('truncatedicosahedron', 'Truncated icosahedron (C60)', function () { return expand([[0, 1, 3 * PHI]], true).concat(expand([[1, 2 + PHI, 2 * PHI]], true)).concat(expand([[PHI, 2, 2 * PHI + 1]], true)); }, 0x00d2a0, 54);
 })();
