@@ -33,4 +33,6 @@
     escapeCloud('juliarabbit', 'Julia set (Douady rabbit)', function (x, y) { return julia(x, y, -0.123, 0.745); }, -1.6, 1.6, -1.3, 1.3, 5, 30, 0x4d8bf0, 56);
 
     escapeCloud('juliadendrite', 'Julia set (dendrite)', function (x, y) { return julia(x, y, 0.0, 1.0); }, -1.8, 1.8, -1.8, 1.8, 6, 34, 0x9b5de5, 56);
+
+    escapeCloud('juliaspiral', 'Julia set (spiral)', function (x, y) { return julia(x, y, -0.8, 0.156); }, -1.7, 1.7, -1.2, 1.2, 5, 30, 0xff8f3f, 56);
 })();
