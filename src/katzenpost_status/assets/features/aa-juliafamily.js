@@ -29,4 +29,6 @@
     function julia(cx, cy, ax, ay) { var x = cx, y = cy, n = 0; while (n < MAXIT && x * x + y * y < 4) { var t = x * x - y * y + ax; y = 2 * x * y + ay; x = t; n++; } return n; }
 
     escapeCloud('mandelbrot', 'Mandelbrot set', mandel, -2.2, 0.8, -1.3, 1.3, 6, 28, 0x2ec4b6, 56);
+
+    escapeCloud('juliarabbit', 'Julia set (Douady rabbit)', function (x, y) { return julia(x, y, -0.123, 0.745); }, -1.6, 1.6, -1.3, 1.3, 5, 30, 0x4d8bf0, 56);
 })();
