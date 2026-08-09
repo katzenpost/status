@@ -58,4 +58,6 @@
     polyN('fiveorthoplex', '5-orthoplex', function () { return orthoplex(5); }, 0x9b5de5, 54);
 
     polyN('sixorthoplex', '6-orthoplex', function () { return orthoplex(6); }, 0xff8f3f, 54);
+
+    polyN('fivesimplex', '5-simplex', function () { return simplex(5); }, 0xff5d8f, 54);
 })();
