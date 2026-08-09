@@ -32,4 +32,6 @@
     contour('quasicrystal7', 'Quasicrystal (7-fold)', quasi(7), 0x4d8bf0, 54);
 
     contour('quasicrystal9', 'Quasicrystal (9-fold)', quasi(9), 0x9b5de5, 54);
+
+    contour('quasicrystal11', 'Quasicrystal (11-fold)', quasi(11), 0xff8f3f, 54);
 })();
