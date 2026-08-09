@@ -41,4 +41,6 @@
     escapeCloud('tricorn', 'Tricorn (Mandelbar)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var t = x * x - y * y + cx; y = -2 * x * y + cy; x = t; n++; } return n; }, -2.0, 1.2, -1.4, 1.4, 6, 28, 0x00d2a0, 56);
 
     escapeCloud('multibrot3', 'Multibrot (z^3)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var r2 = x * x + y * y; var xt = x * (x * x - 3 * y * y) + cx, yt = y * (3 * x * x - y * y) + cy; x = xt; y = yt; n++; } return n; }, -1.5, 1.5, -1.4, 1.4, 6, 30, 0xffd23f, 56);
+
+    escapeCloud('multibrot5', 'Multibrot (z^5)', function (cx, cy) { var x = 0, y = 0, n = 0; while (n < MAXIT && x * x + y * y < 4) { var r = Math.sqrt(x * x + y * y), th = Math.atan2(y, x), r5 = Math.pow(r, 5); x = r5 * Math.cos(5 * th) + cx; y = r5 * Math.sin(5 * th) + cy; n++; } return n; }, -1.4, 1.4, -1.4, 1.4, 6, 30, 0x4d8bf0, 56);
 })();
