@@ -68,4 +68,6 @@
     polyN('rectifiedpenteract', 'Rectified penteract', function () { return permSign([1, 1, 1, 1], 5); }, 0x4d8bf0, 56);
 
     polyN('f4root', 'F4 root system', function () { var V = permSign([1, 1], 4); V = V.concat(permSign([1], 4)); var h = []; for (var t = 0; t < 16; t++) { var v = []; for (var i = 0; i < 4; i++) v.push((t & (1 << i)) ? 0.5 : -0.5); h.push(v); } return V.concat(h); }, 0xff8f3f, 56);
+
+    polyN('e8root', 'E8 root system (240)', function () { var V = permSign([1, 1], 8); var t, i; for (t = 0; t < 256; t++) { var neg = 0, v = []; for (i = 0; i < 8; i++) { var b = (t & (1 << i)) ? 1 : 0; if (b) neg++; v.push(b ? -0.5 : 0.5); } if (neg % 2 === 0) V.push(v); } return V; }, 0x2ec4b6, 54, 0.04);
 })();
