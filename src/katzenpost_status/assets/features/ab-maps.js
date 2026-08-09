@@ -21,4 +21,6 @@
     }
 
     mapAttractor('henon', 'Henon map', function (x, y) { return [1 - 1.4 * x * x + y, 0.3 * x]; }, 0.1, 0.1, 0x2ec4b6, 56, 4, 3000);
+
+    mapAttractor('ikeda', 'Ikeda map', function (x, y) { var t = 0.4 - 6 / (1 + x * x + y * y), u = 0.9; return [1 + u * (x * Math.cos(t) - y * Math.sin(t)), u * (x * Math.sin(t) + y * Math.cos(t))]; }, 0.1, 0.1, 0x4d8bf0, 56, 5, 4000);
 })();
