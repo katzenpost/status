@@ -62,4 +62,6 @@
     polyN('fivesimplex', '5-simplex', function () { return simplex(5); }, 0xff5d8f, 54);
 
     polyN('sixsimplex', '6-simplex', function () { return simplex(6); }, 0x00d2a0, 54);
+
+    polyN('rectifiedtesseract', 'Rectified tesseract', function () { return permSign([1, 1, 1], 4); }, 0xffd23f, 56);
 })();
