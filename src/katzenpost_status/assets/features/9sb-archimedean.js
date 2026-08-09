@@ -19,4 +19,6 @@
     solid('rhombicuboctahedron', 'Rhombicuboctahedron', function () { return expand([[1, 1, 1 + RT2]], false); }, 0x9b5de5, 54);
 
     solid('truncatedcuboctahedron', 'Truncated cuboctahedron', function () { return expand([[1, 1 + RT2, 1 + 2 * RT2]], false); }, 0xff8f3f, 56);
+
+    solid('icosidodecahedron', 'Icosidodecahedron', function () { return expand([[0, 0, PHI]], false).concat(expand([[0.5, PHI / 2, P2 / 2]], true)); }, 0xff5d8f, 54);
 })();
