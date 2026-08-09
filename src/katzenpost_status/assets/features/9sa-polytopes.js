@@ -49,4 +49,14 @@
     poly4('twentyfourcell', '24-cell', function () { var V = [], i, j, si, sj; for (i = 0; i < 4; i++) for (j = i + 1; j < 4; j++) for (si = -1; si <= 1; si += 2) for (sj = -1; sj <= 1; sj += 2) { var v = [0, 0, 0, 0]; v[i] = si; v[j] = sj; V.push(v); } return V; }, 0x9b5de5, 56);
 
     poly4('fivecell', '5-cell (pentachoron)', function () { var q = 1 / Math.sqrt(5); return [[1, 1, 1, -q], [1, -1, -1, -q], [-1, 1, -1, -q], [-1, -1, 1, -q], [0, 0, 0, 4 * q]]; }, 0xff8f3f, 54);
+
+    poly4('sixhundredcell', '600-cell', function () {
+        var V = [], i, s;
+        V = V.concat(signs([0.5, 0.5, 0.5, 0.5], 4));
+        for (i = 0; i < 4; i++) for (s = -1; s <= 1; s += 2) { var v = [0, 0, 0, 0]; v[i] = s; V.push(v); }
+        var EV = [[0, 1, 2, 3], [0, 2, 3, 1], [0, 3, 1, 2], [1, 0, 3, 2], [1, 2, 0, 3], [1, 3, 2, 0], [2, 0, 1, 3], [2, 1, 3, 0], [2, 3, 0, 1], [3, 0, 2, 1], [3, 1, 0, 2], [3, 2, 1, 0]];
+        var vals = [PHI / 2, 0.5, 1 / (2 * PHI)];
+        EV.forEach(function (P) { for (var sg = 0; sg < 8; sg++) { var v = [0, 0, 0, 0]; v[P[0]] = (sg & 1 ? -1 : 1) * vals[0]; v[P[1]] = (sg & 2 ? -1 : 1) * vals[1]; v[P[2]] = (sg & 4 ? -1 : 1) * vals[2]; v[P[3]] = 0; V.push(v); } });
+        return V;
+    }, 0x00d2a0, 54);
 })();
