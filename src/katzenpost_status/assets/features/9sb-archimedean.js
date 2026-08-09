@@ -27,4 +27,6 @@
     solid('truncateddodecahedron', 'Truncated dodecahedron', function () { return expand([[0, 1 / PHI, 2 + PHI]], true).concat(expand([[1 / PHI, PHI, 2 * PHI]], true)).concat(expand([[PHI, 2, PHI + 1]], true)); }, 0xffd23f, 54);
 
     solid('rhombicosidodecahedron', 'Rhombicosidodecahedron', function () { return expand([[1, 1, P3]], true).concat(expand([[P2, PHI, 2 * PHI]], true)).concat(expand([[2 + PHI, 0, P2]], true)); }, 0x4d8bf0, 54);
+
+    solid('rhombicdodecahedron', 'Rhombic dodecahedron', function () { var V = []; for (var a = -1; a <= 1; a += 2) for (var b = -1; b <= 1; b += 2) for (var c = -1; c <= 1; c += 2) V.push([a, b, c]); V = V.concat(expand([[2, 0, 0]], false)); return V; }, 0x9b5de5, 54);
 })();
