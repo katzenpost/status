@@ -31,4 +31,6 @@
     mapAttractor('tinkerbell', 'Tinkerbell map', function (x, y) { var a = 0.9, b = -0.6013, c = 2.0, d = 0.5; return [x * x - y * y + a * x + b * y, 2 * x * y + c * x + d * y]; }, -0.72, -0.64, 0xff5d8f, 56, 4, 4000);
 
     mapAttractor('lozi', 'Lozi map', function (x, y) { var a = 1.7, b = 0.5; return [1 - a * Math.abs(x) + y, b * x]; }, 0.1, 0.1, 0x00d2a0, 56, 4, 3000);
+
+    mapAttractor('gumowski', 'Gumowski-Mira map', function (x, y) { var a = 0.008, mu = -0.7; function f(v) { return mu * v + 2 * (1 - mu) * v * v / (1 + v * v); } var xn = y + a * (1 - 0.05 * y * y) * y + f(x); var yn = -x + f(xn); return [xn, yn]; }, 1, 1, 0xffd23f, 56, 5, 5000);
 })();
