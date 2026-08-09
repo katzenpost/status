@@ -25,4 +25,6 @@
     mapAttractor('ikeda', 'Ikeda map', function (x, y) { var t = 0.4 - 6 / (1 + x * x + y * y), u = 0.9; return [1 + u * (x * Math.cos(t) - y * Math.sin(t)), u * (x * Math.sin(t) + y * Math.cos(t))]; }, 0.1, 0.1, 0x4d8bf0, 56, 5, 4000);
 
     mapAttractor('clifford', 'Clifford attractor map', function (x, y) { var a = -1.4, b = 1.6, c = 1.0, d = 0.7; return [Math.sin(a * y) + c * Math.cos(a * x), Math.sin(b * x) + d * Math.cos(b * y)]; }, 0.1, 0.1, 0x9b5de5, 56, 7, 6000);
+
+    mapAttractor('dejong', 'De Jong attractor map', function (x, y) { var a = 1.4, b = -2.3, c = 2.4, d = -2.1; return [Math.sin(a * y) - Math.cos(b * x), Math.sin(c * x) - Math.cos(d * y)]; }, 0.1, 0.1, 0xff8f3f, 56, 7, 6000);
 })();
