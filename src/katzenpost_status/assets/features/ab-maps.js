@@ -1,0 +1,24 @@
+(function () {
+    "use strict";
+    var K = window.KATZEN;
+    if (!K || !window.KATZEN_GEO3D) return;
+    var G = window.KATZEN_GEO3D;
+
+    function knn(pts, THREE, k, color) { var E = [], seen = {}, i, j, m; for (i = 0; i < pts.length; i++) { var ds = []; for (j = 0; j < pts.length; j++) if (j !== i) ds.push([pts[i].distanceToSquared(pts[j]), j]); ds.sort(function (a, b) { return a[0] - b[0]; }); for (m = 0; m < k && m < ds.length; m++) { var jj = ds[m][1], a = Math.min(i, jj), b = Math.max(i, jj), key = a + '_' + b; if (!seen[key]) { seen[key] = 1; E.push({ a: pts[i], b: pts[jj], color: color }); } } } return E; }
+    // Iterate a 2D map to its attractor, sample points, mesh by nearest neighbour.
+    function mapAttractor(id, name, step, x0, y0, color, camZ, keepEvery, iters) {
+        G.create({ id: id, name: name, rotateSpeed: 0.26, camZ: camZ || 56,
+            layout: function (d, THREE) {
+                var x = x0, y = y0, raw = [], i, ke = keepEvery || 6, IT = iters || 5000;
+                for (i = 0; i < IT; i++) { var p = step(x, y); x = p[0]; y = p[1]; if (!isFinite(x) || !isFinite(y)) break; if (i > 60 && i % ke === 0 && raw.length < 720) raw.push([x, y]); }
+                if (raw.length < 4) return G.anchorLayout(d, THREE, [], []);
+                var mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+                raw.forEach(function (p) { if (p[0] < mnx) mnx = p[0]; if (p[0] > mxx) mxx = p[0]; if (p[1] < mny) mny = p[1]; if (p[1] > mxy) mxy = p[1]; });
+                var cx = (mnx + mxx) / 2, cy = (mny + mxy) / 2, s = 42 / Math.max(1e-6, Math.max(mxx - mnx, mxy - mny));
+                var V = raw.map(function (p) { return new THREE.Vector3((p[0] - cx) * s, (p[1] - cy) * s, 0); });
+                return G.anchorLayout(d, THREE, V, knn(V, THREE, 2, color));
+            } });
+    }
+
+    mapAttractor('henon', 'Henon map', function (x, y) { return [1 - 1.4 * x * x + y, 0.3 * x]; }, 0.1, 0.1, 0x2ec4b6, 56, 4, 3000);
+})();
