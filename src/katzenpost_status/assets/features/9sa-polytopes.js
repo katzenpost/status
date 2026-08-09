@@ -59,4 +59,6 @@
         EV.forEach(function (P) { for (var sg = 0; sg < 8; sg++) { var v = [0, 0, 0, 0]; v[P[0]] = (sg & 1 ? -1 : 1) * vals[0]; v[P[1]] = (sg & 2 ? -1 : 1) * vals[1]; v[P[2]] = (sg & 4 ? -1 : 1) * vals[2]; v[P[3]] = 0; V.push(v); } });
         return V;
     }, 0x00d2a0, 54);
+
+    duoprism('duoprism33', 'Triangular duoprism (3-3)', 3, 3, 0xffd23f, 54);
 })();
