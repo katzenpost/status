@@ -35,4 +35,6 @@
     mapAttractor('gumowski', 'Gumowski-Mira map', function (x, y) { var a = 0.008, mu = -0.7; function f(v) { return mu * v + 2 * (1 - mu) * v * v / (1 + v * v); } var xn = y + a * (1 - 0.05 * y * y) * y + f(x); var yn = -x + f(xn); return [xn, yn]; }, 1, 1, 0xffd23f, 56, 5, 5000);
 
     mapAttractor('svensson', 'Svensson attractor map', function (x, y) { var a = 1.5, b = -1.8, c = 1.6, d = 0.9; return [d * Math.sin(a * x) - Math.sin(b * y), c * Math.cos(a * x) + Math.cos(b * y)]; }, 0.1, 0.1, 0x4d8bf0, 56, 7, 6000);
+
+    mapAttractor('bedhead', 'Bedhead attractor map', function (x, y) { var a = -0.81, b = -0.92; return [Math.sin(x * y / b) + Math.cos(a * x - y), x + Math.sin(y) / b]; }, 1, 1, 0x9b5de5, 56, 6, 6000);
 })();
