@@ -29,4 +29,6 @@
     mapAttractor('dejong', 'De Jong attractor map', function (x, y) { var a = 1.4, b = -2.3, c = 2.4, d = -2.1; return [Math.sin(a * y) - Math.cos(b * x), Math.sin(c * x) - Math.cos(d * y)]; }, 0.1, 0.1, 0xff8f3f, 56, 7, 6000);
 
     mapAttractor('tinkerbell', 'Tinkerbell map', function (x, y) { var a = 0.9, b = -0.6013, c = 2.0, d = 0.5; return [x * x - y * y + a * x + b * y, 2 * x * y + c * x + d * y]; }, -0.72, -0.64, 0xff5d8f, 56, 4, 4000);
+
+    mapAttractor('lozi', 'Lozi map', function (x, y) { var a = 1.7, b = 0.5; return [1 - a * Math.abs(x) + y, b * x]; }, 0.1, 0.1, 0x00d2a0, 56, 4, 3000);
 })();
