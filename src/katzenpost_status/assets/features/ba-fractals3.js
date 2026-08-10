@@ -21,4 +21,6 @@
     function cdiv(a, b) { var d = b[0] * b[0] + b[1] * b[1] + 1e-12; return [(a[0] * b[0] + a[1] * b[1]) / d, (a[1] * b[0] - a[0] * b[1]) / d]; }
 
     escapeCloud('nova', 'Nova fractal', function (cx, cy) { var z = [1, 0], c = [cx, cy], n; for (n = 0; n < 60; n++) { var z2 = cmul(z, z), z3 = cmul(z2, z), num = [z3[0] - 1, z3[1]], den = [3 * z2[0], 3 * z2[1]], q = cdiv(num, den); var nz = [z[0] - q[0] + c[0], z[1] - q[1] + c[1]], dx = nz[0] - z[0], dy = nz[1] - z[1]; z = nz; if (dx * dx + dy * dy < 1e-6) break; } return n; }, -1.5, 1.5, -1.5, 1.5, 4, 26, 0x2ec4b6, 56);
+
+    escapeCloud('magnet', 'Magnet fractal (type I)', function (cx, cy) { var z = [0, 0], c = [cx, cy], n; for (n = 0; n < 60; n++) { var num = [z[0] * z[0] - z[1] * z[1] + c[0] - 1, 2 * z[0] * z[1] + c[1]], den = [2 * z[0] + c[0] - 2, 2 * z[1] + c[1]], q = cdiv(num, den); z = cmul(q, q); var m = z[0] * z[0] + z[1] * z[1]; if (m > 1e6) break; var d1 = z[0] - 1, d2 = z[1]; if (d1 * d1 + d2 * d2 < 1e-6) break; } return n; }, -1, 3, -2, 2, 4, 26, 0x4d8bf0, 56);
 })();
