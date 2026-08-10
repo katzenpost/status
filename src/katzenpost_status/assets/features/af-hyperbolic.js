@@ -25,4 +25,6 @@
     surf('hyperbolicparaboloid', 'Hyperbolic paraboloid', function (u, v, T) { var x = (u - 0.5) * 34, y = (v - 0.5) * 34; return new T.Vector3(x, y, (x * x - y * y) * 0.03); }, 34, 34, 0xffd23f, 60);
 
     ae('projectivegrid', 'Projective perspective grid', function (a, e, T, color) { var vx = 0, vy = D, i, N = 14; for (i = 0; i <= N; i++) { var x = (i / N - 0.5) * 2 * D; var p1 = new T.Vector3(x, -D, 0), p2 = new T.Vector3(vx, vy, 0); a.push(p1); e.push({ a: p1, b: p2, color: color }); } for (i = 1; i <= N; i++) { var t = i / N, yy = -D + (vy + D) * (1 - Math.pow(1 - t, 2)), prev = null; for (var j = 0; j <= 20; j++) { var xx = ((j / 20) - 0.5) * 2 * D * (1 - (yy + D) / (2 * D)); var p = new T.Vector3(xx, yy, 0); if (j % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } } }, 0x9b5de5, 56);
+
+    G.create({ id: 'loxodrome', name: 'Loxodrome (rhumb line)', rotateSpeed: 0.4, camZ: 56, layout: function (d, THREE) { var P = [], i, N = 700, R = 20, a = 0.16; for (i = 0; i <= N; i++) { var t = (i / N - 0.5) * 30, lat = Math.atan(Math.sinh(a * t)), lon = t; P.push(new THREE.Vector3(R * Math.cos(lat) * Math.cos(lon), R * Math.sin(lat), R * Math.cos(lat) * Math.sin(lon))); } return G.curveLayout(d, THREE, P, 0xff8f3f); } });
 })();
