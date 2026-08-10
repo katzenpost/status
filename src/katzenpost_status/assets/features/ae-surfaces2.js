@@ -30,4 +30,6 @@
     surf('henneberg', 'Henneberg surface', function (u, v, T) { var a = (u - 0.5) * 1.4, b = v * Math.PI, s = 2.2; return new T.Vector3(s * (2 * Math.sinh(a) * Math.cos(b) - (2 / 3) * Math.sinh(3 * a) * Math.cos(3 * b)), s * (2 * Math.sinh(a) * Math.sin(b) + (2 / 3) * Math.sinh(3 * a) * Math.sin(3 * b)), s * 2 * Math.cosh(2 * a) * Math.cos(2 * b)); }, 44, 44, 0x4d8bf0, 56);
 
     surf('catalan', 'Catalan minimal surface', function (u, v, T) { var a = u * PI2 * 1.5, b = (v - 0.5) * 4, s = 2.6; return new T.Vector3(s * (a - Math.sin(a) * Math.cosh(b)), s * (1 - Math.cos(a) * Math.cosh(b)), s * 4 * Math.sin(a / 2) * Math.sinh(b / 2)); }, 60, 30, 0x9b5de5, 54);
+
+    surf('bour', 'Bour surface', function (u, v, T) { var r = 0.15 + u * 1.9, a = v * PI2, s = 4.5; return new T.Vector3(s * (r * Math.cos(a) - r * r / 2 * Math.cos(2 * a)), s * (-r * Math.sin(a) - r * r / 2 * Math.sin(2 * a)), s * (4 / 3) * Math.pow(r, 1.5) * Math.cos(1.5 * a)); }, 44, 60, 0xff8f3f, 54);
 })();
