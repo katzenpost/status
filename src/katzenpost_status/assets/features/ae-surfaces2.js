@@ -38,4 +38,6 @@
     surf('whitney', 'Whitney umbrella', function (u, v, T) { var a = (u - 0.5) * 3, b = (v - 0.5) * 3; return new T.Vector3(a * b * 4, a * 7, b * b * 4); }, 40, 40, 0x00d2a0, 58);
 
     tpms('neovius', 'Neovius surface (TPMS)', function (x, y, z) { return 3 * (Math.cos(x) + Math.cos(y) + Math.cos(z)) + 4 * Math.cos(x) * Math.cos(y) * Math.cos(z); }, Math.PI * 1.25, 0.5, 5.4, 0xffd23f, 58);
+
+    tpms('iwp', 'I-WP surface (TPMS)', function (x, y, z) { return 2 * (Math.cos(x) * Math.cos(y) + Math.cos(y) * Math.cos(z) + Math.cos(z) * Math.cos(x)) - (Math.cos(2 * x) + Math.cos(2 * y) + Math.cos(2 * z)); }, Math.PI * 1.25, 0.35, 5.4, 0x4d8bf0, 58);
 })();
