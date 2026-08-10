@@ -10,4 +10,6 @@
     curve('viviani', "Viviani's curve", function (t, T) { var a = 10, u = t * 2 * PI2; return new T.Vector3(a * (1 + Math.cos(u)) - a, a * Math.sin(u), 2 * a * Math.sin(u / 2)); }, 0x2ec4b6, 58, 700);
 
     curve('sphericalspiral', 'Spherical spiral', function (t, T) { var R = 18, th = t * PI2 * 15, ph = t * Math.PI; return new T.Vector3(R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)); }, 0x4d8bf0, 56, 900);
+
+    curve('conicalhelix', 'Conical helix', function (t, T) { var th = t * PI2 * 6, r = t * 15, h = (t - 0.5) * 32; return new T.Vector3(r * Math.cos(th), h, r * Math.sin(th)); }, 0x9b5de5, 58, 700);
 })();
