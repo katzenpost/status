@@ -8,4 +8,6 @@
     function ae(id, name, fn, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.4, camZ: camZ || 58, layout: function (d, THREE) { var a = [], e = []; fn(a, e, THREE, color); return G.anchorLayout(d, THREE, a, e); } }); }
 
     curve('viviani', "Viviani's curve", function (t, T) { var a = 10, u = t * 2 * PI2; return new T.Vector3(a * (1 + Math.cos(u)) - a, a * Math.sin(u), 2 * a * Math.sin(u / 2)); }, 0x2ec4b6, 58, 700);
+
+    curve('sphericalspiral', 'Spherical spiral', function (t, T) { var R = 18, th = t * PI2 * 15, ph = t * Math.PI; return new T.Vector3(R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)); }, 0x4d8bf0, 56, 900);
 })();
