@@ -29,4 +29,6 @@
     lcf('mobiuskantor', 'Mobius-Kantor graph', [5, -5], 8, 0x00d2a0);
 
     lcf('pappus', 'Pappus graph', [5, 7, -7, 7, -7, -5], 3, 0xffd23f);
+
+    lcf('desargues', 'Desargues graph', [5, -5, 9, -9], 5, 0x4d8bf0);
 })();
