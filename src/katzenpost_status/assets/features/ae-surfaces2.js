@@ -26,4 +26,6 @@
     function C(a) { return Math.cos(a); } function S(a) { return Math.sin(a); }
 
     surf('scherk', 'Scherk surface', function (u, v, T) { var x = (u - 0.5) * 2.7, y = (v - 0.5) * 2.7, z = Math.log(Math.abs(Math.cos(x)) + 1e-3) - Math.log(Math.abs(Math.cos(y)) + 1e-3); return new T.Vector3(x * 6, y * 6, z * 5); }, 46, 46, 0x2ec4b6, 58);
+
+    surf('henneberg', 'Henneberg surface', function (u, v, T) { var a = (u - 0.5) * 1.4, b = v * Math.PI, s = 2.2; return new T.Vector3(s * (2 * Math.sinh(a) * Math.cos(b) - (2 / 3) * Math.sinh(3 * a) * Math.cos(3 * b)), s * (2 * Math.sinh(a) * Math.sin(b) + (2 / 3) * Math.sinh(3 * a) * Math.sin(3 * b)), s * 2 * Math.cosh(2 * a) * Math.cos(2 * b)); }, 44, 44, 0x4d8bf0, 56);
 })();
