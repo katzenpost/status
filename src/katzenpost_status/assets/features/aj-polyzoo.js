@@ -18,4 +18,6 @@
     ae('elongpyramid', 'Elongated square pyramid (J8)', function (a, e, T, color) { var R = 11, top = ngon(6, R, 4, Math.PI / 4), bot = ngon(-6, R, 4, Math.PI / 4); ring(a, e, top, color); ring(a, e, bot, color); var ap = new T.Vector3(0, 18, 0); a.push(ap); for (var i = 0; i < 4; i++) { e.push({ a: top[i], b: bot[i], color: color }); e.push({ a: ap, b: top[i], color: color }); } }, 0xff8f3f, 54);
 
     G.create({ id: 'geodesicdome3', name: 'Geodesic dome (freq 3)', rotateSpeed: 0.45, camZ: 54, layout: function (d, T) { var g = new THREE.IcosahedronGeometry(18, 3), pe = fromGeo(g, 0x00d2a0); g.dispose(); return G.anchorLayout(d, T, pe.a, pe.e); } });
+
+    ae('schwarzlantern', 'Schwarz lantern', function (a, e, T, color) { var n = 12, rows = 8, R = 13, H = 30, i, r; var rings = []; for (r = 0; r <= rows; r++) { rings.push(ngon(-H / 2 + H * r / rows, R, n, (r & 1) ? Math.PI / n : 0)); } for (r = 0; r <= rows; r++) ring(a, e, rings[r], color); for (r = 0; r < rows; r++) for (i = 0; i < n; i++) { e.push({ a: rings[r][i], b: rings[r + 1][i], color: color }); e.push({ a: rings[r][i], b: rings[r + 1][(i + ((r & 1) ? 0 : n - 1)) % n], color: color }); } }, 0xff5d8f, 56);
 })();
