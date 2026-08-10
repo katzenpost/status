@@ -16,4 +16,6 @@
     curve('baseballseam', 'Baseball seam curve', function (t, T) { var R = 18, u = t * PI2, L = 0.62 * Math.sin(2 * u), w = 0.62 * Math.cos(2 * u) * Math.sin(u); return new T.Vector3(R * Math.cos(L) * Math.cos(u), R * Math.sin(L), R * Math.cos(L) * Math.sin(u)); }, 0xff8f3f, 56, 700);
 
     curve('spirograph', 'Spirograph (hypotrochoid)', function (t, T) { var R = 14, r = 5, dd = 8, u = t * PI2 * 5, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + dd * Math.cos(k * u), (R - r) * Math.sin(u) - dd * Math.sin(k * u), 0); }, 0xff5d8f, 56, 1200);
+
+    curve('epicycloid', 'Epicycloid', function (t, T) { var R = 12, r = R / 5, u = t * PI2 * 5, k = (R + r) / r; return new T.Vector3((R + r) * Math.cos(u) - r * Math.cos(k * u), (R + r) * Math.sin(u) - r * Math.sin(k * u), 0); }, 0x00d2a0, 56, 900);
 })();
