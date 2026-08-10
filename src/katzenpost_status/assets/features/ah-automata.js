@@ -17,4 +17,6 @@
     function keyOf(x, y) { return x + ',' + y; }
 
     cellsView('langtonsant', "Langton's ant", function () { var grid = {}, x = 0, y = 0, dir = 0, dx = [0, 1, 0, -1], dy = [1, 0, -1, 0], i; for (i = 0; i < 11200; i++) { var k = keyOf(x, y); if (grid[k]) { dir = (dir + 3) % 4; delete grid[k]; } else { dir = (dir + 1) % 4; grid[k] = 1; } x += dx[dir]; y += dy[dir]; } var out = []; for (var kk in grid) { var p = kk.split(','); out.push([+p[0], +p[1]]); } return out; }, 0x2ec4b6, 60, 0.7);
+
+    cellsView('turmite', 'Turmite', function () { var grid = {}, x = 0, y = 0, dir = 0, dx = [0, 1, 0, -1], dy = [1, 0, -1, 0], i; for (i = 0; i < 8200; i++) { var k = keyOf(x, y), st = grid[k] || 0; if (st === 0) { dir = (dir + 1) % 4; grid[k] = 1; } else if (st === 1) { dir = (dir + 1) % 4; grid[k] = 2; } else { dir = (dir + 3) % 4; grid[k] = 0; } x += dx[dir]; y += dy[dir]; } var out = []; for (var kk in grid) { if (!grid[kk]) continue; var p = kk.split(','); out.push([+p[0], +p[1]]); } return out; }, 0x4d8bf0, 60, 0.8);
 })();
