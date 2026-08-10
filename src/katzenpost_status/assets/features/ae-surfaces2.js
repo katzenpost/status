@@ -36,4 +36,6 @@
     surf('monkeysaddle', 'Monkey saddle', function (u, v, T) { var x = (u - 0.5) * 4, y = (v - 0.5) * 4; return new T.Vector3(x * 6, y * 6, (x * x * x - 3 * x * y * y) * 1.2); }, 40, 40, 0xff5d8f, 60);
 
     surf('whitney', 'Whitney umbrella', function (u, v, T) { var a = (u - 0.5) * 3, b = (v - 0.5) * 3; return new T.Vector3(a * b * 4, a * 7, b * b * 4); }, 40, 40, 0x00d2a0, 58);
+
+    tpms('neovius', 'Neovius surface (TPMS)', function (x, y, z) { return 3 * (Math.cos(x) + Math.cos(y) + Math.cos(z)) + 4 * Math.cos(x) * Math.cos(y) * Math.cos(z); }, Math.PI * 1.25, 0.5, 5.4, 0xffd23f, 58);
 })();
