@@ -20,4 +20,6 @@
     G.create({ id: 'geodesicdome3', name: 'Geodesic dome (freq 3)', rotateSpeed: 0.45, camZ: 54, layout: function (d, T) { var g = new THREE.IcosahedronGeometry(18, 3), pe = fromGeo(g, 0x00d2a0); g.dispose(); return G.anchorLayout(d, T, pe.a, pe.e); } });
 
     ae('schwarzlantern', 'Schwarz lantern', function (a, e, T, color) { var n = 12, rows = 8, R = 13, H = 30, i, r; var rings = []; for (r = 0; r <= rows; r++) { rings.push(ngon(-H / 2 + H * r / rows, R, n, (r & 1) ? Math.PI / n : 0)); } for (r = 0; r <= rows; r++) ring(a, e, rings[r], color); for (r = 0; r < rows; r++) for (i = 0; i < n; i++) { e.push({ a: rings[r][i], b: rings[r + 1][i], color: color }); e.push({ a: rings[r][i], b: rings[r + 1][(i + ((r & 1) ? 0 : n - 1)) % n], color: color }); } }, 0xff5d8f, 56);
+
+    ae('oloid', 'Oloid', function (a, e, T, color) { var r = 12, c1 = [], c2 = [], i, N = 40; for (i = 0; i < N; i++) { var t = i / N * PI2; c1.push(new T.Vector3(-r / 2 + Math.cos(t) * r, Math.sin(t) * r, 0)); c2.push(new T.Vector3(r / 2 + Math.cos(t) * r, 0, Math.sin(t) * r)); } ring(a, e, c1, color); ring(a, e, c2, color); for (i = 0; i < N; i += 3) { var best = 0, bd = 1e9; for (var j = 0; j < N; j++) { var dd = c1[i].distanceToSquared(c2[j]); if (dd < bd) { bd = dd; best = j; } } e.push({ a: c1[i], b: c2[best], color: color }); } }, 0xffd23f, 54);
 })();
