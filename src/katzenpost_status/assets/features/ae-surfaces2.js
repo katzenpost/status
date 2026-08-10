@@ -1,0 +1,29 @@
+(function () {
+    "use strict";
+    var K = window.KATZEN;
+    if (!K || !window.KATZEN_GEO3D) return;
+    var G = window.KATZEN_GEO3D, PI2 = Math.PI * 2;
+
+    function finite(v) { return isFinite(v.x) && isFinite(v.y) && isFinite(v.z) && v.length() < 400; }
+    function surf(id, name, pFn, ur, vr, color, camZ) {
+        G.create({ id: id, name: name, rotateSpeed: 0.34, camZ: camZ || 58, layout: function (d, THREE) {
+            var A = [], idx = {}, E = [], i, j;
+            for (i = 0; i <= ur; i++) for (j = 0; j <= vr; j++) { var p = pFn(i / ur, j / vr, THREE); idx[i + '_' + j] = A.length; A.push(finite(p) ? p : new THREE.Vector3()); }
+            function ad(a, b, c, e) { var k1 = idx[a + '_' + b], k2 = idx[c + '_' + e]; if (k1 != null && k2 != null) E.push({ a: A[k1], b: A[k2], color: color }); }
+            for (i = 0; i < ur; i++) for (j = 0; j < vr; j++) { ad(i, j, i + 1, j); ad(i, j, i, j + 1); }
+            return G.anchorLayout(d, THREE, A, E);
+        } });
+    }
+    function knn(pts, THREE, k, color) { var E = [], seen = {}, i, j, m; for (i = 0; i < pts.length; i++) { var ds = []; for (j = 0; j < pts.length; j++) if (j !== i) ds.push([pts[i].distanceToSquared(pts[j]), j]); ds.sort(function (a, b) { return a[0] - b[0]; }); for (m = 0; m < k && m < ds.length; m++) { var jj = ds[m][1], a = Math.min(i, jj), b = Math.max(i, jj), key = a + '_' + b; if (!seen[key]) { seen[key] = 1; E.push({ a: pts[i], b: pts[jj], color: color }); } } } return E; }
+    function tpms(id, name, f, span, eps, sc, color, camZ) {
+        G.create({ id: id, name: name, rotateSpeed: 0.32, camZ: camZ || 58, layout: function (d, THREE) {
+            var N = 44, pts = [], i, j, l;
+            for (i = 0; i <= N && pts.length < 850; i++) for (j = 0; j <= N && pts.length < 850; j++) for (l = 0; l <= N && pts.length < 850; l++) { var x = -span + 2 * span * i / N, y = -span + 2 * span * j / N, z = -span + 2 * span * l / N; if (Math.abs(f(x, y, z)) < eps) pts.push(new THREE.Vector3(x * sc, y * sc, z * sc)); }
+            if (pts.length < 4) return G.anchorLayout(d, THREE, pts, []);
+            return G.anchorLayout(d, THREE, pts, knn(pts, THREE, 3, color));
+        } });
+    }
+    function C(a) { return Math.cos(a); } function S(a) { return Math.sin(a); }
+
+    surf('scherk', 'Scherk surface', function (u, v, T) { var x = (u - 0.5) * 2.7, y = (v - 0.5) * 2.7, z = Math.log(Math.abs(Math.cos(x)) + 1e-3) - Math.log(Math.abs(Math.cos(y)) + 1e-3); return new T.Vector3(x * 6, y * 6, z * 5); }, 46, 46, 0x2ec4b6, 58);
+})();
