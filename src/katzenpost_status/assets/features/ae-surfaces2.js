@@ -42,4 +42,6 @@
     tpms('iwp', 'I-WP surface (TPMS)', function (x, y, z) { return 2 * (Math.cos(x) * Math.cos(y) + Math.cos(y) * Math.cos(z) + Math.cos(z) * Math.cos(x)) - (Math.cos(2 * x) + Math.cos(2 * y) + Math.cos(2 * z)); }, Math.PI * 1.25, 0.35, 5.4, 0x4d8bf0, 58);
 
     tpms('splitp', 'Split-P surface (TPMS)', function (x, y, z) { return 1.1 * (Math.sin(2 * x) * Math.sin(z) * Math.cos(y) + Math.sin(2 * y) * Math.sin(x) * Math.cos(z) + Math.sin(2 * z) * Math.sin(y) * Math.cos(x)) - 0.2 * (Math.cos(2 * x) * Math.cos(2 * y) + Math.cos(2 * y) * Math.cos(2 * z) + Math.cos(2 * z) * Math.cos(2 * x)) - 0.4 * (Math.cos(2 * x) + Math.cos(2 * y) + Math.cos(2 * z)); }, Math.PI * 1.25, 0.28, 5.4, 0x9b5de5, 58);
+
+    tpms('fischerkoch', 'Fischer-Koch S (TPMS)', function (x, y, z) { return Math.cos(2 * x) * Math.sin(y) * Math.cos(z) + Math.cos(2 * y) * Math.sin(z) * Math.cos(x) + Math.cos(2 * z) * Math.sin(x) * Math.cos(y); }, Math.PI * 1.25, 0.22, 5.4, 0xff8f3f, 58);
 })();
