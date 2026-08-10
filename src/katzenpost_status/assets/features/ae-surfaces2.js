@@ -32,4 +32,6 @@
     surf('catalan', 'Catalan minimal surface', function (u, v, T) { var a = u * PI2 * 1.5, b = (v - 0.5) * 4, s = 2.6; return new T.Vector3(s * (a - Math.sin(a) * Math.cosh(b)), s * (1 - Math.cos(a) * Math.cosh(b)), s * 4 * Math.sin(a / 2) * Math.sinh(b / 2)); }, 60, 30, 0x9b5de5, 54);
 
     surf('bour', 'Bour surface', function (u, v, T) { var r = 0.15 + u * 1.9, a = v * PI2, s = 4.5; return new T.Vector3(s * (r * Math.cos(a) - r * r / 2 * Math.cos(2 * a)), s * (-r * Math.sin(a) - r * r / 2 * Math.sin(2 * a)), s * (4 / 3) * Math.pow(r, 1.5) * Math.cos(1.5 * a)); }, 44, 60, 0xff8f3f, 54);
+
+    surf('monkeysaddle', 'Monkey saddle', function (u, v, T) { var x = (u - 0.5) * 4, y = (v - 0.5) * 4; return new T.Vector3(x * 6, y * 6, (x * x * x - 3 * x * y * y) * 1.2); }, 40, 40, 0xff5d8f, 60);
 })();
