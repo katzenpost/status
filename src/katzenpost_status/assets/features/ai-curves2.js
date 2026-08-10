@@ -14,4 +14,6 @@
     curve('conicalhelix', 'Conical helix', function (t, T) { var th = t * PI2 * 6, r = t * 15, h = (t - 0.5) * 32; return new T.Vector3(r * Math.cos(th), h, r * Math.sin(th)); }, 0x9b5de5, 58, 700);
 
     curve('baseballseam', 'Baseball seam curve', function (t, T) { var R = 18, u = t * PI2, L = 0.62 * Math.sin(2 * u), w = 0.62 * Math.cos(2 * u) * Math.sin(u); return new T.Vector3(R * Math.cos(L) * Math.cos(u), R * Math.sin(L), R * Math.cos(L) * Math.sin(u)); }, 0xff8f3f, 56, 700);
+
+    curve('spirograph', 'Spirograph (hypotrochoid)', function (t, T) { var R = 14, r = 5, dd = 8, u = t * PI2 * 5, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + dd * Math.cos(k * u), (R - r) * Math.sin(u) - dd * Math.sin(k * u), 0); }, 0xff5d8f, 56, 1200);
 })();
