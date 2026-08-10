@@ -25,4 +25,6 @@
     escapeCloud('magnet', 'Magnet fractal (type I)', function (cx, cy) { var z = [0, 0], c = [cx, cy], n; for (n = 0; n < 60; n++) { var num = [z[0] * z[0] - z[1] * z[1] + c[0] - 1, 2 * z[0] * z[1] + c[1]], den = [2 * z[0] + c[0] - 2, 2 * z[1] + c[1]], q = cdiv(num, den); z = cmul(q, q); var m = z[0] * z[0] + z[1] * z[1]; if (m > 1e6) break; var d1 = z[0] - 1, d2 = z[1]; if (d1 * d1 + d2 * d2 < 1e-6) break; } return n; }, -1, 3, -2, 2, 4, 26, 0x4d8bf0, 56);
 
     escapeCloud('lambda', 'Lambda fractal', function (cx, cy) { var z = [0.5, 0], c = [cx, cy], n; for (n = 0; n < 60; n++) { var om = [1 - z[0], -z[1]], zz = cmul(z, om); z = cmul(c, zz); if (z[0] * z[0] + z[1] * z[1] > 100) break; } return n; }, -0.5, 4, -2, 2, 5, 28, 0x9b5de5, 56);
+
+    escapeCloud('collatzfractal', 'Collatz fractal', function (cx, cy) { var z = [cx, cy], n; for (n = 0; n < 40; n++) { var pz = [Math.PI * z[0], Math.PI * z[1]]; var cr = Math.cos(pz[0]) * Math.cosh(pz[1]), ci = -Math.sin(pz[0]) * Math.sinh(pz[1]); var a = [2 + 7 * z[0], 7 * z[1]], b = cmul([2 + 5 * z[0], 5 * z[1]], [cr, ci]); z = [0.25 * (a[0] - b[0]), 0.25 * (a[1] - b[1])]; if (z[0] * z[0] + z[1] * z[1] > 1e8) break; } return n; }, -3, 5, -2.5, 2.5, 3, 18, 0xff8f3f, 56);
 })();
