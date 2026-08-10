@@ -25,4 +25,6 @@
     build('permutohedron', 'Permutohedron (S4)', function (v, e, T, col) { var perms = [], base = [1, 2, 3, 4]; function permute(arr, m) { if (!arr.length) perms.push(m); else for (var i = 0; i < arr.length; i++) permute(arr.slice(0, i).concat(arr.slice(i + 1)), m.concat(arr[i])); } permute(base, []); var b1 = [1, -1, 0, 0], b2 = [1, 1, -2, 0], b3 = [1, 1, 1, -3]; function nrm(a) { var m = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2] + a[3] * a[3]); return a.map(function (x) { return x / m; }); } b1 = nrm(b1); b2 = nrm(b2); b3 = nrm(b3); function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]; } var P = perms.map(function (p) { var c = [p[0] - 2.5, p[1] - 2.5, p[2] - 2.5, p[3] - 2.5]; return new T.Vector3(dot(c, b1) * 9, dot(c, b2) * 9, dot(c, b3) * 9); }); P.forEach(function (p) { v.push(p); }); for (var i = 0; i < perms.length; i++) for (var j = i + 1; j < perms.length; j++) { var adj = false; for (var k = 0; k < 3; k++) { var s = perms[i].slice(), t = s[k]; s[k] = s[k + 1]; s[k + 1] = t; if (s.join('') === perms[j].join('')) adj = true; } if (adj) e.push({ a: P[i], b: P[j], color: col }); } }, 0xff8f3f, 52);
 
     lcf('heawood', 'Heawood graph', [5, -5], 7, 0xff5d8f);
+
+    lcf('mobiuskantor', 'Mobius-Kantor graph', [5, -5], 8, 0x00d2a0);
 })();
