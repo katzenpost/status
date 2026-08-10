@@ -20,4 +20,6 @@
     curve('epicycloid', 'Epicycloid', function (t, T) { var R = 12, r = R / 5, u = t * PI2 * 5, k = (R + r) / r; return new T.Vector3((R + r) * Math.cos(u) - r * Math.cos(k * u), (R + r) * Math.sin(u) - r * Math.sin(k * u), 0); }, 0x00d2a0, 56, 900);
 
     curve('hypocycloid', 'Hypocycloid (astroid)', function (t, T) { var R = 16, r = R / 7, u = t * PI2, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + r * Math.cos(k * u), (R - r) * Math.sin(u) - r * Math.sin(k * u), 0); }, 0xffd23f, 56, 900);
+
+    G.create({ id: 'cornu', name: 'Cornu spiral (clothoid)', rotateSpeed: 0.3, camZ: 54, layout: function (d, THREE) { var pts = [], N = 500, ds = 0.016, x = 0, y = 0, i; var pos = [], s; x = 0; y = 0; for (i = 0; i <= N; i++) { s = i * ds; x += Math.cos(Math.PI * s * s / 2) * ds; y += Math.sin(Math.PI * s * s / 2) * ds; pos.push([x, y]); } var neg = [[0, 0]]; x = 0; y = 0; for (i = 1; i <= N; i++) { s = i * ds; x -= Math.cos(Math.PI * s * s / 2) * ds; y -= Math.sin(Math.PI * s * s / 2) * ds; neg.push([x, y]); } var all = neg.slice().reverse().concat(pos); var sc = 26; all.forEach(function (p) { pts.push(new THREE.Vector3(p[0] * sc, p[1] * sc, 0)); }); return G.curveLayout(d, THREE, pts, 0x4d8bf0); } });
 })();
