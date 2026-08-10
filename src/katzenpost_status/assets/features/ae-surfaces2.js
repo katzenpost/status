@@ -34,4 +34,6 @@
     surf('bour', 'Bour surface', function (u, v, T) { var r = 0.15 + u * 1.9, a = v * PI2, s = 4.5; return new T.Vector3(s * (r * Math.cos(a) - r * r / 2 * Math.cos(2 * a)), s * (-r * Math.sin(a) - r * r / 2 * Math.sin(2 * a)), s * (4 / 3) * Math.pow(r, 1.5) * Math.cos(1.5 * a)); }, 44, 60, 0xff8f3f, 54);
 
     surf('monkeysaddle', 'Monkey saddle', function (u, v, T) { var x = (u - 0.5) * 4, y = (v - 0.5) * 4; return new T.Vector3(x * 6, y * 6, (x * x * x - 3 * x * y * y) * 1.2); }, 40, 40, 0xff5d8f, 60);
+
+    surf('whitney', 'Whitney umbrella', function (u, v, T) { var a = (u - 0.5) * 3, b = (v - 0.5) * 3; return new T.Vector3(a * b * 4, a * 7, b * b * 4); }, 40, 40, 0x00d2a0, 58);
 })();
