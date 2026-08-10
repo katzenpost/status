@@ -10,4 +10,6 @@
     function fromGeo(geo, color) { var eg = new THREE.EdgesGeometry(geo, 1), ep = eg.attributes.position, e = [], a = [], seen = {}, i; var pos = geo.attributes.position; for (i = 0; i < pos.count; i++) { var v = new THREE.Vector3().fromBufferAttribute(pos, i), k = Math.round(v.x * 40) + ',' + Math.round(v.y * 40) + ',' + Math.round(v.z * 40); if (!seen[k]) { seen[k] = 1; a.push(v); } } for (i = 0; i < ep.count; i += 2) e.push({ a: new THREE.Vector3().fromBufferAttribute(ep, i), b: new THREE.Vector3().fromBufferAttribute(ep, i + 1), color: color }); eg.dispose(); return { a: a, e: e }; }
 
     ae('pentantiprism', 'Pentagonal antiprism', function (a, e, T, color) { var n = 5, R = 14, h = 7, top = ngon(h, R, n, 0), bot = ngon(-h, R, n, Math.PI / n); ring(a, e, top, color); ring(a, e, bot, color); for (var i = 0; i < n; i++) { e.push({ a: top[i], b: bot[i], color: color }); e.push({ a: top[i], b: bot[(i + n - 1) % n], color: color }); } }, 0x2ec4b6, 52);
+
+    ae('hexantiprism', 'Hexagonal antiprism', function (a, e, T, color) { var n = 6, R = 14, h = 7, top = ngon(h, R, n, 0), bot = ngon(-h, R, n, Math.PI / n); ring(a, e, top, color); ring(a, e, bot, color); for (var i = 0; i < n; i++) { e.push({ a: top[i], b: bot[i], color: color }); e.push({ a: top[i], b: bot[(i + n - 1) % n], color: color }); } }, 0x4d8bf0, 52);
 })();
