@@ -18,4 +18,6 @@
     curve('spirograph', 'Spirograph (hypotrochoid)', function (t, T) { var R = 14, r = 5, dd = 8, u = t * PI2 * 5, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + dd * Math.cos(k * u), (R - r) * Math.sin(u) - dd * Math.sin(k * u), 0); }, 0xff5d8f, 56, 1200);
 
     curve('epicycloid', 'Epicycloid', function (t, T) { var R = 12, r = R / 5, u = t * PI2 * 5, k = (R + r) / r; return new T.Vector3((R + r) * Math.cos(u) - r * Math.cos(k * u), (R + r) * Math.sin(u) - r * Math.sin(k * u), 0); }, 0x00d2a0, 56, 900);
+
+    curve('hypocycloid', 'Hypocycloid (astroid)', function (t, T) { var R = 16, r = R / 7, u = t * PI2, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + r * Math.cos(k * u), (R - r) * Math.sin(u) - r * Math.sin(k * u), 0); }, 0xffd23f, 56, 900);
 })();
