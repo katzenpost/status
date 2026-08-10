@@ -12,4 +12,6 @@
     ae('pentantiprism', 'Pentagonal antiprism', function (a, e, T, color) { var n = 5, R = 14, h = 7, top = ngon(h, R, n, 0), bot = ngon(-h, R, n, Math.PI / n); ring(a, e, top, color); ring(a, e, bot, color); for (var i = 0; i < n; i++) { e.push({ a: top[i], b: bot[i], color: color }); e.push({ a: top[i], b: bot[(i + n - 1) % n], color: color }); } }, 0x2ec4b6, 52);
 
     ae('hexantiprism', 'Hexagonal antiprism', function (a, e, T, color) { var n = 6, R = 14, h = 7, top = ngon(h, R, n, 0), bot = ngon(-h, R, n, Math.PI / n); ring(a, e, top, color); ring(a, e, bot, color); for (var i = 0; i < n; i++) { e.push({ a: top[i], b: bot[i], color: color }); e.push({ a: top[i], b: bot[(i + n - 1) % n], color: color }); } }, 0x4d8bf0, 52);
+
+    ae('gyrobipyramid', 'Gyroelongated bipyramid', function (a, e, T, color) { var n = 5, R = 13, h = 6, top = ngon(h, R, n, 0), bot = ngon(-h, R, n, Math.PI / n); ring(a, e, top, color); ring(a, e, bot, color); var apT = new T.Vector3(0, h + 12, 0), apB = new T.Vector3(0, -h - 12, 0); a.push(apT); a.push(apB); for (var i = 0; i < n; i++) { e.push({ a: top[i], b: bot[i], color: color }); e.push({ a: top[i], b: bot[(i + n - 1) % n], color: color }); e.push({ a: apT, b: top[i], color: color }); e.push({ a: apB, b: bot[i], color: color }); } }, 0x9b5de5, 54);
 })();
