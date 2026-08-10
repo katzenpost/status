@@ -11,4 +11,6 @@
     var D = 20;
 
     ae('fordcircles', 'Ford circles', function (a, e, T, color) { var Q = 9, q, p; for (q = 1; q <= Q; q++) for (p = 0; p <= q; p++) { if (gcd(p, q) !== 1) continue; var r = 1 / (2 * q * q), cx = (p / q - 0.5) * 2 * D, cy = -D + r * 2 * D; circle(a, e, T, cx, cy, r * 2 * D, 20, color); } }, 0x2ec4b6, 56);
+
+    ae('poincaregeodesics', 'Poincare geodesics', function (a, e, T, color) { circle(a, e, T, 0, 0, D, 64, color); var i, j, M = 16; for (i = 0; i < M; i++) for (j = i + 2; j < M; j++) { var t1 = i / M * PI2, t2 = j / M * PI2, dt = (t2 - t1) / 2; if (Math.abs(Math.cos(dt)) < 0.08) continue; var cd = 1 / Math.cos(dt), cx = Math.cos((t1 + t2) / 2) * cd * D, cy = Math.sin((t1 + t2) / 2) * cd * D, rr = Math.abs(Math.tan(dt)) * D; if (rr > D * 4) continue; var a1 = Math.atan2(Math.sin(t1) * D - cy, Math.cos(t1) * D - cx), a2 = Math.atan2(Math.sin(t2) * D - cy, Math.cos(t2) * D - cx); var prev = null; for (var s = 0; s <= 16; s++) { var da = a2 - a1; while (da > Math.PI) da -= PI2; while (da < -Math.PI) da += PI2; var ang = a1 + da * s / 16, p = new T.Vector3(cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr, 0); if (s % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } } }, 0x4d8bf0, 56);
 })();
