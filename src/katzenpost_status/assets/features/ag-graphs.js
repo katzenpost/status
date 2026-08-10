@@ -31,4 +31,6 @@
     lcf('pappus', 'Pappus graph', [5, 7, -7, 7, -7, -5], 3, 0xffd23f);
 
     lcf('desargues', 'Desargues graph', [5, -5, 9, -9], 5, 0x4d8bf0);
+
+    lcf('nauru', 'Nauru graph', [5, -9, 7, -7, 9, -5], 4, 0x9b5de5);
 })();
