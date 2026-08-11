@@ -11,4 +11,6 @@
     function isPrime(n) { if (n < 2) return false; for (var i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; }
 
     turtleCurve('thuemorse', 'Thue-Morse curve', function () { var b = [0], i; for (i = 0; i < 4000; i++) b.push(1 - b[i]); var out = []; for (i = 0; i < b.length; i++) { var n = i, p = 0; while (n) { p ^= (n & 1); n >>= 1; } out.push(p); } return out; }, Math.PI / 3, 0x2ec4b6, 54);
+
+    turtleCurve('rudinshapiro', 'Rudin-Shapiro curve', function () { var out = [], i; for (i = 0; i < 4000; i++) { var n = i, c = 0, prev = 0; while (n) { if ((n & 3) === 3) c++; n >>= 1; } out.push(c & 1); } return out; }, Math.PI / 2, 0x4d8bf0, 54);
 })();
