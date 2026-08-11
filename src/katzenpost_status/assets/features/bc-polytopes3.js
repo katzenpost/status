@@ -41,4 +41,6 @@
     poly4('runcinatedtesseract', 'Runcinated tesseract', function () { var q = 1 + RT2; return permSign4([1, 1, 1, q]); }, 0xffd23f, 54);
 
     duoprism('duoprism46', 'Duoprism (4-6)', 4, 6, 0x4d8bf0, 54);
+
+    duoprism('duoprism38', 'Duoprism (3-8)', 3, 8, 0x9b5de5, 54);
 })();
