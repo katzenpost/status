@@ -27,4 +27,6 @@
     function duoprism(id, name, m, n, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.5, camZ: camZ || 54, layout: function (d, T) { var V = [], idx = {}, i, j; for (i = 0; i < m; i++) for (j = 0; j < n; j++) { var a = i / m * Math.PI * 2, b = j / n * Math.PI * 2; idx[i + '_' + j] = V.length; V.push([Math.cos(a), Math.sin(a), Math.cos(b), Math.sin(b)]); } var P = project4(V, T), edges = []; for (i = 0; i < m; i++) for (j = 0; j < n; j++) { edges.push({ a: P[idx[i + '_' + j]], b: P[idx[((i + 1) % m) + '_' + j]], color: color }); edges.push({ a: P[idx[i + '_' + j]], b: P[idx[i + '_' + ((j + 1) % n)]], color: color }); } return G.anchorLayout(d, T, P, edges); } }); }
 
     prism('tetraprism', 'Tetrahedral prism', function (T) { return new T.TetrahedronGeometry(1.6); }, 0x2ec4b6, 54);
+
+    prism('octaprism', 'Octahedral prism', function (T) { return new T.OctahedronGeometry(1.6); }, 0x4d8bf0, 54);
 })();
