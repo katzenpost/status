@@ -37,4 +37,6 @@
     cellsView('daynight', 'Day and Night automaton', function () { return lifeCells(60, 16, 0.5, [3, 6, 7, 8], [3, 4, 6, 7, 8]); }, 0x4d8bf0, 60);
 
     cellsView('maze', 'Maze automaton (B3/S12345)', function () { return lifeCells(60, 26, 0.35, [3], [1, 2, 3, 4, 5]); }, 0x9b5de5, 60);
+
+    cellsView('bzreaction', 'Belousov-Zhabotinsky', function () { var W = 58, ST = 8, g = [], i, j, s; for (i = 0; i < W; i++) { g[i] = []; for (j = 0; j < W; j++) g[i][j] = (Math.random() * ST) | 0; } for (s = 0; s < 22; s++) { var n = []; for (i = 0; i < W; i++) { n[i] = []; for (j = 0; j < W; j++) { var cur = g[i][j], nxt = (cur + 1) % ST, cnt = 0, a, b; for (a = -1; a <= 1; a++) for (b = -1; b <= 1; b++) if (a || b) { if (g[(i + a + W) % W][(j + b + W) % W] === nxt) cnt++; } n[i][j] = cnt >= 1 ? nxt : cur; } } g = n; } var out = []; for (i = 0; i < W; i++) for (j = 0; j < W; j++) if (g[i][j] < 2) out.push([i, j]); return out; }, 0xff8f3f, 60);
 })();
