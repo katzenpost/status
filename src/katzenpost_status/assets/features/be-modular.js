@@ -17,4 +17,6 @@
     graph('questionmark', 'Minkowski question-mark', function (x) { if (x <= 0) return 0; if (x >= 1) return 1; var cf = [], v = x, i; for (i = 0; i < 25 && v > 1e-9; i++) { var a = Math.floor(1 / v); cf.push(a); v = 1 / v - a; } var y = 0, sign = 1, exp = 0, k; for (k = 0; k < cf.length; k++) { exp += cf[k]; y += sign * 2 / Math.pow(2, exp); sign = -sign; } return y; }, 0x9b5de5, 54, 800);
 
     graph('blancmange', 'Blancmange function', function (x) { var y = 0, n; for (n = 0; n < 16; n++) { var v = x * (1 << n); y += Math.abs(v - Math.round(v)) / (1 << n); } return y * 0.75; }, 0xff8f3f, 54, 900);
+
+    graph('weierstrass', 'Weierstrass function', function (x) { var y = 0, n; for (n = 0; n < 9; n++) y += Math.pow(0.5, n) * Math.cos(Math.pow(7, n) * Math.PI * x); return (y + 2) / 4; }, 0xff5d8f, 54, 1000);
 })();
