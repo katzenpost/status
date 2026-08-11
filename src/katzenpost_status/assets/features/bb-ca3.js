@@ -33,4 +33,6 @@
     cellsView('sandpile-identity', 'Sandpile identity', function () { var H = 61, i, x, y; function stab(g) { var changed = true; while (changed) { changed = false; for (x = 1; x < H - 1; x++) for (y = 1; y < H - 1; y++) { var idx = x * H + y; if (g[idx] >= 4) { var q = (g[idx] / 4) | 0; g[idx] -= q * 4; g[idx - H] += q; g[idx + H] += q; g[idx - 1] += q; g[idx + 1] += q; changed = true; } } } return g; } var a = new Int16Array(H * H), b = new Int16Array(H * H); for (i = 0; i < H * H; i++) { a[i] = 6; } stab(a); for (i = 0; i < H * H; i++) b[i] = 6 - a[i]; stab(b); var out = []; for (x = 1; x < H - 1; x++) for (y = 1; y < H - 1; y++) if (b[x * H + y] > 0) out.push([x - H / 2, y - H / 2]); return out; }, 0x00d2a0, 62);
 
     cellsView('seedsca', 'Seeds automaton (B2/S)', function () { return lifeCells(64, 12, 0.06, [2], []); }, 0xffd23f, 60);
+
+    cellsView('daynight', 'Day and Night automaton', function () { return lifeCells(60, 16, 0.5, [3, 6, 7, 8], [3, 4, 6, 7, 8]); }, 0x4d8bf0, 60);
 })();
