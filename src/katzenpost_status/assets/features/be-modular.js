@@ -19,4 +19,6 @@
     graph('blancmange', 'Blancmange function', function (x) { var y = 0, n; for (n = 0; n < 16; n++) { var v = x * (1 << n); y += Math.abs(v - Math.round(v)) / (1 << n); } return y * 0.75; }, 0xff8f3f, 54, 900);
 
     graph('weierstrass', 'Weierstrass function', function (x) { var y = 0, n; for (n = 0; n < 9; n++) y += Math.pow(0.5, n) * Math.cos(Math.pow(7, n) * Math.PI * x); return (y + 2) / 4; }, 0xff5d8f, 54, 1000);
+
+    graph("devilsstaircase", "Devil's staircase", function (x) { var b = 0.5, y = 0, i; for (i = 0; i < 25; i++) { x *= 3; if (x >= 2) { x -= 2; y += b; } else if (x >= 1) { y += b; break; } b /= 2; } return y; }, 0x00d2a0, 54, 900);
 })();
