@@ -32,4 +32,6 @@
     rootView('d5root', 'D5 root system', function () { return Dn(5); }, 0x4d8bf0, 54);
 
     lattice('fcclattice', 'FCC lattice cluster', function () { var V = [], x, y, z, S = 6; for (x = -2; x <= 2; x++) for (y = -2; y <= 2; y++) for (z = -2; z <= 2; z++) if (((x + y + z) & 1) === 0 && x * x + y * y + z * z <= 6) V.push([x * S, y * S, z * S]); return V; }, 0x2ec4b6, 56);
+
+    lattice('bcclattice', 'BCC lattice cluster', function () { var V = [], x, y, z, S = 6; for (x = -2; x <= 2; x++) for (y = -2; y <= 2; y++) for (z = -2; z <= 2; z++) { var allEven = (x % 2 === 0 && y % 2 === 0 && z % 2 === 0), allOdd = (Math.abs(x % 2) === 1 && Math.abs(y % 2) === 1 && Math.abs(z % 2) === 1); if ((allEven || allOdd) && x * x + y * y + z * z <= 8) V.push([x * S * 0.6, y * S * 0.6, z * S * 0.6]); } return V; }, 0x9b5de5, 56);
 })();
