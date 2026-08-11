@@ -32,4 +32,6 @@
     ylm('harmonic_y43', 'Harmonic Y43', function (th, ph) { var s = Math.sin(th), c = Math.cos(th); return s * s * s * c * Math.cos(3 * ph); }, 0xffd23f, 50);
 
     surf('besseldrum', 'Bessel drum mode', function (u, v, T) { var r = u * 20, th = v * PI2, z = besselish(r * 0.8) * Math.cos(3 * th) * 30; return new T.Vector3(r * Math.cos(th), z, r * Math.sin(th)); }, 40, 60, 0x4d8bf0, 58);
+
+    surf('wavepacket', 'Gaussian wave packet', function (u, v, T) { var x = (u - 0.5) * 40, y = (v - 0.5) * 40, r2 = (x * x + y * y) / 120, z = Math.exp(-r2) * Math.cos(Math.sqrt(x * x + y * y) * 0.8) * 14; return new T.Vector3(x, y, z); }, 46, 46, 0x9b5de5, 60);
 })();
