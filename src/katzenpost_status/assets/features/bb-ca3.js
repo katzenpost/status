@@ -35,4 +35,6 @@
     cellsView('seedsca', 'Seeds automaton (B2/S)', function () { return lifeCells(64, 12, 0.06, [2], []); }, 0xffd23f, 60);
 
     cellsView('daynight', 'Day and Night automaton', function () { return lifeCells(60, 16, 0.5, [3, 6, 7, 8], [3, 4, 6, 7, 8]); }, 0x4d8bf0, 60);
+
+    cellsView('maze', 'Maze automaton (B3/S12345)', function () { return lifeCells(60, 26, 0.35, [3], [1, 2, 3, 4, 5]); }, 0x9b5de5, 60);
 })();
