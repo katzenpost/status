@@ -22,4 +22,6 @@
     rootView('a4root', 'A4 root system', function () { return An(4); }, 0x9b5de5, 54);
 
     rootView('b3root', 'B3 root system', function () { return Bn(3); }, 0xff8f3f, 54);
+
+    rootView('b4root', 'B4 root system', function () { return Bn(4); }, 0xff5d8f, 54);
 })();
