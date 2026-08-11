@@ -18,4 +18,6 @@
     rootView('g2root', 'G2 root system', function () { var V = [], i; for (i = 0; i < 6; i++) { var a = i * Math.PI / 3; V.push([Math.cos(a), Math.sin(a)]); } for (i = 0; i < 6; i++) { var b = i * Math.PI / 3 + Math.PI / 6; V.push([Math.cos(b) * Math.sqrt(3), Math.sin(b) * Math.sqrt(3)]); } return V; }, 0x2ec4b6, 52);
 
     rootView('a3root', 'A3 root system', function () { return An(3); }, 0x4d8bf0, 54);
+
+    rootView('a4root', 'A4 root system', function () { return An(4); }, 0x9b5de5, 54);
 })();
