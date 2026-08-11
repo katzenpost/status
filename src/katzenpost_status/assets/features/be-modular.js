@@ -21,4 +21,6 @@
     graph('weierstrass', 'Weierstrass function', function (x) { var y = 0, n; for (n = 0; n < 9; n++) y += Math.pow(0.5, n) * Math.cos(Math.pow(7, n) * Math.PI * x); return (y + 2) / 4; }, 0xff5d8f, 54, 1000);
 
     graph("devilsstaircase", "Devil's staircase", function (x) { var b = 0.5, y = 0, i; for (i = 0; i < 25; i++) { x *= 3; if (x >= 2) { x -= 2; y += b; } else if (x >= 1) { y += b; break; } b /= 2; } return y; }, 0x00d2a0, 54, 900);
+
+    ae('gaussmap', 'Gauss map cobweb', function (a, e, T, color) { var N = 400, i, prev = null; for (i = 1; i <= N; i++) { var x = i / N, y = 1 / x - Math.floor(1 / x); var p = new T.Vector3((x - 0.5) * 40, (y - 0.5) * 40, 0); if (i % 3 === 0) a.push(p); if (prev && Math.abs(y - prev.__y) < 0.5) e.push({ a: prev, b: p, color: color }); p.__y = y; prev = p; } var cx = 0.4, cy = 0; for (i = 0; i < 40; i++) { var yy = 1 / cx - Math.floor(1 / cx); var p1 = new T.Vector3((cx - 0.5) * 40, (yy - 0.5) * 40, 0), p2 = new T.Vector3((yy - 0.5) * 40, (yy - 0.5) * 40, 0); a.push(p1); e.push({ a: p1, b: p2, color: 0xffd23f }); cx = yy; if (cx < 0.02) break; } }, 0x9b5de5, 54);
 })();
