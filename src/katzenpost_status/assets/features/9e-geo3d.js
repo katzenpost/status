@@ -110,9 +110,14 @@
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
 
-            // Colour nodes by STATUS, matching the Earth and the other views.
+            // Colour nodes across the whole scheme: healthy nodes take their
+            // ROLE colour (gateway/mix-layer/service/storage/dirauth), so the
+            // balls span the palette instead of all reading status-cyan; nodes
+            // with a problem keep their status colour (amber/red) so faults still
+            // stand out. Both palettes are themeable (see K.groupColor/statusColor
+            // and window.KATZEN_THEME).
             function roleColor(n) {
-                try { if (n && n.status && K.statusColor) return new THREE.Color(K.statusColor(n.status)); } catch (e) { }
+                try { var st = n && n.status; if (st && st !== 'ok' && K.statusColor) return new THREE.Color(K.statusColor(st)); } catch (e) { }
                 try { return new THREE.Color(K.groupColor({ data: n })); } catch (e2) { return new THREE.Color(0x8aa0b4); }
             }
             function onResize() {
@@ -183,11 +188,12 @@
                 var nodes = lay.nodes || [], edges = lay.edges || [];
                 nodeGroup = new THREE.Group();
                 var sph = new THREE.SphereGeometry(mob ? 0.9 : 0.7, 12, 12);
-                var statusByName = {};   // layouts drop status; look it up for correct colours
-                ((K.data() || {}).nodes || []).forEach(function (x) { statusByName[x.name] = x.status; });
+                var metaByName = {};   // layouts drop status/layer; look them up for colour
+                ((K.data() || {}).nodes || []).forEach(function (x) { metaByName[x.name] = x; });
                 nodes.forEach(function (nd) {
                     nodePos[nd.name] = nd.pos;
-                    var col = roleColor({ status: nd.status || statusByName[nd.name], type: nd.type, name: nd.name });
+                    var meta = metaByName[nd.name] || {};
+                    var col = roleColor({ status: nd.status || meta.status, type: nd.type, name: nd.name, layer: meta.layer });
                     var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: col }));
                     m.position.copy(nd.pos); m.userData = { node: nd }; nodeGroup.add(m);
                 });

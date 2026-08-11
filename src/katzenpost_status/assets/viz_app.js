@@ -1320,6 +1320,20 @@
         dirauth: 0xffd23f, out: 0x9aa7b3
     };
     var MIX_LAYER_COLORS = [0x4d8bf0, 0x9b5de5, 0xff5d8f, 0x6ce0b0];
+    // Themeable palette: set window.KATZEN_THEME before load to override any of
+    // the scheme's colour groups, e.g.
+    //   window.KATZEN_THEME = { status:{ok:0x39ff14}, group:{gateway:0x00e5ff},
+    //                           mix:[...], tier:[...] };
+    (function applyTheme() {
+        var t = window.KATZEN_THEME; if (!t) return;
+        function merge(dst, src) { if (src) for (var k in src) if (src.hasOwnProperty(k)) dst[k] = src[k]; }
+        merge(STATUS_HEX, t.status); merge(GROUP_COLORS, t.group);
+        if (t.mix && t.mix.length) MIX_LAYER_COLORS = t.mix;
+        if (t.tier && t.tier.length) TIER_LINK_COLORS = t.tier;
+        if (typeof t.dirauthLink === 'number') DIRAUTH_LINK_COLOR = t.dirauthLink;
+        if (typeof t.replicaLink === 'number') REPLICA_LINK_COLOR = t.replicaLink;
+        if (typeof t.courierLink === 'number') COURIER_LINK_COLOR = t.courierLink;
+    })();
     function groupColor(node) {
         if (!node || !node.data) return 0x8aa0b4;
         var t = node.data.type;
