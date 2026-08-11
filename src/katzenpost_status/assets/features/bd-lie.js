@@ -24,4 +24,6 @@
     rootView('b3root', 'B3 root system', function () { return Bn(3); }, 0xff8f3f, 54);
 
     rootView('b4root', 'B4 root system', function () { return Bn(4); }, 0xff5d8f, 54);
+
+    rootView('c3root', 'C3 root system', function () { return Cn(3); }, 0x00d2a0, 54);
 })();
