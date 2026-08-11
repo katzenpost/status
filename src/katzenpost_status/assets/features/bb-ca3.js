@@ -21,4 +21,6 @@
     }
 
     cellsView('rule110', 'Rule 110 automaton', function () { var W = 74, H = 46, row = [], i, r, out = []; for (i = 0; i < W; i++) row.push(i === W - 8 ? 1 : (Math.random() < 0.08 ? 1 : 0)); for (r = 0; r < H; r++) { for (i = 0; i < W; i++) if (row[i]) out.push([i, H - r]); var nr = []; for (i = 0; i < W; i++) { var l = row[(i - 1 + W) % W], c = row[i], rr = row[(i + 1) % W]; nr.push((110 >> ((l << 2) | (c << 1) | rr)) & 1); } row = nr; } return out; }, 0x2ec4b6, 60);
+
+    cellsView('ising', 'Ising model', function () { var W = 60, g = [], i, j, s, beta = 0.62; for (i = 0; i < W; i++) { g[i] = []; for (j = 0; j < W; j++) g[i][j] = Math.random() < 0.5 ? 1 : -1; } for (s = 0; s < 60; s++) for (i = 0; i < W; i++) for (j = 0; j < W; j++) { var nb = g[(i + 1) % W][j] + g[(i - 1 + W) % W][j] + g[i][(j + 1) % W] + g[i][(j - 1 + W) % W]; var dE = 2 * g[i][j] * nb; if (dE <= 0 || Math.random() < Math.exp(-beta * dE)) g[i][j] = -g[i][j]; } var out = []; for (i = 0; i < W; i++) for (j = 0; j < W; j++) if (g[i][j] > 0) out.push([i, j]); return out; }, 0x4d8bf0, 60);
 })();
