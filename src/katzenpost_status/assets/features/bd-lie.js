@@ -16,4 +16,6 @@
     function Dn(n) { var V = [], i, j, s, s2, k; for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) for (s = -1; s <= 1; s += 2) for (s2 = -1; s2 <= 1; s2 += 2) { var w = []; for (k = 0; k < n; k++) w.push(k === i ? s : (k === j ? s2 : 0)); V.push(w); } return V; }
 
     rootView('g2root', 'G2 root system', function () { var V = [], i; for (i = 0; i < 6; i++) { var a = i * Math.PI / 3; V.push([Math.cos(a), Math.sin(a)]); } for (i = 0; i < 6; i++) { var b = i * Math.PI / 3 + Math.PI / 6; V.push([Math.cos(b) * Math.sqrt(3), Math.sin(b) * Math.sqrt(3)]); } return V; }, 0x2ec4b6, 52);
+
+    rootView('a3root', 'A3 root system', function () { return An(3); }, 0x4d8bf0, 54);
 })();
