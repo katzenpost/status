@@ -31,4 +31,6 @@
     prism('octaprism', 'Octahedral prism', function (T) { return new T.OctahedronGeometry(1.6); }, 0x4d8bf0, 54);
 
     prism('icosaprism', 'Icosahedral prism', function (T) { return new T.IcosahedronGeometry(1.6); }, 0x9b5de5, 54);
+
+    prism('dodecaprism', 'Dodecahedral prism', function (T) { return new T.DodecahedronGeometry(1.6); }, 0xff8f3f, 54);
 })();
