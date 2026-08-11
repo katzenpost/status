@@ -22,4 +22,6 @@
     ylm('orbital_dz2', 'Orbital 3d_z2 (Y20)', function (th, ph) { return 3 * Math.cos(th) * Math.cos(th) - 1; }, 0x4d8bf0, 52);
 
     ylm('orbital_dxy', 'Orbital 3d_xy (Y22)', function (th, ph) { return Math.sin(th) * Math.sin(th) * Math.cos(2 * ph); }, 0x9b5de5, 50);
+
+    ylm('orbital_fz3', 'Orbital 4f_z3 (Y30)', function (th, ph) { var c = Math.cos(th); return 5 * c * c * c - 3 * c; }, 0xff8f3f, 52);
 })();
