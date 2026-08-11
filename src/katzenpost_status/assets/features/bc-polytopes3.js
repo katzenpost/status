@@ -33,4 +33,6 @@
     prism('icosaprism', 'Icosahedral prism', function (T) { return new T.IcosahedronGeometry(1.6); }, 0x9b5de5, 54);
 
     prism('dodecaprism', 'Dodecahedral prism', function (T) { return new T.DodecahedronGeometry(1.6); }, 0xff8f3f, 54);
+
+    poly4('truncatedtesseract', 'Truncated tesseract', function () { var q = 1 + RT2; return permSign4([1, q, q, q]); }, 0xff5d8f, 54);
 })();
