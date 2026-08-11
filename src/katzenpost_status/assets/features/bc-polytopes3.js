@@ -43,4 +43,6 @@
     duoprism('duoprism46', 'Duoprism (4-6)', 4, 6, 0x4d8bf0, 54);
 
     duoprism('duoprism38', 'Duoprism (3-8)', 3, 8, 0x9b5de5, 54);
+
+    duoprism('duoprism77', 'Duoprism (7-7)', 7, 7, 0xff8f3f, 54);
 })();
