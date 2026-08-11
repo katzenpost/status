@@ -28,4 +28,6 @@
     rootView('c3root', 'C3 root system', function () { return Cn(3); }, 0x00d2a0, 54);
 
     rootView('d4root', 'D4 root system', function () { return Dn(4); }, 0xffd23f, 54);
+
+    rootView('d5root', 'D5 root system', function () { return Dn(5); }, 0x4d8bf0, 54);
 })();
