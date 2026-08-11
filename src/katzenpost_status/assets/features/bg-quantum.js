@@ -28,4 +28,6 @@
     ylm('orbital_f33', 'Orbital 4f (Y33)', function (th, ph) { var s = Math.sin(th); return s * s * s * Math.cos(3 * ph); }, 0xff5d8f, 50);
 
     ylm('harmonic_y21', 'Harmonic Y21', function (th, ph) { return Math.sin(th) * Math.cos(th) * Math.cos(ph); }, 0x00d2a0, 50);
+
+    ylm('harmonic_y43', 'Harmonic Y43', function (th, ph) { var s = Math.sin(th), c = Math.cos(th); return s * s * s * c * Math.cos(3 * ph); }, 0xffd23f, 50);
 })();
