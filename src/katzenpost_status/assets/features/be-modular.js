@@ -13,4 +13,6 @@
     turtleCurve('thuemorse', 'Thue-Morse curve', function () { var b = [0], i; for (i = 0; i < 4000; i++) b.push(1 - b[i]); var out = []; for (i = 0; i < b.length; i++) { var n = i, p = 0; while (n) { p ^= (n & 1); n >>= 1; } out.push(p); } return out; }, Math.PI / 3, 0x2ec4b6, 54);
 
     turtleCurve('rudinshapiro', 'Rudin-Shapiro curve', function () { var out = [], i; for (i = 0; i < 4000; i++) { var n = i, c = 0, prev = 0; while (n) { if ((n & 3) === 3) c++; n >>= 1; } out.push(c & 1); } return out; }, Math.PI / 2, 0x4d8bf0, 54);
+
+    graph('questionmark', 'Minkowski question-mark', function (x) { if (x <= 0) return 0; if (x >= 1) return 1; var cf = [], v = x, i; for (i = 0; i < 25 && v > 1e-9; i++) { var a = Math.floor(1 / v); cf.push(a); v = 1 / v - a; } var y = 0, sign = 1, exp = 0, k; for (k = 0; k < cf.length; k++) { exp += cf[k]; y += sign * 2 / Math.pow(2, exp); sign = -sign; } return y; }, 0x9b5de5, 54, 800);
 })();
