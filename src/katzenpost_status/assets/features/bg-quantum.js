@@ -17,19 +17,19 @@
     function ae(id, name, fn, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.4, camZ: camZ || 54, layout: function (d, THREE) { var a = [], e = []; fn(a, e, THREE, color); return G.anchorLayout(d, THREE, a, e); } }); }
     function besselish(x) { return Math.cos(x - Math.PI / 4) / Math.sqrt(1 + x); }
 
-    ylm('orbital_pz', 'Orbital 2p_z (Y10)', function (th, ph) { return Math.cos(th); }, 0x2ec4b6, 50);
+    ylm('orbitalpz', 'Orbital 2p_z (Y10)', function (th, ph) { return Math.cos(th); }, 0x2ec4b6, 50);
 
-    ylm('orbital_dz2', 'Orbital 3d_z2 (Y20)', function (th, ph) { return 3 * Math.cos(th) * Math.cos(th) - 1; }, 0x4d8bf0, 52);
+    ylm('orbitaldz2', 'Orbital 3d_z2 (Y20)', function (th, ph) { return 3 * Math.cos(th) * Math.cos(th) - 1; }, 0x4d8bf0, 52);
 
-    ylm('orbital_dxy', 'Orbital 3d_xy (Y22)', function (th, ph) { return Math.sin(th) * Math.sin(th) * Math.cos(2 * ph); }, 0x9b5de5, 50);
+    ylm('orbitaldxy', 'Orbital 3d_xy (Y22)', function (th, ph) { return Math.sin(th) * Math.sin(th) * Math.cos(2 * ph); }, 0x9b5de5, 50);
 
-    ylm('orbital_fz3', 'Orbital 4f_z3 (Y30)', function (th, ph) { var c = Math.cos(th); return 5 * c * c * c - 3 * c; }, 0xff8f3f, 52);
+    ylm('orbitalfz3', 'Orbital 4f_z3 (Y30)', function (th, ph) { var c = Math.cos(th); return 5 * c * c * c - 3 * c; }, 0xff8f3f, 52);
 
-    ylm('orbital_f33', 'Orbital 4f (Y33)', function (th, ph) { var s = Math.sin(th); return s * s * s * Math.cos(3 * ph); }, 0xff5d8f, 50);
+    ylm('orbitalf33', 'Orbital 4f (Y33)', function (th, ph) { var s = Math.sin(th); return s * s * s * Math.cos(3 * ph); }, 0xff5d8f, 50);
 
-    ylm('harmonic_y21', 'Harmonic Y21', function (th, ph) { return Math.sin(th) * Math.cos(th) * Math.cos(ph); }, 0x00d2a0, 50);
+    ylm('harmonicy21', 'Harmonic Y21', function (th, ph) { return Math.sin(th) * Math.cos(th) * Math.cos(ph); }, 0x00d2a0, 50);
 
-    ylm('harmonic_y43', 'Harmonic Y43', function (th, ph) { var s = Math.sin(th), c = Math.cos(th); return s * s * s * c * Math.cos(3 * ph); }, 0xffd23f, 50);
+    ylm('harmonicy43', 'Harmonic Y43', function (th, ph) { var s = Math.sin(th), c = Math.cos(th); return s * s * s * c * Math.cos(3 * ph); }, 0xffd23f, 50);
 
     surf('besseldrum', 'Bessel drum mode', function (u, v, T) { var r = u * 20, th = v * PI2, z = besselish(r * 0.8) * Math.cos(3 * th) * 30; return new T.Vector3(r * Math.cos(th), z, r * Math.sin(th)); }, 40, 60, 0x4d8bf0, 58);
 
