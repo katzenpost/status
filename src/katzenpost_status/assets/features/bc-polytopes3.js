@@ -37,4 +37,6 @@
     poly4('truncatedtesseract', 'Truncated tesseract', function () { var q = 1 + RT2; return permSign4([1, q, q, q]); }, 0xff5d8f, 54);
 
     poly4('cantellatedtesseract', 'Cantellated tesseract', function () { var q = 1 + RT2; return permSign4([1, 1, q, q]); }, 0x00d2a0, 54);
+
+    poly4('runcinatedtesseract', 'Runcinated tesseract', function () { var q = 1 + RT2; return permSign4([1, 1, 1, q]); }, 0xffd23f, 54);
 })();
