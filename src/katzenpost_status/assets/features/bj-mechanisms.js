@@ -11,4 +11,6 @@
     caustic('nephroidcaustic', 'Nephroid caustic', 3, 0x4d8bf0, 54);
 
     caustic('causticstar', 'Caustic star (x7)', 7, 0x9b5de5, 54);
+
+    curve('maurerrose', 'Maurer rose (n6 d71)', function (t, T) { var k = t * 360, th = k * 71 * Math.PI / 180, r = 20 * Math.sin(6 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 4 * Math.sin(3 * th)); }, 0xff8f3f, 56, 361);
 })();
