@@ -19,4 +19,6 @@
     curve('lissajousknot', 'Lissajous knot', function (t, T) { var u = t * PI2; return new T.Vector3(18 * Math.cos(3 * u + 0.7), 18 * Math.cos(2 * u + 0.2), 18 * Math.cos(7 * u)); }, 0xff5d8f, 60, 700);
 
     curve('chebyshevknot', 'Chebyshev knot', function (t, T) { var th = t * Math.PI; return new T.Vector3(18 * Math.cos(3 * th), 18 * Math.cos(4 * th + 0.4), 12 * Math.cos(5 * th + 0.9)); }, 0x00d2a0, 58, 700);
+
+    surf('seiferttrefoil', 'Seifert ribbon (trefoil)', function (u, v, T) { var a = u * PI2, w = (v - 0.5) * 5, R = 12, r = 5; var cx = (R + r * Math.cos(3 * a)) * Math.cos(2 * a), cy = (R + r * Math.cos(3 * a)) * Math.sin(2 * a), cz = r * Math.sin(3 * a); var tw = 3 * a; return new T.Vector3(cx + w * Math.cos(2 * a) * Math.cos(tw), cy + w * Math.sin(2 * a) * Math.cos(tw), cz + w * Math.sin(tw)); }, 220, 6, 0xffd23f, 58);
 })();
