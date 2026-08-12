@@ -9,4 +9,6 @@
     caustic('cardioidcaustic', 'Cardioid caustic', 2, 0x2ec4b6, 54);
 
     caustic('nephroidcaustic', 'Nephroid caustic', 3, 0x4d8bf0, 54);
+
+    caustic('causticstar', 'Caustic star (x7)', 7, 0x9b5de5, 54);
 })();
