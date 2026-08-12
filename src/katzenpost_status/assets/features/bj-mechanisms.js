@@ -13,4 +13,6 @@
     caustic('causticstar', 'Caustic star (x7)', 7, 0x9b5de5, 54);
 
     curve('maurerrose', 'Maurer rose (n6 d71)', function (t, T) { var k = t * 360, th = k * 71 * Math.PI / 180, r = 20 * Math.sin(6 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 4 * Math.sin(3 * th)); }, 0xff8f3f, 56, 361);
+
+    curve('maurerrose7', 'Maurer rose (n7 d115)', function (t, T) { var k = t * 360, th = k * 115 * Math.PI / 180, r = 20 * Math.sin(7 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 4 * Math.cos(4 * th)); }, 0xff5d8f, 56, 361);
 })();
