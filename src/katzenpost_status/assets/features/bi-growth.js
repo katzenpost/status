@@ -24,4 +24,6 @@
     lplant('lsystemweed', 'L-system weed', 'F', { F: 'F[+F]F[-F]F' }, 5, 25.7 * Math.PI / 180, 0x6ce0b0, 56);
 
     lplant('lsystemseaweed', 'L-system seaweed', 'F', { F: 'FF-[-F+F+F]+[+F-F-F]' }, 4, 20 * Math.PI / 180, 0x4d8bf0, 56);
+
+    ae('vasculature', 'Vascular branching', function (a, e, T, color) { function grow(x, y, dir, len, depth) { var nx = x + Math.cos(dir) * len, ny = y + Math.sin(dir) * len; e.push({ a: new T.Vector3(x, y, 0), b: new T.Vector3(nx, ny, 0), color: color }); a.push(new T.Vector3(nx, ny, 0)); if (depth <= 0) return; grow(nx, ny, dir + 0.35 + rand(0.1), len * 0.75, depth - 1); grow(nx, ny, dir - 0.35 + rand(0.1), len * 0.75, depth - 1); } grow(0, -22, Math.PI / 2, 10, 8); }, 0xff5d8f, 58);
 })();
