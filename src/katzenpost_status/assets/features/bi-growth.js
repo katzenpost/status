@@ -20,4 +20,6 @@
     lplant('lsystemplant', 'L-system plant', 'X', { X: 'F+[[X]-X]-F[-FX]+X', F: 'FF' }, 5, 25 * Math.PI / 180, 0x2ec4b6, 56);
 
     lplant('lsystembush', 'L-system bush', 'F', { F: 'FF+[+F-F-F]-[-F+F+F]' }, 4, 22.5 * Math.PI / 180, 0x00d2a0, 56);
+
+    lplant('lsystemweed', 'L-system weed', 'F', { F: 'F[+F]F[-F]F' }, 5, 25.7 * Math.PI / 180, 0x6ce0b0, 56);
 })();
