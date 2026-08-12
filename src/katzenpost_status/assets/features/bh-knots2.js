@@ -13,4 +13,6 @@
     tk('knot53', '(5,3) torus knot', 5, 3, 0x4d8bf0);
 
     tk('knot74', '(7,4) torus knot', 7, 4, 0x9b5de5);
+
+    tk('knot29', '(2,9) torus knot', 2, 9, 0xff8f3f);
 })();
