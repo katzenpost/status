@@ -26,4 +26,6 @@
     lplant('lsystemseaweed', 'L-system seaweed', 'F', { F: 'FF-[-F+F+F]+[+F-F-F]' }, 4, 20 * Math.PI / 180, 0x4d8bf0, 56);
 
     ae('vasculature', 'Vascular branching', function (a, e, T, color) { function grow(x, y, dir, len, depth) { var nx = x + Math.cos(dir) * len, ny = y + Math.sin(dir) * len; e.push({ a: new T.Vector3(x, y, 0), b: new T.Vector3(nx, ny, 0), color: color }); a.push(new T.Vector3(nx, ny, 0)); if (depth <= 0) return; grow(nx, ny, dir + 0.35 + rand(0.1), len * 0.75, depth - 1); grow(nx, ny, dir - 0.35 + rand(0.1), len * 0.75, depth - 1); } grow(0, -22, Math.PI / 2, 10, 8); }, 0xff5d8f, 58);
+
+    ae('radiolaria', 'Radiolaria shell', function (a, e, T, color) { var g = new THREE.IcosahedronGeometry(14, 2), eg = new THREE.EdgesGeometry(g, 1), ep = eg.attributes.position, pos = g.attributes.position, seen = {}, i; for (i = 0; i < ep.count; i += 2) e.push({ a: new T.Vector3().fromBufferAttribute(ep, i), b: new T.Vector3().fromBufferAttribute(ep, i + 1), color: color }); for (i = 0; i < pos.count; i++) { var v = new T.Vector3().fromBufferAttribute(pos, i), k = Math.round(v.x * 30) + ',' + Math.round(v.y * 30) + ',' + Math.round(v.z * 30); if (seen[k]) continue; seen[k] = 1; a.push(v); var sp = v.clone().multiplyScalar(1.5); e.push({ a: v, b: sp, color: 0xffd23f }); } eg.dispose(); g.dispose(); }, 0x9b5de5, 54);
 })();
