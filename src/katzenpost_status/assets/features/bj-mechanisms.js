@@ -19,4 +19,6 @@
     curve('spirograph2', 'Spirograph (dense)', function (t, T) { var R = 16, r = 6.2, dd = 9, u = t * PI2 * 31, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + dd * Math.cos(k * u), (R - r) * Math.sin(u) - dd * Math.sin(k * u), 0); }, 0x00d2a0, 56, 2400);
 
     curve('epitrochoid', 'Epitrochoid', function (t, T) { var R = 12, r = 3.3, dd = 6, u = t * PI2 * 10, k = (R + r) / r; return new T.Vector3((R + r) * Math.cos(u) - dd * Math.cos(k * u), (R + r) * Math.sin(u) - dd * Math.sin(k * u), 0); }, 0xffd23f, 56, 1400);
+
+    curve('harmonograph3d', 'Harmonograph (3D)', function (t, T) { var s = t * 60, e1 = Math.exp(-0.008 * s), e2 = Math.exp(-0.006 * s), e3 = Math.exp(-0.01 * s); return new T.Vector3(18 * e1 * Math.sin(2.0 * s + 0.2), 18 * e2 * Math.sin(3.01 * s + 1.2), 14 * e3 * Math.sin(5.0 * s)); }, 0x4d8bf0, 58, 1800);
 })();
