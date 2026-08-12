@@ -25,4 +25,6 @@
     ae('braid', 'Braid (3-strand)', function (a, e, T, color) { var N = 120, i, s; var cols = [0x2ec4b6, 0xff8f3f, 0x9b5de5]; for (s = 0; s < 3; s++) { var prev = null; for (i = 0; i <= N; i++) { var t = i / N, y = (t - 0.5) * 44, ph = t * PI2 * 3 + s * PI2 / 3, x = Math.cos(ph) * 7, z = Math.sin(ph) * 3; var p = new T.Vector3(x, y, z); if (i % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: cols[s] }); prev = p; } } }, 0x2ec4b6, 58);
 
     tk('celticband', 'Celtic knot band', 5, 4, 0xffb454);
+
+    curve('granny', 'Granny knot', function (t, T) { var u, R = 8, r = 3.5; if (t < 0.5) { u = t * 2 * PI2; return new T.Vector3((R + r * Math.cos(3 * u)) * Math.cos(2 * u), (R + r * Math.cos(3 * u)) * Math.sin(2 * u) + 10, r * Math.sin(3 * u)); } else { u = (t - 0.5) * 2 * PI2; return new T.Vector3((R + r * Math.cos(3 * u)) * Math.cos(2 * u), -((R + r * Math.cos(3 * u)) * Math.sin(2 * u)) - 10, r * Math.sin(3 * u)); } }, 0xff5d8f, 62, 800);
 })();
