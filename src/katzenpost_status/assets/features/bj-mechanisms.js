@@ -23,4 +23,6 @@
     curve('harmonograph3d', 'Harmonograph (3D)', function (t, T) { var s = t * 60, e1 = Math.exp(-0.008 * s), e2 = Math.exp(-0.006 * s), e3 = Math.exp(-0.01 * s); return new T.Vector3(18 * e1 * Math.sin(2.0 * s + 0.2), 18 * e2 * Math.sin(3.01 * s + 1.2), 14 * e3 * Math.sin(5.0 * s)); }, 0x4d8bf0, 58, 1800);
 
     curve('lissajous3d', 'Lissajous (3D 5:4:3)', function (t, T) { var u = t * PI2; return new T.Vector3(19 * Math.sin(5 * u + Math.PI / 2), 19 * Math.sin(4 * u), 19 * Math.sin(3 * u + Math.PI / 4)); }, 0x9b5de5, 58, 900);
+
+    G.create({ id: 'anamorphicgrid', name: 'Anamorphic grid', rotateSpeed: 0.28, camZ: 56, layout: function (d, THREE) { var a = [], e = [], M = 16, i, j; function warp(x, y) { var r = 4 + (y + 1) * 8, th = x * Math.PI; return new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r, 0); } for (i = 0; i <= M; i++) { var prev = null; for (j = 0; j <= M; j++) { var p = warp(i / M * 2 - 1, j / M * 2 - 1); if (j % 2 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0xff8f3f }); prev = p; } } for (j = 0; j <= M; j++) { var prev2 = null; for (i = 0; i <= M; i++) { var p2 = warp(i / M * 2 - 1, j / M * 2 - 1); if (prev2) e.push({ a: prev2, b: p2, color: 0xff8f3f }); prev2 = p2; } } return G.anchorLayout(d, THREE, a, e); } });
 })();
