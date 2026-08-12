@@ -17,4 +17,6 @@
     tk('knot29', '(2,9) torus knot', 2, 9, 0xff8f3f);
 
     curve('lissajousknot', 'Lissajous knot', function (t, T) { var u = t * PI2; return new T.Vector3(18 * Math.cos(3 * u + 0.7), 18 * Math.cos(2 * u + 0.2), 18 * Math.cos(7 * u)); }, 0xff5d8f, 60, 700);
+
+    curve('chebyshevknot', 'Chebyshev knot', function (t, T) { var th = t * Math.PI; return new T.Vector3(18 * Math.cos(3 * th), 18 * Math.cos(4 * th + 0.4), 12 * Math.cos(5 * th + 0.9)); }, 0x00d2a0, 58, 700);
 })();
