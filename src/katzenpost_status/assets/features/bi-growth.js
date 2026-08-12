@@ -22,4 +22,6 @@
     lplant('lsystembush', 'L-system bush', 'F', { F: 'FF+[+F-F-F]-[-F+F+F]' }, 4, 22.5 * Math.PI / 180, 0x00d2a0, 56);
 
     lplant('lsystemweed', 'L-system weed', 'F', { F: 'F[+F]F[-F]F' }, 5, 25.7 * Math.PI / 180, 0x6ce0b0, 56);
+
+    lplant('lsystemseaweed', 'L-system seaweed', 'F', { F: 'FF-[-F+F+F]+[+F-F-F]' }, 4, 20 * Math.PI / 180, 0x4d8bf0, 56);
 })();
