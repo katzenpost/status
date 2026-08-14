@@ -48,4 +48,6 @@
     compound('compound5tetra', 'Compound of five tetrahedra', [0, 1, 2, 3, 4].map(function (k) { return { geo: TET, rot: [0.6, k * 1.2566, 0.3 * k], color: [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f][k] }; }), 0x2ec4b6, 56);
 
     compound('compound5cubes', 'Compound of five cubes', [0, 1, 2, 3, 4].map(function (k) { return { geo: B, rot: [0.3, k * 1.2566, 0], color: [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xffd23f][k] }; }), 0x2ec4b6, 58);
+
+    spiked('greatstellateddodeca', 'Great stellated dodecahedron', ICO, DOD, 30, 0x9b5de5, 0xffd23f, 62);
 })();
