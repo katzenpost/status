@@ -20,4 +20,6 @@
     attractor('rucklidge', 'Rucklidge attractor', function (p, dt) { var k = 2, a = 6.7, x = p[0], y = p[1], z = p[2]; return [x + dt * (-k * x + a * y - y * z), y + dt * x, z + dt * (-z + y * y)]; }, [0.1, 0, 0], 0.01, 5000, 2.6, [0, 0, 6], 0x9b5de5, 60);
 
     attractor('sprottc', 'Sprott-C attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (y * z), y + dt * (x - y), z + dt * (1 - x * x)]; }, [0.1, 0.2, 0.3], 0.02, 4600, 7, [0, 0, 0], 0xff8f3f, 58);
+
+    attractor('sprottd', 'Sprott-D attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (-y), y + dt * (x + z), z + dt * (x * z + 3 * y * y)]; }, [0.1, 0.1, 0.1], 0.02, 4600, 6, [0, 0, 0], 0xff5d8f, 58);
 })();
