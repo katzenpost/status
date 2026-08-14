@@ -42,4 +42,6 @@
     compound('stellaoctangula2', 'Stella octangula (2 tetrahedra)', [{ geo: TET, rot: [0, 0, 0], color: 0x4d8bf0 }, { geo: TET, rot: [Math.PI, 0, 0], color: 0xffd23f }], 0x4d8bf0, 54);
 
     compound('cubeoctacompound', 'Cube + octahedron compound', [{ geo: B, rot: [0, 0, 0], color: 0x2ec4b6 }, { geo: function (T) { return new T.OctahedronGeometry(16); }, rot: [0, 0, 0], color: 0xff5d8f }], 0x2ec4b6, 54);
+
+    compound('dodecaicosacompound', 'Dodecahedron + icosahedron', [{ geo: DOD, rot: [0, 0, 0], color: 0x9b5de5 }, { geo: ICO, rot: [0, 0, 0], color: 0x00d2a0 }], 0x9b5de5, 54);
 })();
