@@ -22,4 +22,6 @@
     attractor('sprottc', 'Sprott-C attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (y * z), y + dt * (x - y), z + dt * (1 - x * x)]; }, [0.1, 0.2, 0.3], 0.02, 4600, 7, [0, 0, 0], 0xff8f3f, 58);
 
     attractor('sprottd', 'Sprott-D attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (-y), y + dt * (x + z), z + dt * (x * z + 3 * y * y)]; }, [0.1, 0.1, 0.1], 0.02, 4600, 6, [0, 0, 0], 0xff5d8f, 58);
+
+    attractor('sprotte', 'Sprott-E attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (y * z), y + dt * (x * x - y), z + dt * (1 - 4 * x)]; }, [0.1, 0.1, 0.1], 0.02, 4600, 7, [0.25, 0, 0], 0x00d2a0, 58);
 })();
