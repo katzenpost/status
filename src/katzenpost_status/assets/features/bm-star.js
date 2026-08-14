@@ -52,4 +52,6 @@
     spiked('greatstellateddodeca', 'Great stellated dodecahedron', ICO, DOD, 30, 0x9b5de5, 0xffd23f, 62);
 
     spiked('smallstellateddodeca', 'Small stellated dodecahedron', DOD, ICO, 26, 0x4d8bf0, 0xff8f3f, 60);
+
+    spiked('tetrakishexahedron', 'Tetrakis hexahedron (spiked cube)', B, OCT, 20, 0x2ec4b6, 0xff5d8f, 56);
 })();
