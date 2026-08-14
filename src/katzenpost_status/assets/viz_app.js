@@ -156,7 +156,7 @@
         try { if (window.localStorage) localStorage.removeItem('katzen.styleAttempt'); } catch (e) { }
     }
 
-    var HOOKS = { boot: [], build: [], data: [], node: [], frame: [] };
+    var HOOKS = { boot: [], build: [], data: [], node: [], frame: [], theme: [] };
     function runHooks(list, a, b) {
         for (var i = 0; i < list.length; i++) {
             try { list[i](a, b); } catch (e) { /* a feature must not break the app */ }
@@ -1320,20 +1320,38 @@
         dirauth: 0xffd23f, out: 0x9aa7b3
     };
     var MIX_LAYER_COLORS = [0x4d8bf0, 0x9b5de5, 0xff5d8f, 0x6ce0b0];
-    // Themeable palette: set window.KATZEN_THEME before load to override any of
-    // the scheme's colour groups, e.g.
-    //   window.KATZEN_THEME = { status:{ok:0x39ff14}, group:{gateway:0x00e5ff},
-    //                           mix:[...], tier:[...] };
-    (function applyTheme() {
-        var t = window.KATZEN_THEME; if (!t) return;
-        function merge(dst, src) { if (src) for (var k in src) if (src.hasOwnProperty(k)) dst[k] = src[k]; }
-        merge(STATUS_HEX, t.status); merge(GROUP_COLORS, t.group);
-        if (t.mix && t.mix.length) MIX_LAYER_COLORS = t.mix;
-        if (t.tier && t.tier.length) TIER_LINK_COLORS = t.tier;
+    // Named themes reskin the whole palette; switchable live via K.setTheme(name).
+    // Each theme overrides any of: status{}, group{}, mix[], tier[], *Link.
+    var THEMES = {
+        aurora: {},   // the default scheme (no overrides)
+        sunset: { status: { ok: 0xffb454, out: 0xff5d6c, down: 0xd12d6b, unknown: 0x7a5a55 }, group: { gateway: 0xffd23f, service: 0xff5d8f, storage: 0xffb454, dirauth: 0xff8f3f, out: 0xb08a7a }, mix: [0xff8f3f, 0xff5d8f, 0xffd23f, 0xffa24d], tier: [0xffd23f, 0xff8f3f, 0xff5d8f, 0xd12d6b, 0xffb454] },
+        matrix: { status: { ok: 0x39ff14, out: 0xaaff00, down: 0xff3355, unknown: 0x2f6b2f }, group: { gateway: 0x39ff14, service: 0x7CFC00, storage: 0x00d24a, dirauth: 0xb6ff00, out: 0x4a7a4a }, mix: [0x00ff66, 0x39ff14, 0x7CFC00, 0x00d24a], tier: [0x39ff14, 0x00d24a, 0x7CFC00, 0xb6ff00, 0x2f8b2f] },
+        ice: { status: { ok: 0x8fe8ff, out: 0xffd27f, down: 0xff6f91, unknown: 0x6a8595 }, group: { gateway: 0x8fe8ff, service: 0xc9e8ff, storage: 0x5fd0e0, dirauth: 0xe0f4ff, out: 0x7aa0b0 }, mix: [0x4d8bf0, 0x6fb8ff, 0x8fe8ff, 0xbfe8ff], tier: [0x8fe8ff, 0x6fb8ff, 0x4d8bf0, 0xc9e8ff, 0x5fd0e0] },
+        neon: { status: { ok: 0x00f3ff, out: 0xffe600, down: 0xff2079, unknown: 0x7a3aa0 }, group: { gateway: 0x00f3ff, service: 0xff2079, storage: 0x39ff14, dirauth: 0xffe600, out: 0xb46cff }, mix: [0x9b5de5, 0xff2079, 0x00f3ff, 0xc06cff], tier: [0x00f3ff, 0xc06cff, 0xff2079, 0xffe600, 0x39ff14] },
+        ember: { status: { ok: 0xff7a1a, out: 0xffc24d, down: 0xff2d3d, unknown: 0x6b4a3a }, group: { gateway: 0xff7a1a, service: 0xffc24d, storage: 0xd23a2a, dirauth: 0xffd23f, out: 0x8a5a3a }, mix: [0xff2d3d, 0xff7a1a, 0xffc24d, 0xd23a2a], tier: [0xffc24d, 0xff7a1a, 0xff2d3d, 0xd23a2a, 0xffd23f] }
+    };
+    var DEF = { status: {}, group: {} }, kk;
+    for (kk in STATUS_HEX) DEF.status[kk] = STATUS_HEX[kk];
+    for (kk in GROUP_COLORS) DEF.group[kk] = GROUP_COLORS[kk];
+    DEF.mix = MIX_LAYER_COLORS.slice(); DEF.tier = TIER_LINK_COLORS.slice();
+    DEF.dirauthLink = DIRAUTH_LINK_COLOR; DEF.replicaLink = REPLICA_LINK_COLOR; DEF.courierLink = COURIER_LINK_COLOR;
+    var currentTheme = 'aurora';
+    function applyThemePalette(t) {
+        t = t || {};
+        var k; for (k in DEF.status) STATUS_HEX[k] = DEF.status[k];
+        for (k in DEF.group) GROUP_COLORS[k] = DEF.group[k];
+        MIX_LAYER_COLORS = DEF.mix.slice(); TIER_LINK_COLORS = DEF.tier.slice();
+        DIRAUTH_LINK_COLOR = DEF.dirauthLink; REPLICA_LINK_COLOR = DEF.replicaLink; COURIER_LINK_COLOR = DEF.courierLink;
+        if (t.status) for (k in t.status) STATUS_HEX[k] = t.status[k];
+        if (t.group) for (k in t.group) GROUP_COLORS[k] = t.group[k];
+        if (t.mix && t.mix.length) MIX_LAYER_COLORS = t.mix.slice();
+        if (t.tier && t.tier.length) TIER_LINK_COLORS = t.tier.slice();
         if (typeof t.dirauthLink === 'number') DIRAUTH_LINK_COLOR = t.dirauthLink;
         if (typeof t.replicaLink === 'number') REPLICA_LINK_COLOR = t.replicaLink;
         if (typeof t.courierLink === 'number') COURIER_LINK_COLOR = t.courierLink;
-    })();
+    }
+    // Boot theme: window.KATZEN_THEME may be a name (string) or an override object.
+    (function () { var w = window.KATZEN_THEME; if (typeof w === 'string' && THEMES[w]) { currentTheme = w; applyThemePalette(THEMES[w]); } else if (w && typeof w === 'object') { applyThemePalette(w); } })();
     function groupColor(node) {
         if (!node || !node.data) return 0x8aa0b4;
         var t = node.data.type;
@@ -1699,6 +1717,9 @@
         vantageLink: function (a, b, hops, latency, curvePoints) { return vantageLink(a, b, hops, latency, curvePoints); },
         latencyColor: latencyColor,
         groupColor: groupColor,
+        themeNames: function () { var a = [], k; for (k in THEMES) a.push(k); return a; },
+        currentTheme: function () { return currentTheme; },
+        setTheme: function (name) { if (!THEMES[name]) return; currentTheme = name; applyThemePalette(THEMES[name]); nodeObjs.forEach(function (o) { o.statusHex = statusColor(o.data.status); o._setIcon(o.statusHex, false); }); runHooks(HOOKS.theme, name); },
         showVantage: showVantage,
         showLink: showLink,
         topoPairs: function () { return topoPairs; },

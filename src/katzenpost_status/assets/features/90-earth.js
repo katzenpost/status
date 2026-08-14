@@ -94,18 +94,35 @@
         else if (vid !== 'earth') q = '?view=' + vid;
         return location.origin + location.pathname + q;
     }
+    function categoryOf(vid) {
+        if (vid.indexOf('overlay:') === 0) {
+            var id = vid.slice(8);
+            return (window.KATZEN_CATEGORIES && window.KATZEN_CATEGORIES[id]) || 'Other';
+        }
+        return 'Network layouts';
+    }
     function rebuildViewSelect() {
         if (!viewSelect) return;
-        var here = curViewId();
-        if (viewSelect.options.length !== viewIds().length) {
+        var here = curViewId(), ids = viewIds();
+        if (viewSelect.__count !== ids.length) {
             viewSelect.innerHTML = '';
-            viewIds().forEach(function (vid) {
-                var op = document.createElement('option');
-                op.value = vid; op.textContent = viewName(vid);
-                viewSelect.appendChild(op);
+            var groups = {}, order = (window.KATZEN_CATEGORY_ORDER || []).slice();
+            ids.forEach(function (vid) { var c = categoryOf(vid); (groups[c] = groups[c] || []).push(vid); if (order.indexOf(c) < 0) order.push(c); });
+            order.forEach(function (cat) {
+                var list = groups[cat]; if (!list || !list.length) return;
+                list.sort(function (a, b) { return viewName(a).toLowerCase() < viewName(b).toLowerCase() ? -1 : 1; });
+                var og = document.createElement('optgroup'); og.label = cat + ' (' + list.length + ')';
+                list.forEach(function (vid) { var op = document.createElement('option'); op.value = vid; op.textContent = viewName(vid); og.appendChild(op); });
+                viewSelect.appendChild(og);
             });
+            viewSelect.__count = ids.length;
         }
         viewSelect.value = here;
+    }
+    function randomizeView() {
+        var ids = viewIds(), here = curViewId();
+        var pool = ids.filter(function (v) { return v !== here; });
+        if (pool.length) gotoView(pool[(Math.random() * pool.length) | 0]);
     }
     function updateBtn() {
         var here = curViewId(), nx = nextViewId();
@@ -126,6 +143,18 @@
         'box-shadow:0 4px 16px rgba(0,0,0,0.6)';
     viewSelect.addEventListener('change', function () { gotoView(viewSelect.value); });
     document.body.appendChild(viewSelect);
+    // Floating randomize button beside the view chooser.
+    var randFloat = document.createElement('button');
+    randFloat.id = 'randomize-view';
+    randFloat.textContent = 'Random';
+    randFloat.setAttribute('aria-label', 'Randomize view');
+    randFloat.style.cssText = 'position:fixed;z-index:30;top:calc(max(12px, env(safe-area-inset-top)) + 52px);' +
+        'left:calc(max(12px, env(safe-area-inset-left)) + 168px);height:34px;' +
+        'background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;' +
+        'border-radius:8px;font:12px/1 monospace;cursor:pointer;padding:0 10px;' +
+        'box-shadow:0 4px 16px rgba(0,0,0,0.6)';
+    randFloat.addEventListener('click', randomizeView);
+    document.body.appendChild(randFloat);
     updateBtn();
     wrap.appendChild(btn);
     function checkboxLabel(html, onchange) {
@@ -167,6 +196,25 @@
     naBtn.style.flex = '1'; naBtn.textContent = 'N. America';
     regionRow.appendChild(euBtn); regionRow.appendChild(naBtn);
     wrap.appendChild(regionRow);
+    // Theme selector (reskins the whole palette live via K.setTheme).
+    if (typeof K.themeNames === 'function') {
+        var themeRow = document.createElement('label');
+        themeRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
+        themeRow.innerHTML = 'Theme';
+        var themeSel = document.createElement('select');
+        themeSel.setAttribute('aria-label', 'Colour theme');
+        themeSel.style.cssText = 'flex:1;background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;border-radius:6px;font:11px/1 monospace;padding:3px 6px;cursor:pointer';
+        K.themeNames().forEach(function (nm) { var op = document.createElement('option'); op.value = nm; op.textContent = nm.charAt(0).toUpperCase() + nm.slice(1); themeSel.appendChild(op); });
+        themeSel.value = K.currentTheme();
+        themeSel.addEventListener('change', function () { K.setTheme(themeSel.value); });
+        themeRow.appendChild(themeSel);
+        wrap.appendChild(themeRow);
+    }
+    var randBtn = document.createElement('button');
+    randBtn.textContent = 'Randomize view';
+    randBtn.style.cssText = 'width:100%;margin-top:6px';
+    randBtn.addEventListener('click', randomizeView);
+    wrap.appendChild(randBtn);
     var shareBtn = document.createElement('button');
     shareBtn.textContent = 'Copy link to this view';
     shareBtn.style.cssText = 'width:100%;margin-top:6px';
@@ -187,6 +235,7 @@
     naBtn.addEventListener('click', function () { if (mode === 'earth') frameSubset(function (ll) { return ll[1] <= -15; }); });
     var hud = K.hudPanel();
     if (hud) hud.insertBefore(wrap, hud.firstChild);
+    K.on('theme', function () { if (typeof K.rebuildLinks === 'function') K.rebuildLinks(); });
 
     function hashU32(s) {
         var h = 2166136261 >>> 0;

@@ -365,6 +365,7 @@
             }
 
             K.on('data', function () { if (world && running) rebuild(); });
+            K.on('theme', function () { if (world && running) rebuild(); });   // recolour balls on theme switch
             window.addEventListener('resize', function () { if (running) onResize(); });
 
             window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
