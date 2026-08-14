@@ -26,4 +26,6 @@
     attractor('sprotte', 'Sprott-E attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (y * z), y + dt * (x * x - y), z + dt * (1 - 4 * x)]; }, [0.1, 0.1, 0.1], 0.02, 4600, 7, [0.25, 0, 0], 0x00d2a0, 58);
 
     attractor('sprottg', 'Sprott-G attractor', function (p, dt) { var x = p[0], y = p[1], z = p[2]; return [x + dt * (0.4 * x + z), y + dt * (x * z - y), z + dt * (-x + y)]; }, [0.1, 0.1, 0.1], 0.02, 4800, 7, [0, 0, 0], 0xffd23f, 58);
+
+    attractor('hindmarshrose', 'Hindmarsh-Rose neuron', function (p, dt) { var x = p[0], y = p[1], z = p[2], I = 3.2; return [x + dt * (y - x * x * x + 3 * x * x - z + I), y + dt * (1 - 5 * x * x - y), z + dt * (0.006 * (4 * (x + 1.6) - z))]; }, [-1, -5, 3], 0.05, 5000, 7, [0, -3, 3], 0x4d8bf0, 56);
 })();
