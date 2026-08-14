@@ -173,7 +173,17 @@
         'kuen': 'Surfaces',
         'lambda': 'Fractals',
         'langtonsant': 'Fields & automata',
-        'lcars': 'Network art',
+        'lcars': 'LCARS panels',
+        'lcarsdis': 'LCARS panels',
+        'lcarsds9': 'LCARS panels',
+        'lcarsent': 'LCARS panels',
+        'lcarsld': 'LCARS panels',
+        'lcarspic': 'LCARS panels',
+        'lcarspro': 'LCARS panels',
+        'lcarssnw': 'LCARS panels',
+        'lcarstng': 'LCARS panels',
+        'lcarstos': 'LCARS panels',
+        'lcarsvoy': 'LCARS panels',
         'lemniscate': 'Curves & attractors',
         'levyc': 'Space-filling curves',
         'lichtenberg': 'Organic & growth',
@@ -354,5 +364,5 @@
         'wireworld': 'Fields & automata',
         'yoshimura': 'Origami',
     };
-    window.KATZEN_CATEGORY_ORDER = ["Sacred geometry", "Polyhedra", "Higher dimensions", "Fractals", "Space-filling curves", "Curves & attractors", "Knots & braids", "Surfaces", "Tilings", "Fields & automata", "Number theory", "Organic & growth", "Hyperbolic & projective", "Graphs", "Origami", "Quantum & waves", "Mechanisms & roulettes", "Network art", "Charts", "Network layouts", "Other"];
+    window.KATZEN_CATEGORY_ORDER = ["Sacred geometry", "Polyhedra", "Higher dimensions", "Fractals", "Space-filling curves", "Curves & attractors", "Knots & braids", "Surfaces", "Tilings", "Fields & automata", "Number theory", "Organic & growth", "Hyperbolic & projective", "Graphs", "Origami", "Quantum & waves", "Mechanisms & roulettes", "LCARS panels", "Network art", "Charts", "Network layouts", "Other"];
 })();
