@@ -44,4 +44,6 @@
     compound('cubeoctacompound', 'Cube + octahedron compound', [{ geo: B, rot: [0, 0, 0], color: 0x2ec4b6 }, { geo: function (T) { return new T.OctahedronGeometry(16); }, rot: [0, 0, 0], color: 0xff5d8f }], 0x2ec4b6, 54);
 
     compound('dodecaicosacompound', 'Dodecahedron + icosahedron', [{ geo: DOD, rot: [0, 0, 0], color: 0x9b5de5 }, { geo: ICO, rot: [0, 0, 0], color: 0x00d2a0 }], 0x9b5de5, 54);
+
+    compound('compound5tetra', 'Compound of five tetrahedra', [0, 1, 2, 3, 4].map(function (k) { return { geo: TET, rot: [0.6, k * 1.2566, 0.3 * k], color: [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f][k] }; }), 0x2ec4b6, 56);
 })();
