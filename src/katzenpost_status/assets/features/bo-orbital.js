@@ -12,4 +12,6 @@
     curve('rosetteorbit', 'Rosette orbit (precessing)', function (t, T) { var th = t * PI2 * 8, a = 18, ecc = 0.5, r = a * (1 - ecc * ecc) / (1 + ecc * Math.cos(th - t * PI2 * 0.9)); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 0); }, 0x2ec4b6, 56, 1400);
 
     curve('lissajousorbit', 'Lissajous orbit', function (t, T) { var u = t * PI2; return new T.Vector3(18 * Math.sin(3 * u), 16 * Math.sin(4 * u + 0.6), 8 * Math.sin(5 * u)); }, 0x4d8bf0, 56, 900);
+
+    curve('analemma', 'Analemma (figure-8)', function (t, T) { var d = t * PI2, decl = 20 * Math.sin(d), eot = 9.87 * Math.sin(2 * d) - 7.53 * Math.cos(d) - 1.5 * Math.sin(d); return new T.Vector3(eot * 1.7, decl * 0.9, 0); }, 0x9b5de5, 52, 700);
 })();
