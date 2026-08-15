@@ -33,4 +33,6 @@
     surf('twistedtorus', 'Twisted torus', function (u, v, T) { var a = u * PI2, b = v * PI2 + 3 * a, R = 12, r = 5; return new T.Vector3((R + r * Math.cos(b)) * Math.cos(a), r * Math.sin(b), (R + r * Math.cos(b)) * Math.sin(a)); }, 80, 24, 0xff5d8f, 58);
 
     surf('mobiusband', 'Mobius band', function (u, v, T) { var a = u * PI2, w = (v - 0.5) * 8, R = 12; return new T.Vector3((R + w * Math.cos(a / 2)) * Math.cos(a), w * Math.sin(a / 2), (R + w * Math.cos(a / 2)) * Math.sin(a)); }, 90, 8, 0x00d2a0, 56);
+
+    tube('trefoiltube', 'Trefoil tube surface', function (t, T) { var u = t * PI2; return new T.Vector3(10 * (Math.sin(u) + 2 * Math.sin(2 * u)), 10 * (Math.cos(u) - 2 * Math.cos(2 * u)), 10 * (-Math.sin(3 * u))).multiplyScalar(0.7); }, 3, 200, 12, 0xffd23f, 60);
 })();
