@@ -31,4 +31,6 @@
     surf('supershape', 'Supershape (superformula)', function (u, v, T) { var th = u * PI2 - Math.PI, ph = v * Math.PI - Math.PI / 2; var r1 = sf(7, 0.2, 1.7, 1.7, 1, th), r2 = sf(7, 0.2, 1.7, 1.7, 1, ph), S = 16; return new T.Vector3(S * r1 * Math.cos(th) * r2 * Math.cos(ph), S * r2 * Math.sin(ph), S * r1 * Math.sin(th) * r2 * Math.cos(ph)); }, 60, 50, 0xff8f3f, 56);
 
     surf('twistedtorus', 'Twisted torus', function (u, v, T) { var a = u * PI2, b = v * PI2 + 3 * a, R = 12, r = 5; return new T.Vector3((R + r * Math.cos(b)) * Math.cos(a), r * Math.sin(b), (R + r * Math.cos(b)) * Math.sin(a)); }, 80, 24, 0xff5d8f, 58);
+
+    surf('mobiusband', 'Mobius band', function (u, v, T) { var a = u * PI2, w = (v - 0.5) * 8, R = 12; return new T.Vector3((R + w * Math.cos(a / 2)) * Math.cos(a), w * Math.sin(a / 2), (R + w * Math.cos(a / 2)) * Math.sin(a)); }, 90, 8, 0x00d2a0, 56);
 })();
