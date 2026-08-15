@@ -15,4 +15,6 @@
     ae('justintonation', 'Just-intonation lattice', function (a, e, T, color) { var R = 3, s = 7, i, j; function P(i, j) { return new T.Vector3(i * s, j * s * 0.9, (i * 0.3 + j * 0.2) * s * 0.0); } for (i = -R; i <= R; i++) for (j = -R; j <= R; j++) { a.push(P(i, j)); if (i < R) e.push({ a: P(i, j), b: P(i + 1, j), color: color }); if (j < R) e.push({ a: P(i, j), b: P(i, j + 1), color: 0x4d8bf0 }); } }, 0x00d2a0, 56);
 
     curve('harmonicseries', 'Harmonic series spiral', function (t, T) { var n = 1 + t * 15, th = t * PI2 * 4, r = 20 / Math.sqrt(n); return new T.Vector3(Math.cos(th) * r, Math.sin(th) * r, (t - 0.5) * 12); }, 0xff8f3f, 58, 600);
+
+    curve('shepardhelix', 'Shepard tone helix', function (t, T) { var th = t * PI2 * 3, R = 14; return new T.Vector3(Math.cos(th) * R, (t - 0.5) * 34, Math.sin(th) * R); }, 0x4d8bf0, 58, 500);
 })();
