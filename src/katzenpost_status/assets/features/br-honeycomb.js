@@ -20,4 +20,6 @@
     lattice('pyrochlore', 'Pyrochlore lattice', function () { var V = [], seen = {}, x, y, z; var basis = [[0, 0, 0], [0.25, 0.25, 0], [0.25, 0, 0.25], [0, 0.25, 0.25]]; for (x = -1; x <= 1; x++) for (y = -1; y <= 1; y++) for (z = -1; z <= 1; z++) basis.forEach(function (b) { V.push([(x + b[0]) * S * 1.6, (y + b[1]) * S * 1.6, (z + b[2]) * S * 1.6]); }); return V; }, 0x00d2a0, 58);
 
     lattice('hexprismatic', 'Hexagonal prismatic', function () { var V = [], i, j, k, S3 = Math.sqrt(3); for (k = -2; k <= 2; k++) for (i = -2; i <= 2; i++) for (j = -2; j <= 2; j++) V.push([(i + j * 0.5) * S, k * S, j * S3 / 2 * S]); return V; }, 0xffd23f, 58);
+
+    lattice('triprismatic', 'Triangular prismatic', function () { var V = [], i, j, k, S3 = Math.sqrt(3); for (k = -2; k <= 2; k++) for (i = -2; i <= 2; i++) for (j = -2; j <= 2; j++) V.push([(i + (j & 1 ? 0.5 : 0)) * S, k * S * 0.9, j * S3 / 2 * S]); return V; }, 0x4d8bf0, 58);
 })();
