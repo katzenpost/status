@@ -23,4 +23,6 @@
     function sf(m, n1, n2, n3, a, ang) { var t1 = Math.pow(Math.abs(Math.cos(m * ang / 4) / a), n2), t2 = Math.pow(Math.abs(Math.sin(m * ang / 4) / a), n3); return Math.pow(t1 + t2, -1 / n1); }
 
     surf('horntorus', 'Horn torus', function (u, v, T) { var a = u * PI2, b = v * PI2, R = 10, r = 10; return new T.Vector3((R + r * Math.cos(b)) * Math.cos(a), r * Math.sin(b), (R + r * Math.cos(b)) * Math.sin(a)); }, 60, 40, 0x2ec4b6, 58);
+
+    surf('spindletorus', 'Spindle torus', function (u, v, T) { var a = u * PI2, b = v * PI2, R = 6, r = 12; return new T.Vector3((R + r * Math.cos(b)) * Math.cos(a), r * Math.sin(b), (R + r * Math.cos(b)) * Math.sin(a)); }, 60, 44, 0x4d8bf0, 58);
 })();
