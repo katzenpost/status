@@ -17,4 +17,6 @@
     curve('harmonicseries', 'Harmonic series spiral', function (t, T) { var n = 1 + t * 15, th = t * PI2 * 4, r = 20 / Math.sqrt(n); return new T.Vector3(Math.cos(th) * r, Math.sin(th) * r, (t - 0.5) * 12); }, 0xff8f3f, 58, 600);
 
     curve('shepardhelix', 'Shepard tone helix', function (t, T) { var th = t * PI2 * 3, R = 14; return new T.Vector3(Math.cos(th) * R, (t - 0.5) * 34, Math.sin(th) * R); }, 0x4d8bf0, 58, 500);
+
+    curve('overtonerose', 'Overtone rose', function (t, T) { var th = t * PI2, r = 18 * Math.cos(6 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 5 * Math.sin(12 * th)); }, 0xff5d8f, 56, 700);
 })();
