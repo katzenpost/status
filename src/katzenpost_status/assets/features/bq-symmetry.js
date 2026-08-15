@@ -30,4 +30,6 @@
     wallpaper('wp-p1', 'Wallpaper p1', [I], SQ, 0x2ec4b6, 58);
 
     wallpaper('wp-p2', 'Wallpaper p2', [I, R180], SQ, 0x4d8bf0, 58);
+
+    wallpaper('wp-pm', 'Wallpaper pm', [I, MX], SQ, 0x9b5de5, 58);
 })();
