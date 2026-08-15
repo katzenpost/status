@@ -39,4 +39,6 @@
     tube('torusknottube', 'Torus-knot tube (2,5)', function (t, T) { var u = t * PI2, p = 2, q = 5, R = 12, r = 5; return new T.Vector3((R + r * Math.cos(q * u)) * Math.cos(p * u), (R + r * Math.cos(q * u)) * Math.sin(p * u), r * Math.sin(q * u)); }, 2.2, 240, 10, 0x4d8bf0, 58);
 
     tube('springcoil', 'Spring coil tube', function (t, T) { var u = t * PI2 * 6, R = 10; return new T.Vector3(R * Math.cos(u), (t - 0.5) * 34, R * Math.sin(u)); }, 2.4, 200, 10, 0x9b5de5, 58);
+
+    surf('appletorus', 'Apple surface', function (u, v, T) { var a = u * PI2, b = v * Math.PI - Math.PI / 2, R = 8; var rr = R * (1 + 0.6 * Math.cos(b)); return new T.Vector3(rr * Math.cos(a), 10 * Math.sin(b) - 4 * Math.cos(b) * Math.cos(b), rr * Math.sin(a)); }, 50, 40, 0xff5d8f, 58);
 })();
