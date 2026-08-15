@@ -20,4 +20,6 @@
     ae('keplerellipses', 'Kepler ellipse family', function (a, e, T, color) { var cols = [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f], k; for (k = 0; k < 5; k++) { var ecc = k * 0.16, aa = 8 + k * 2.5, bb = aa * Math.sqrt(1 - ecc * ecc), cx = -aa * ecc, prev = null; for (var i = 0; i <= 120; i++) { var t = i / 120 * PI2, p = new T.Vector3(cx + aa * Math.cos(t), bb * Math.sin(t), 0); if (i % 6 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: cols[k] }); prev = p; } } a.push(new T.Vector3(0, 0, 0)); }, 0xffd23f, 56);
 
     curve('retrograde', 'Retrograde loops', function (t, T) { var th = t * PI2, R = 16, e2 = 5; return new T.Vector3(R * Math.cos(th) + e2 * Math.cos(13 * th), R * Math.sin(th) + e2 * Math.sin(13 * th), 3 * Math.sin(13 * th)); }, 0xff5d8f, 56, 1000);
+
+    ae('hohmann', 'Hohmann transfer', function (a, e, T, color) { ring(a, e, T, 0, 0, 8, 48, 0x2ec4b6); ring(a, e, T, 0, 0, 20, 60, 0x4d8bf0); var aa = 14, bb = Math.sqrt(8 * 20), cx = -(20 - 8) / 2, prev = null; for (var i = 0; i <= 90; i++) { var t = Math.PI * i / 90, p = new T.Vector3(cx + aa * Math.cos(t), bb * Math.sin(t), 0); if (i % 5 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0xffd23f }); prev = p; } a.push(new T.Vector3(0, 0, 0)); }, 0xff8f3f, 56);
 })();
