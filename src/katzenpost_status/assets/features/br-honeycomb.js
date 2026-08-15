@@ -14,4 +14,6 @@
     lattice('diamondlattice', 'Diamond lattice', function () { var V = [], x, y, z; for (x = -1; x <= 1; x++) for (y = -1; y <= 1; y++) for (z = -1; z <= 1; z++) { if (((x + y + z) & 1) === 0) { V.push([x * S, y * S, z * S]); V.push([(x + 0.25) * S, (y + 0.25) * S, (z + 0.25) * S]); } } return V; }, 0x9b5de5, 56);
 
     lattice('hcplattice', 'HCP lattice', function () { var V = [], i, j, k, S3 = Math.sqrt(3); for (k = -1; k <= 1; k++) for (i = -2; i <= 2; i++) for (j = -2; j <= 2; j++) { var off = (k & 1) ? 0.5 : 0; V.push([(i + off + (j % 2 ? 0.5 : 0)) * S, j * S3 / 2 * S / 1 * 0.5 * 1.0, k * S * 0.82]); } return V; }, 0xff8f3f, 58);
+
+    lattice('octettruss', 'Octet truss (FCC)', function () { var V = [], x, y, z; for (x = -2; x <= 2; x++) for (y = -2; y <= 2; y++) for (z = -2; z <= 2; z++) if (((x + y + z) & 1) === 0 && x * x + y * y + z * z <= 8) V.push([x * S * 0.7, y * S * 0.7, z * S * 0.7]); return V; }, 0xff5d8f, 58);
 })();
