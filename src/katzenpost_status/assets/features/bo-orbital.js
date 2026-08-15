@@ -10,4 +10,6 @@
     ae('epicycledeferent', 'Epicycle & deferent', function (a, e, T, color) { ring(a, e, T, 0, 0, 16, 60, 0x2a4a5a); var prev = null; for (var i = 0; i <= 900; i++) { var t = i / 900 * PI2, x = 16 * Math.cos(t) + 4 * Math.cos(12 * t), y = 16 * Math.sin(t) + 4 * Math.sin(12 * t); var p = new T.Vector3(x, y, 0); if (i % 6 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } }, 0xffd23f, 56);
 
     curve('rosetteorbit', 'Rosette orbit (precessing)', function (t, T) { var th = t * PI2 * 8, a = 18, ecc = 0.5, r = a * (1 - ecc * ecc) / (1 + ecc * Math.cos(th - t * PI2 * 0.9)); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 0); }, 0x2ec4b6, 56, 1400);
+
+    curve('lissajousorbit', 'Lissajous orbit', function (t, T) { var u = t * PI2; return new T.Vector3(18 * Math.sin(3 * u), 16 * Math.sin(4 * u + 0.6), 8 * Math.sin(5 * u)); }, 0x4d8bf0, 56, 900);
 })();
