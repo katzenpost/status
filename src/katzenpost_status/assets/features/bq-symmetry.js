@@ -28,4 +28,6 @@
     var SQ = [1, 0, 0, 1], HEX = [1, 0, 0.5, Math.sqrt(3) / 2];
 
     wallpaper('wp-p1', 'Wallpaper p1', [I], SQ, 0x2ec4b6, 58);
+
+    wallpaper('wp-p2', 'Wallpaper p2', [I, R180], SQ, 0x4d8bf0, 58);
 })();
