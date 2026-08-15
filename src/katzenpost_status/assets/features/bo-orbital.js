@@ -22,4 +22,6 @@
     curve('retrograde', 'Retrograde loops', function (t, T) { var th = t * PI2, R = 16, e2 = 5; return new T.Vector3(R * Math.cos(th) + e2 * Math.cos(13 * th), R * Math.sin(th) + e2 * Math.sin(13 * th), 3 * Math.sin(13 * th)); }, 0xff5d8f, 56, 1000);
 
     ae('hohmann', 'Hohmann transfer', function (a, e, T, color) { ring(a, e, T, 0, 0, 8, 48, 0x2ec4b6); ring(a, e, T, 0, 0, 20, 60, 0x4d8bf0); var aa = 14, bb = Math.sqrt(8 * 20), cx = -(20 - 8) / 2, prev = null; for (var i = 0; i <= 90; i++) { var t = Math.PI * i / 90, p = new T.Vector3(cx + aa * Math.cos(t), bb * Math.sin(t), 0); if (i % 5 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0xffd23f }); prev = p; } a.push(new T.Vector3(0, 0, 0)); }, 0xff8f3f, 56);
+
+    curve('spirographorbit', 'Spirograph orbit', function (t, T) { var R = 14, r = 4, dd = 10, u = t * PI2 * 7, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + dd * Math.cos(k * u), (R - r) * Math.sin(u) - dd * Math.sin(k * u), 3 * Math.sin(3 * u)); }, 0x00d2a0, 56, 1400);
 })();
