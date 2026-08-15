@@ -10,4 +10,6 @@
     ae('eggoflife', 'Egg of Life', function (a, e, T, color) { var R = 6, i; circle(a, e, T, 0, 0, 0, R, 44, color); for (i = 0; i < 6; i++) { var an = i * Math.PI / 3; circle(a, e, T, Math.cos(an) * R, Math.sin(an) * R, 0, R, 44, color); } }, 0x2ec4b6, 54);
 
     ae('genesispattern', 'Genesis pattern', function (a, e, T, color) { var R = 7, i; circle(a, e, T, 0, 0, 0, R, 48, color); for (i = 0; i < 6; i++) { var an = i * Math.PI / 3; circle(a, e, T, Math.cos(an) * R, Math.sin(an) * R, 0, R, 48, [0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f, 0x00d2a0, 0xffd23f][i]); } }, 0x2ec4b6, 56);
+
+    ae('floweroflife3d', 'Flower of Life (3D)', function (a, e, T, color) { var R = 5, S3 = Math.sqrt(3), zl = [-3, 0, 3], k; zl.forEach(function (z, zi) { var col = [0x4d8bf0, 0x2ec4b6, 0x9b5de5][zi]; circle(a, e, T, 0, 0, z, R, 36, col); for (k = 0; k < 6; k++) { var an = k * Math.PI / 3; circle(a, e, T, Math.cos(an) * R, Math.sin(an) * R, z, R, 36, col); } }); }, 0x2ec4b6, 58);
 })();
