@@ -8,4 +8,6 @@
     var S = 7;
 
     lattice('cubichoneycomb', 'Cubic honeycomb', function () { var V = [], x, y, z; for (x = -2; x <= 2; x++) for (y = -2; y <= 2; y++) for (z = -2; z <= 2; z++) V.push([x * S, y * S, z * S]); return V; }, 0x2ec4b6, 58);
+
+    lattice('bcchoneycomb', 'BCC honeycomb', function () { var V = [], x, y, z; for (x = -2; x <= 2; x++) for (y = -2; y <= 2; y++) for (z = -2; z <= 2; z++) { V.push([x * S, y * S, z * S]); if (x < 2 && y < 2 && z < 2) V.push([(x + 0.5) * S, (y + 0.5) * S, (z + 0.5) * S]); } return V; }, 0x4d8bf0, 58);
 })();
