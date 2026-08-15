@@ -22,4 +22,6 @@
     lattice('hexprismatic', 'Hexagonal prismatic', function () { var V = [], i, j, k, S3 = Math.sqrt(3); for (k = -2; k <= 2; k++) for (i = -2; i <= 2; i++) for (j = -2; j <= 2; j++) V.push([(i + j * 0.5) * S, k * S, j * S3 / 2 * S]); return V; }, 0xffd23f, 58);
 
     lattice('triprismatic', 'Triangular prismatic', function () { var V = [], i, j, k, S3 = Math.sqrt(3); for (k = -2; k <= 2; k++) for (i = -2; i <= 2; i++) for (j = -2; j <= 2; j++) V.push([(i + (j & 1 ? 0.5 : 0)) * S, k * S * 0.9, j * S3 / 2 * S]); return V; }, 0x4d8bf0, 58);
+
+    lattice('kagome3d', 'Kagome slab', function () { var V = [], i, j, k, S3 = Math.sqrt(3); var basis = [[0, 0], [1, 0], [0.5, S3 / 2]]; for (k = -1; k <= 1; k++) for (i = -2; i <= 2; i++) for (j = -2; j <= 2; j++) basis.forEach(function (b) { V.push([(i * 2 + j + b[0]) * S * 0.6, k * S, (j * S3 + b[1]) * S * 0.6]); }); return V; }, 0xff8f3f, 58);
 })();
