@@ -21,4 +21,6 @@
     curve('overtonerose', 'Overtone rose', function (t, T) { var th = t * PI2, r = 18 * Math.cos(6 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 5 * Math.sin(12 * th)); }, 0xff5d8f, 56, 700);
 
     ae('pentatonicwheel', 'Pentatonic wheel', function (a, e, T, color) { var R = 18, P = [], i; for (i = 0; i < 5; i++) { var th = i / 5 * PI2 - Math.PI / 2; P.push(new T.Vector3(Math.cos(th) * R, Math.sin(th) * R, 0)); } for (i = 0; i < 5; i++) { a.push(P[i]); e.push({ a: P[i], b: P[(i + 1) % 5], color: color }); e.push({ a: P[i], b: P[(i + 2) % 5], color: 0xffd23f }); } }, 0x2ec4b6, 54);
+
+    ae('chordtorus', 'Chord torus', function (a, e, T, color) { var Nu = 12, Nv = 4, R = 15, r = 6, idx = {}, i, j; function P(i, j) { var th = i / Nu * PI2, ph = j / Nv * PI2; return new T.Vector3((R + r * Math.cos(ph)) * Math.cos(th), r * Math.sin(ph), (R + r * Math.cos(ph)) * Math.sin(th)); } for (i = 0; i < Nu; i++) for (j = 0; j < Nv; j++) { idx[i + '_' + j] = P(i, j); a.push(idx[i + '_' + j]); } for (i = 0; i < Nu; i++) for (j = 0; j < Nv; j++) { e.push({ a: P(i, j), b: P((i + 1) % Nu, j), color: color }); e.push({ a: P(i, j), b: P(i, (j + 1) % Nv), color: 0x9b5de5 }); } }, 0x4d8bf0, 56);
 })();
