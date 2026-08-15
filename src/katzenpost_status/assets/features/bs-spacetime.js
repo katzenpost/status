@@ -16,4 +16,6 @@
     surf('blackholefunnel', 'Black-hole funnel', function (u, v, T) { var r = 2 + u * 22, th = v * PI2, z = -30 / Math.sqrt(r); return new T.Vector3(r * Math.cos(th), z, r * Math.sin(th)); }, 40, 50, 0x4d8bf0, 58);
 
     surf('flammparaboloid', 'Flamm paraboloid', function (u, v, T) { var M = 2, r = 2 * M + u * 22, th = v * PI2, z = 2 * Math.sqrt(2 * M * (r - 2 * M)); return new T.Vector3(r * Math.cos(th), z - 12, r * Math.sin(th)); }, 40, 50, 0x9b5de5, 58);
+
+    ae('worldlines', 'Worldline bundle', function (a, e, T, color) { var cols = [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f], k; for (k = 0; k < 5; k++) { var x0 = (k - 2) * 6, prev = null; for (var i = 0; i <= 80; i++) { var t = i / 80, y = (t - 0.5) * 36, x = x0 + 4 * Math.sin(t * 6 + k); var p = new T.Vector3(x, y, 0); if (i % 6 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: cols[k] }); prev = p; } } }, 0x2ec4b6, 56);
 })();
