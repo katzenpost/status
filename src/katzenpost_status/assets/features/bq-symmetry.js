@@ -42,4 +42,6 @@
     wallpaper('wp-pmg', 'Wallpaper pmg', [I, R180, GX, [1, 0, 0, -1, 0, 0.5]], SQ, 0xffd23f, 58);
 
     wallpaper('wp-p4', 'Wallpaper p4', [I, R90, R180, R270], SQ, 0x2ec4b6, 58);
+
+    wallpaper('wp-p4m', 'Wallpaper p4m', [I, R90, R180, R270, MX, [0, 1, 1, 0, 0, 0], [-1, 0, 0, -1, 1, 1], [0, -1, -1, 0, 1, 1]], SQ, 0x9b5de5, 58);
 })();
