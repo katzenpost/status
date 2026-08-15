@@ -24,4 +24,6 @@
     ae('hohmann', 'Hohmann transfer', function (a, e, T, color) { ring(a, e, T, 0, 0, 8, 48, 0x2ec4b6); ring(a, e, T, 0, 0, 20, 60, 0x4d8bf0); var aa = 14, bb = Math.sqrt(8 * 20), cx = -(20 - 8) / 2, prev = null; for (var i = 0; i <= 90; i++) { var t = Math.PI * i / 90, p = new T.Vector3(cx + aa * Math.cos(t), bb * Math.sin(t), 0); if (i % 5 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0xffd23f }); prev = p; } a.push(new T.Vector3(0, 0, 0)); }, 0xff8f3f, 56);
 
     curve('spirographorbit', 'Spirograph orbit', function (t, T) { var R = 14, r = 4, dd = 10, u = t * PI2 * 7, k = (R - r) / r; return new T.Vector3((R - r) * Math.cos(u) + dd * Math.cos(k * u), (R - r) * Math.sin(u) - dd * Math.sin(k * u), 3 * Math.sin(3 * u)); }, 0x00d2a0, 56, 1400);
+
+    curve('precessing3d', 'Precessing 3D orbit', function (t, T) { var th = t * PI2 * 6, R = 16, tilt = t * PI2 * 0.5; var x = R * Math.cos(th), y = R * Math.sin(th) * 0.6; return new T.Vector3(x * Math.cos(tilt) - 0 * Math.sin(tilt), y, x * Math.sin(tilt)); }, 0x9b5de5, 56, 1200);
 })();
