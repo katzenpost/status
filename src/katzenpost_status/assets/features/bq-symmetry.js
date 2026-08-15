@@ -36,4 +36,6 @@
     wallpaper('wp-pg', 'Wallpaper pg', [I, GX], SQ, 0xff8f3f, 58);
 
     wallpaper('wp-cm', 'Wallpaper cm', [I, MX, [1, 0, 0, 1, 0.5, 0.5], [-1, 0, 0, 1, 1.5, 0.5]], SQ, 0xff5d8f, 58);
+
+    wallpaper('wp-pmm', 'Wallpaper pmm', [I, MX, MY, R180], SQ, 0x00d2a0, 58);
 })();
