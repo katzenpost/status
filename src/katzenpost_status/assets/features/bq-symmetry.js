@@ -40,4 +40,6 @@
     wallpaper('wp-pmm', 'Wallpaper pmm', [I, MX, MY, R180], SQ, 0x00d2a0, 58);
 
     wallpaper('wp-pmg', 'Wallpaper pmg', [I, R180, GX, [1, 0, 0, -1, 0, 0.5]], SQ, 0xffd23f, 58);
+
+    wallpaper('wp-p4', 'Wallpaper p4', [I, R90, R180, R270], SQ, 0x2ec4b6, 58);
 })();
