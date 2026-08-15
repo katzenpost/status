@@ -24,4 +24,6 @@
     surf('desitter', 'de Sitter hyperboloid', function (u, v, T) { var t = (u - 0.5) * 3, th = v * PI2, R = 8 * Math.cosh(t); return new T.Vector3(R * Math.cos(th), t * 8, R * Math.sin(th)); }, 40, 44, 0xffd23f, 58);
 
     ae('twinparadox', 'Twin paradox', function (a, e, T, color) { var prev = null, i; for (i = 0; i <= 40; i++) { var y = (i / 40 - 0.5) * 36, p = new T.Vector3(-8, y, 0); if (i % 4 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: 0x2ec4b6 }); prev = p; } var A = new T.Vector3(-8, -18, 0), B = new T.Vector3(10, 0, 0), C = new T.Vector3(-8, 18, 0); e.push({ a: A, b: B, color: 0xff8f3f }); e.push({ a: B, b: C, color: 0xff8f3f }); a.push(A); a.push(B); a.push(C); }, 0x4d8bf0, 56);
+
+    ae('geodesicnet', 'Geodesic net on funnel', function (a, e, T, color) { function pt(r, th) { return new T.Vector3(r * Math.cos(th), -30 / Math.sqrt(r + 1), r * Math.sin(th)); } var i, j; for (i = 0; i < 12; i++) { var th = i / 12 * PI2, prev = null; for (j = 0; j <= 20; j++) { var r = 2 + j; var p = pt(r, th + Math.sin(j * 0.3) * 0.2); if (j % 3 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); prev = p; } } for (j = 4; j <= 22; j += 4) { var prev2 = null; for (i = 0; i <= 24; i++) { var p2 = pt(j, i / 24 * PI2); if (prev2) e.push({ a: prev2, b: p2, color: 0x2a5a6a }); prev2 = p2; } } }, 0xff5d8f, 58);
 })();
