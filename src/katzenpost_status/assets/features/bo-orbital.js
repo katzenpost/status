@@ -14,4 +14,6 @@
     curve('lissajousorbit', 'Lissajous orbit', function (t, T) { var u = t * PI2; return new T.Vector3(18 * Math.sin(3 * u), 16 * Math.sin(4 * u + 0.6), 8 * Math.sin(5 * u)); }, 0x4d8bf0, 56, 900);
 
     curve('analemma', 'Analemma (figure-8)', function (t, T) { var d = t * PI2, decl = 20 * Math.sin(d), eot = 9.87 * Math.sin(2 * d) - 7.53 * Math.cos(d) - 1.5 * Math.sin(d); return new T.Vector3(eot * 1.7, decl * 0.9, 0); }, 0x9b5de5, 52, 700);
+
+    ae('threebodyfig8', 'Three-body figure-8', function (a, e, T, color) { var cols = [0x2ec4b6, 0xff8f3f, 0x9b5de5], s; for (s = 0; s < 3; s++) { var prev = null, off = s / 3; for (var i = 0; i <= 300; i++) { var u = (i / 300 + off) * PI2, dn = 1 + Math.sin(u) * Math.sin(u), x = 18 * Math.cos(u) / dn, y = 18 * Math.sin(u) * Math.cos(u) / dn; var p = new T.Vector3(x, y, 0); if (i % 6 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: cols[s] }); prev = p; } } }, 0x2ec4b6, 54);
 })();
