@@ -44,4 +44,6 @@
     wallpaper('wp-p4', 'Wallpaper p4', [I, R90, R180, R270], SQ, 0x2ec4b6, 58);
 
     wallpaper('wp-p4m', 'Wallpaper p4m', [I, R90, R180, R270, MX, [0, 1, 1, 0, 0, 0], [-1, 0, 0, -1, 1, 1], [0, -1, -1, 0, 1, 1]], SQ, 0x9b5de5, 58);
+
+    wallpaper('wp-p6m', 'Wallpaper p6m', (function () { var ops = [], k; for (k = 0; k < 6; k++) { var a = k * Math.PI / 3, c = Math.cos(a), s = Math.sin(a); ops.push([c, -s, s, c, 0.5 - 0.5 * c + 0.5 * s, 0.5 - 0.5 * s - 0.5 * c]); ops.push([-c, s, s, c, 0.5 + 0.5 * c - 0.5 * s, 0.5 - 0.5 * s - 0.5 * c]); } return ops; })(), HEX, 0xff8f3f, 58);
 })();
