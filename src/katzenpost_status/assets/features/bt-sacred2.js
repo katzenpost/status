@@ -8,4 +8,6 @@
     function geoVE(g, a, e, color, scale) { var eg = new THREE.EdgesGeometry(g, 1), ep = eg.attributes.position, i; for (i = 0; i < ep.count; i += 2) { var p1 = new THREE.Vector3().fromBufferAttribute(ep, i).multiplyScalar(scale || 1), p2 = new THREE.Vector3().fromBufferAttribute(ep, i + 1).multiplyScalar(scale || 1); e.push({ a: p1, b: p2, color: color }); if (i % 6 === 0) a.push(p1); } eg.dispose(); }
 
     ae('eggoflife', 'Egg of Life', function (a, e, T, color) { var R = 6, i; circle(a, e, T, 0, 0, 0, R, 44, color); for (i = 0; i < 6; i++) { var an = i * Math.PI / 3; circle(a, e, T, Math.cos(an) * R, Math.sin(an) * R, 0, R, 44, color); } }, 0x2ec4b6, 54);
+
+    ae('genesispattern', 'Genesis pattern', function (a, e, T, color) { var R = 7, i; circle(a, e, T, 0, 0, 0, R, 48, color); for (i = 0; i < 6; i++) { var an = i * Math.PI / 3; circle(a, e, T, Math.cos(an) * R, Math.sin(an) * R, 0, R, 48, [0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f, 0x00d2a0, 0xffd23f][i]); } }, 0x2ec4b6, 56);
 })();
