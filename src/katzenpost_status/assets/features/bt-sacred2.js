@@ -1,0 +1,11 @@
+(function () {
+    "use strict";
+    var K = window.KATZEN;
+    if (!K || !window.KATZEN_GEO3D) return;
+    var G = window.KATZEN_GEO3D, PI2 = Math.PI * 2, THREE = K.THREE, PHI = (1 + Math.sqrt(5)) / 2;
+    function ae(id, name, fn, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.32, camZ: camZ || 58, layout: function (d, T) { var a = [], e = []; fn(a, e, T, color); return G.anchorLayout(d, T, a, e); } }); }
+    function circle(a, e, T, cx, cy, cz, R, segs, color, axis) { var prev = null, first = null; for (var s = 0; s <= segs; s++) { var t = s / segs * PI2, c = Math.cos(t) * R, si = Math.sin(t) * R, p; if (axis === 1) p = new T.Vector3(cx, cy + c, cz + si); else p = new T.Vector3(cx + c, cy + si, cz); if (s % 3 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: color }); else first = p; prev = p; } }
+    function geoVE(g, a, e, color, scale) { var eg = new THREE.EdgesGeometry(g, 1), ep = eg.attributes.position, i; for (i = 0; i < ep.count; i += 2) { var p1 = new THREE.Vector3().fromBufferAttribute(ep, i).multiplyScalar(scale || 1), p2 = new THREE.Vector3().fromBufferAttribute(ep, i + 1).multiplyScalar(scale || 1); e.push({ a: p1, b: p2, color: color }); if (i % 6 === 0) a.push(p1); } eg.dispose(); }
+
+    ae('eggoflife', 'Egg of Life', function (a, e, T, color) { var R = 6, i; circle(a, e, T, 0, 0, 0, R, 44, color); for (i = 0; i < 6; i++) { var an = i * Math.PI / 3; circle(a, e, T, Math.cos(an) * R, Math.sin(an) * R, 0, R, 44, color); } }, 0x2ec4b6, 54);
+})();
