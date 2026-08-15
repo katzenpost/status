@@ -11,4 +11,6 @@
     ae('circleoffifths', 'Circle of fifths', function (a, e, T, color) { var R = 18, P = [], i; for (i = 0; i < 12; i++) { var th = i / 12 * PI2 - Math.PI / 2, k = (i * 7) % 12; P[k] = new T.Vector3(Math.cos(th) * R, Math.sin(th) * R, 0); } for (i = 0; i < 12; i++) { a.push(P[i]); e.push({ a: P[i], b: P[(i + 1) % 12], color: color }); e.push({ a: P[i], b: P[(i + 4) % 12], color: 0xff8f3f }); e.push({ a: P[i], b: P[(i + 7) % 12], color: 0x4d8bf0 }); } }, 0xffd23f, 56);
 
     ae('chromaticcircle', 'Chromatic circle', function (a, e, T, color) { var R = 18, P = [], i; for (i = 0; i < 12; i++) { var th = i / 12 * PI2 - Math.PI / 2; P.push(new T.Vector3(Math.cos(th) * R, Math.sin(th) * R, 0)); } for (i = 0; i < 12; i++) { a.push(P[i]); e.push({ a: P[i], b: P[(i + 1) % 12], color: color }); e.push({ a: P[i], b: P[(i + 6) % 12], color: 0xff5d8f }); } }, 0x9b5de5, 56);
+
+    ae('justintonation', 'Just-intonation lattice', function (a, e, T, color) { var R = 3, s = 7, i, j; function P(i, j) { return new T.Vector3(i * s, j * s * 0.9, (i * 0.3 + j * 0.2) * s * 0.0); } for (i = -R; i <= R; i++) for (j = -R; j <= R; j++) { a.push(P(i, j)); if (i < R) e.push({ a: P(i, j), b: P(i + 1, j), color: color }); if (j < R) e.push({ a: P(i, j), b: P(i, j + 1), color: 0x4d8bf0 }); } }, 0x00d2a0, 56);
 })();
