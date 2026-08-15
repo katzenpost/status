@@ -22,4 +22,6 @@
     ae('torusoftori', 'Torus of tori', function (a, e, T, color) { var M = 8, R = 16, r = 6, tube = 2.5, k; for (k = 0; k < M; k++) { var base = k / M * PI2, cx = Math.cos(base) * R, cy = Math.sin(base) * R; for (var u = 0; u < 12; u++) { var au = u / 12 * PI2; circle(a, e, T, cx + Math.cos(au) * r * Math.cos(base), cy + Math.cos(au) * r * Math.sin(base), Math.sin(au) * r, tube, 10, [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f][k % 4], (k % 2)); } } }, 0x2ec4b6, 60);
 
     ae('platonicnest', 'Nested Platonic solids', function (a, e, T, color) { geoVE(new THREE.TetrahedronGeometry(6), a, e, 0x2ec4b6); geoVE(new THREE.OctahedronGeometry(9), a, e, 0x4d8bf0); geoVE(new THREE.IcosahedronGeometry(13), a, e, 0x9b5de5); geoVE(new THREE.DodecahedronGeometry(17), a, e, 0xff8f3f); geoVE(new THREE.BoxGeometry(24, 24, 24), a, e, 0xffd23f); }, 0x2ec4b6, 58);
+
+    ae('vesica3d', 'Vesica Piscis (3D)', function (a, e, T, color) { var R = 12, j; for (j = 0; j < 12; j++) { var az = j / 12 * PI2; circle(a, e, T, -R / 2, 0, 0, R, 30, 0x4d8bf0); } circle(a, e, T, -R / 2, 0, 0, R, 40, 0x4d8bf0); circle(a, e, T, R / 2, 0, 0, R, 40, 0xff8f3f); circle(a, e, T, -R / 2, 0, 0, R, 40, 0x4d8bf0, 1); circle(a, e, T, R / 2, 0, 0, R, 40, 0xff8f3f, 1); }, 0x9b5de5, 54);
 })();
