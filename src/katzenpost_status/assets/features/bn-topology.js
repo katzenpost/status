@@ -37,4 +37,6 @@
     tube('trefoiltube', 'Trefoil tube surface', function (t, T) { var u = t * PI2; return new T.Vector3(10 * (Math.sin(u) + 2 * Math.sin(2 * u)), 10 * (Math.cos(u) - 2 * Math.cos(2 * u)), 10 * (-Math.sin(3 * u))).multiplyScalar(0.7); }, 3, 200, 12, 0xffd23f, 60);
 
     tube('torusknottube', 'Torus-knot tube (2,5)', function (t, T) { var u = t * PI2, p = 2, q = 5, R = 12, r = 5; return new T.Vector3((R + r * Math.cos(q * u)) * Math.cos(p * u), (R + r * Math.cos(q * u)) * Math.sin(p * u), r * Math.sin(q * u)); }, 2.2, 240, 10, 0x4d8bf0, 58);
+
+    tube('springcoil', 'Spring coil tube', function (t, T) { var u = t * PI2 * 6, R = 10; return new T.Vector3(R * Math.cos(u), (t - 0.5) * 34, R * Math.sin(u)); }, 2.4, 200, 10, 0x9b5de5, 58);
 })();
