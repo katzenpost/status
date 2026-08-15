@@ -18,4 +18,6 @@
     ae('threebodyfig8', 'Three-body figure-8', function (a, e, T, color) { var cols = [0x2ec4b6, 0xff8f3f, 0x9b5de5], s; for (s = 0; s < 3; s++) { var prev = null, off = s / 3; for (var i = 0; i <= 300; i++) { var u = (i / 300 + off) * PI2, dn = 1 + Math.sin(u) * Math.sin(u), x = 18 * Math.cos(u) / dn, y = 18 * Math.sin(u) * Math.cos(u) / dn; var p = new T.Vector3(x, y, 0); if (i % 6 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: cols[s] }); prev = p; } } }, 0x2ec4b6, 54);
 
     ae('keplerellipses', 'Kepler ellipse family', function (a, e, T, color) { var cols = [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff8f3f, 0xff5d8f], k; for (k = 0; k < 5; k++) { var ecc = k * 0.16, aa = 8 + k * 2.5, bb = aa * Math.sqrt(1 - ecc * ecc), cx = -aa * ecc, prev = null; for (var i = 0; i <= 120; i++) { var t = i / 120 * PI2, p = new T.Vector3(cx + aa * Math.cos(t), bb * Math.sin(t), 0); if (i % 6 === 0) a.push(p); if (prev) e.push({ a: prev, b: p, color: cols[k] }); prev = p; } } a.push(new T.Vector3(0, 0, 0)); }, 0xffd23f, 56);
+
+    curve('retrograde', 'Retrograde loops', function (t, T) { var th = t * PI2, R = 16, e2 = 5; return new T.Vector3(R * Math.cos(th) + e2 * Math.cos(13 * th), R * Math.sin(th) + e2 * Math.sin(13 * th), 3 * Math.sin(13 * th)); }, 0xff5d8f, 56, 1000);
 })();
