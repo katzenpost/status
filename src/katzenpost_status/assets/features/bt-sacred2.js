@@ -24,4 +24,6 @@
     ae('platonicnest', 'Nested Platonic solids', function (a, e, T, color) { geoVE(new THREE.TetrahedronGeometry(6), a, e, 0x2ec4b6); geoVE(new THREE.OctahedronGeometry(9), a, e, 0x4d8bf0); geoVE(new THREE.IcosahedronGeometry(13), a, e, 0x9b5de5); geoVE(new THREE.DodecahedronGeometry(17), a, e, 0xff8f3f); geoVE(new THREE.BoxGeometry(24, 24, 24), a, e, 0xffd23f); }, 0x2ec4b6, 58);
 
     ae('vesica3d', 'Vesica Piscis (3D)', function (a, e, T, color) { var R = 12, j; for (j = 0; j < 12; j++) { var az = j / 12 * PI2; circle(a, e, T, -R / 2, 0, 0, R, 30, 0x4d8bf0); } circle(a, e, T, -R / 2, 0, 0, R, 40, 0x4d8bf0); circle(a, e, T, R / 2, 0, 0, R, 40, 0xff8f3f); circle(a, e, T, -R / 2, 0, 0, R, 40, 0x4d8bf0, 1); circle(a, e, T, R / 2, 0, 0, R, 40, 0xff8f3f, 1); }, 0x9b5de5, 54);
+
+    G.create({ id: 'phishell', name: 'Golden ratio shell', rotateSpeed: 0.4, camZ: 58, layout: function (d, T) { var P = [], i, N = 700, turns = 4, b = Math.log(PHI) / (Math.PI / 2); for (i = 0; i <= N; i++) { var t = i / N, th = t * turns * PI2, r = 1.2 * Math.exp(b * th), tube = 0.28 * r, phi = t * PI2 * 20; P.push(new T.Vector3(Math.cos(th) * r + Math.cos(phi) * tube, Math.sin(phi) * tube, Math.sin(th) * r)); } P.forEach(function (p) { p.multiplyScalar(0.5); }); return G.curveLayout(d, T, P, 0xffd23f); } });
 })();
