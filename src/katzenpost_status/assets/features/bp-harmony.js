@@ -19,4 +19,6 @@
     curve('shepardhelix', 'Shepard tone helix', function (t, T) { var th = t * PI2 * 3, R = 14; return new T.Vector3(Math.cos(th) * R, (t - 0.5) * 34, Math.sin(th) * R); }, 0x4d8bf0, 58, 500);
 
     curve('overtonerose', 'Overtone rose', function (t, T) { var th = t * PI2, r = 18 * Math.cos(6 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 5 * Math.sin(12 * th)); }, 0xff5d8f, 56, 700);
+
+    ae('pentatonicwheel', 'Pentatonic wheel', function (a, e, T, color) { var R = 18, P = [], i; for (i = 0; i < 5; i++) { var th = i / 5 * PI2 - Math.PI / 2; P.push(new T.Vector3(Math.cos(th) * R, Math.sin(th) * R, 0)); } for (i = 0; i < 5; i++) { a.push(P[i]); e.push({ a: P[i], b: P[(i + 1) % 5], color: color }); e.push({ a: P[i], b: P[(i + 2) % 5], color: 0xffd23f }); } }, 0x2ec4b6, 54);
 })();
