@@ -3256,6 +3256,16 @@ def generate_report(
         nodes_section,
         crypto_section,
     ]
+    # The HTML output is split for size: a small front page (status + nodes +
+    # crypto), plus a network-debugging page (survey/traceroute detail) and a
+    # consensus-document page (the PKI doc). The terminal keeps the full report.
+    front_sections: list[RenderableType] = [
+        status_section,
+        nodes_section,
+        crypto_section,
+    ]
+    debug_sections: list[RenderableType] = []
+    consensus_sections: list[RenderableType] = []
 
     if survey_results:
         survey_table = make_survey_table(survey_results, operational_nodes)
@@ -3317,10 +3327,12 @@ def generate_report(
             border_style=survey_border,
         )
         sections.append(survey_panel)
+        debug_sections.append(survey_panel)
 
     if show_pki_doc:
         pki_panel = make_pki_doc_panel(doc, has_consensus)
         sections.append(pki_panel)
+        consensus_sections.append(pki_panel)
 
     sections.append(Align.center(footer))
 
@@ -3336,43 +3348,93 @@ def generate_report(
     console.print(outer_panel)
 
     if output_file:
-        html = console.export_html(inline_styles=True, theme=MONOKAI)
-        if viz_link:
-            # The only link to the animated page: wrap the pi that make_footer
-            # already reserved in the footer (just right of the version number)
-            # in a link. Wrapping adds no columns, so the box stays aligned.
-            safe_link = html_escape(viz_link, quote=True)
-            pi_link = (
-                f'<a href="{safe_link}" title="Live visualization" '
-                'style="text-decoration:none;color:#00f3ff;opacity:0.55;">'
-                "\u03c0</a>"
-            )
-            anchor = f"v{__version__} \u03c0"
-            if anchor in html:
-                html = html.replace(anchor, f"v{__version__} " + pi_link, 1)
-        # Optional main-page auto-refresh: bake the current timestamp into a
-        # small inline poller and drop a sibling meta file carrying the same
-        # value. When a later render advances the meta timestamp, an open page
-        # reloads. Off by default (html_poll_seconds == 0).
+        # Cute math glyphs cross-link the three pages (and the viz) from every
+        # footer, bidirectionally: sum = status summary, delta = network
+        # debugging, triple-bar = consensus document, pi = live visualization.
+        SUM_G, DBG_G, CON_G, VIZ_G = "\u2211", "\u2206", "\u2261", "\u03c0"
+        out_path = Path(output_file)
+
+        def _sibling(suffix: str) -> str:
+            return out_path.stem + suffix + out_path.suffix
+
+        debug_name = _sibling("-debug") if debug_sections else None
+        consensus_name = _sibling("-consensus") if consensus_sections else None
+        front_name = out_path.name
+        meta_name = out_path.stem + ".meta.json"
+
+        def _links_for(current: str) -> dict[str, tuple[str, str]]:
+            m: dict[str, tuple[str, str]] = {}
+            if current != "front":
+                m[SUM_G] = (front_name, "Status summary")
+            if debug_name and current != "debug":
+                m[DBG_G] = (debug_name, "Network debugging")
+            if consensus_name and current != "consensus":
+                m[CON_G] = (consensus_name, "Consensus document")
+            if viz_link and current != "viz":
+                m[VIZ_G] = (viz_link, "Live visualization")
+            return m
+
         generated_at = ""
         if html_poll_seconds > 0:
             generated_at = (
                 datetime.utcnow().isoformat(timespec="microseconds") + "Z"
             )
-            out_path = Path(output_file)
-            meta_name = out_path.stem + ".meta.json"
-            html = _inject_html_poller(
-                html, meta_name, generated_at, html_poll_seconds
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        page_border = "bold cyan" if has_consensus else "bold red"
+
+        def _export_page(
+            page_sections: list[RenderableType], current: str, path: str
+        ) -> None:
+            pc = Console(
+                record=True, width=width, force_terminal=True
             )
-        with open(output_file, "w", encoding="utf-8") as file:
-            file.write(html)
+            links = _links_for(current)
+            ftr_text = (
+                f"{network_name} status - Generated: {now_str} "
+                f"- v{__version__}"
+            )
+            for g in links:
+                ftr_text += " " + g
+            ftr = Text(ftr_text, style="dim", justify="center")
+            pc.print(
+                Panel(
+                    Group(*page_sections, Align.center(ftr)),
+                    title=network_name,
+                    title_align="center",
+                    border_style=page_border,
+                )
+            )
+            html = pc.export_html(inline_styles=True, theme=MONOKAI)
+            for g, (href, title) in links.items():
+                a = (
+                    f'<a href="{html_escape(href, quote=True)}" '
+                    f'title="{html_escape(title, quote=True)}" '
+                    'style="text-decoration:none;color:#00f3ff;'
+                    f'opacity:0.55;">{g}</a>'
+                )
+                html = html.replace(g, a, 1)
+            if html_poll_seconds > 0:
+                html = _inject_html_poller(
+                    html, meta_name, generated_at, html_poll_seconds
+                )
+            with open(path, "w", encoding="utf-8") as file:
+                file.write(html)
+
+        _export_page(front_sections, "front", output_file)
+        if debug_sections:
+            _export_page(
+                debug_sections, "debug",
+                str(out_path.with_name(debug_name)),
+            )
+        if consensus_sections:
+            _export_page(
+                consensus_sections, "consensus",
+                str(out_path.with_name(consensus_name)),
+            )
         # Write the meta file AFTER the html so a poller firing in the gap never
         # reloads into the stale page; worst case is one missed poll cycle.
         if html_poll_seconds > 0:
-            meta_path = Path(output_file).with_name(
-                Path(output_file).stem + ".meta.json"
-            )
-            meta_path.write_text(
+            out_path.with_name(meta_name).write_text(
                 json.dumps({"generated_at": generated_at}), encoding="utf-8"
             )
 
