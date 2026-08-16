@@ -1352,6 +1352,32 @@
     }
     // Boot theme: window.KATZEN_THEME may be a name (string) or an override object.
     (function () { var w = window.KATZEN_THEME; if (typeof w === 'string' && THEMES[w]) { currentTheme = w; applyThemePalette(THEMES[w]); } else if (w && typeof w === 'object') { applyThemePalette(w); } })();
+    // Flat palette in a fixed order, from either the defaults or the live theme.
+    function _paletteEntries(useDefault) {
+        var st = useDefault ? DEF.status : STATUS_HEX;
+        var gr = useDefault ? DEF.group : GROUP_COLORS;
+        var mx = useDefault ? DEF.mix : MIX_LAYER_COLORS;
+        var tr = useDefault ? DEF.tier : TIER_LINK_COLORS;
+        var out = [], k;
+        ['ok', 'out', 'down', 'unknown'].forEach(function (k2) { out.push(st[k2]); });
+        ['gateway', 'service', 'storage', 'dirauth', 'out'].forEach(function (k2) { out.push(gr[k2]); });
+        for (k = 0; k < mx.length; k++) out.push(mx[k]);
+        for (k = 0; k < tr.length; k++) out.push(tr[k]);
+        out.push(useDefault ? DEF.dirauthLink : DIRAUTH_LINK_COLOR);
+        out.push(useDefault ? DEF.replicaLink : REPLICA_LINK_COLOR);
+        out.push(useDefault ? DEF.courierLink : COURIER_LINK_COLOR);
+        return out;
+    }
+    // Map any hex to the current theme's palette: exact-match a default-palette
+    // colour to its themed slot, else snap to the nearest palette colour. Used
+    // so geometry edges/packets always match the scheme and re-theme live.
+    function themeColor(hex) {
+        var defs = _paletteEntries(true), cur = _paletteEntries(false), i;
+        for (i = 0; i < defs.length; i++) if (defs[i] === hex) return cur[i];
+        var br = (hex >> 16) & 255, bg = (hex >> 8) & 255, bb = hex & 255, best = cur[0], bd = 1e18;
+        for (i = 0; i < defs.length; i++) { var d = defs[i], dr = ((d >> 16) & 255) - br, dg = ((d >> 8) & 255) - bg, db = (d & 255) - bb, dist = dr * dr + dg * dg + db * db; if (dist < bd) { bd = dist; best = cur[i]; } }
+        return best;
+    }
     function groupColor(node) {
         if (!node || !node.data) return 0x8aa0b4;
         var t = node.data.type;
@@ -1717,6 +1743,7 @@
         vantageLink: function (a, b, hops, latency, curvePoints) { return vantageLink(a, b, hops, latency, curvePoints); },
         latencyColor: latencyColor,
         groupColor: groupColor,
+        themeColor: themeColor,
         themeNames: function () { var a = [], k; for (k in THEMES) a.push(k); return a; },
         currentTheme: function () { return currentTheme; },
         setTheme: function (name) { if (!THEMES[name]) return; currentTheme = name; applyThemePalette(THEMES[name]); nodeObjs.forEach(function (o) { o.statusHex = statusColor(o.data.status); o._setIcon(o.statusHex, false); }); runHooks(HOOKS.theme, name); },

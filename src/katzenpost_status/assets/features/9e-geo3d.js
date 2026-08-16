@@ -201,7 +201,8 @@
                 if (edges.length) {
                     var pa = new Float32Array(edges.length * 6), ca = new Float32Array(edges.length * 6);
                     edges.forEach(function (e, i) {
-                        var c = new THREE.Color(e.color == null ? 0x2ec4b6 : e.color), o = i * 6;
+                        var raw = e.color == null ? 0x2ec4b6 : e.color;
+                        var c = new THREE.Color(K.themeColor ? K.themeColor(raw) : raw), o = i * 6;
                         pa[o] = e.a.x; pa[o + 1] = e.a.y; pa[o + 2] = e.a.z;
                         pa[o + 3] = e.b.x; pa[o + 4] = e.b.y; pa[o + 5] = e.b.z;
                         ca[o] = c.r; ca[o + 1] = c.g; ca[o + 2] = c.b; ca[o + 3] = c.r; ca[o + 4] = c.g; ca[o + 5] = c.b;
@@ -324,23 +325,30 @@
             }
             function updatePackets(dt) {
                 var w = packPos, c = packCol, k = 0, md = meanDwell();
+                // Packet colours come from the live theme palette so they match
+                // the rest of the scene: payload cyan while moving, loop amber
+                // while queued/dwelling (both re-themed via K.themeColor).
+                var moveHex = K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff;
+                var dwellHex = K.themeColor ? K.themeColor(0xffaa00) : 0xffaa00;
+                var mr = ((moveHex >> 16) & 255) / 255, mg = ((moveHex >> 8) & 255) / 255, mb = (moveHex & 255) / 255;
+                var dr = ((dwellHex >> 16) & 255) / 255, dg = ((dwellHex >> 8) & 255) / 255, db = (dwellHex & 255) / 255;
                 for (var i = packets.length - 1; i >= 0; i--) {
                     var pk = packets[i], a = pk.path[pk.seg], b = pk.path[pk.seg + 1];
                     if (pk.dwell > 0) {
                         // queued at the mix: dwell an exponential (Loopix) delay,
                         // so packets leave in a shuffled order.
                         pk.dwell -= dt;
-                        if (k < PACK_MAX) { var o0 = k * 3; w[o0] = b.x; w[o0 + 1] = b.y; w[o0 + 2] = b.z; c[o0] = 1.0; c[o0 + 1] = 0.7; c[o0 + 2] = 0.3; k++; }
+                        if (k < PACK_MAX) { var o0 = k * 3; w[o0] = b.x; w[o0 + 1] = b.y; w[o0 + 2] = b.z; c[o0] = dr; c[o0 + 1] = dg; c[o0 + 2] = db; k++; }
                         if (pk.dwell <= 0) { pk.seg++; pk.t = 0; if (pk.seg >= pk.path.length - 1) packets.splice(i, 1); }
                         continue;
                     }
                     var segLen = a.distanceTo(b) || 1;
                     pk.t += dt * pk.speed / segLen;
-                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; triggerShell(b, 0xffc24d, 1.0, 9); }   // arrive -> shed a layer, mix/queue
+                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9); }   // arrive -> shed a layer, mix/queue
                     if (k < PACK_MAX) {
                         var t = pk.t, o = k * 3;
                         w[o] = a.x + (b.x - a.x) * t; w[o + 1] = a.y + (b.y - a.y) * t; w[o + 2] = a.z + (b.z - a.z) * t;
-                        c[o] = 1.0; c[o + 1] = 0.96; c[o + 2] = 0.55; k++;
+                        c[o] = mr; c[o + 1] = mg; c[o + 2] = mb; k++;
                     }
                 }
                 packPts.geometry.setDrawRange(0, k);
@@ -356,7 +364,7 @@
                 spawnAcc += dt * (6 + Math.min(40, rate * 0.6));
                 while (spawnAcc >= 1) { spawnPacket(); spawnAcc -= 1; }
                 heartAcc += dt;
-                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, 0x00f3ff, 2.6, 22); }   // epoch heartbeat
+                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 2.6, 22); }   // epoch heartbeat
                 updatePackets(dt);
                 updateShells(dt);
                 if (controls) controls.update();

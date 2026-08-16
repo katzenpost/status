@@ -83,8 +83,18 @@
     function gotoView(vid) {
         if (vid.indexOf('overlay:') === 0) { showOverlay(vid.slice(8)); }
         else { hideOverlays(); setMode(vid); updateBtn(); }
-        // Deliberately do NOT pin the view in the URL here: a fresh load should
-        // start on a random view unless the user explicitly opened a deep link.
+        pinUrl(vid);
+    }
+    // Reflect the current view in the address bar (query string), preserving any
+    // #node=/#group= hash, so the URL is always copy-shareable. This does NOT
+    // make reloads sticky: the boot handler randomizes on reload/return within a
+    // session (sessionStorage) and only honors the URL on a fresh open, so a
+    // shared link opens on its view while an in-tab reload still randomizes.
+    function pinUrl(vid) {
+        var q = '';
+        if (vid.indexOf('overlay:') === 0) q = '?overlay=' + vid.slice(8);
+        else if (vid !== 'earth') q = '?view=' + vid;
+        try { history.replaceState(null, '', location.pathname + q + location.hash); } catch (e) { }
     }
     // Build a shareable URL for the current view (used by the copy-link button);
     // does not touch the address bar.
@@ -2084,12 +2094,19 @@
     K.on('boot', function () {
         rebuildViewSelect();
         var qs = location.hash + location.search;
-        var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(qs);
-        if (om && findOverlay(om[1])) { showOverlay(om[1]); return; }
-        if (/[?#&]view=/i.test(qs)) return;   // explicit spatial view in the URL: keep it
-        // No deep link: start on a random visualization.
+        // A fresh open (new tab / shared link) honors a ?overlay=/?view= deep
+        // link; a reload or in-session return randomizes instead, so both
+        // behaviors coexist: shareable links AND a fresh random view on reload.
+        var freshOpen = true;
+        try { freshOpen = !sessionStorage.getItem('kzViewSeen'); sessionStorage.setItem('kzViewSeen', '1'); } catch (e) { }
+        if (freshOpen) {
+            var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(qs);
+            if (om && findOverlay(om[1])) { showOverlay(om[1]); pinUrl('overlay:' + om[1]); return; }
+            if (/[?#&]view=/i.test(qs)) { pinUrl(mode); return; }   // spatial view already set at init
+        }
+        // No honored deep link: start on a random visualization (also pins it).
         var ids = viewIds(), pick = ids[(Math.random() * ids.length) | 0];
-        if (pick && pick !== curViewId()) gotoView(pick);
+        if (pick) gotoView(pick);
     });
     K.on('boot', function () {
         fetch('katzenpost-viz/earth/land-110m.geo.json', { cache: 'force-cache' })
