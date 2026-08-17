@@ -24,4 +24,6 @@
     cloud('mandelbulb6', 'Mandelbulb (power 6)', shell3d(mbulb(6), 1.25, 15), 3, 0xff5d8f, 54);
 
     cloud('mandelbox', 'Mandelbox', shell3d(function (cx, cy, cz) { var x = cx, y = cy, z = cz, s = 2, n = 0; for (; n < 11; n++) { function bf(v) { return v > 1 ? 2 - v : (v < -1 ? -2 - v : v); } x = bf(x); y = bf(y); z = bf(z); var r2 = x * x + y * y + z * z; var m = r2 < 0.25 ? 4 : (r2 < 1 ? 1 / r2 : 1); x = x * m * s + cx; y = y * m * s + cy; z = z * m * s + cz; if (x * x + y * y + z * z > 16) break; } return n; }, 3.2, 6), 3, 0x00d2a0, 54);
+
+    cloud('sierpinskiocta', 'Sierpinski octahedron', ifs([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(function (v) { return function (p) { return [(p[0] + v[0]) / 2, (p[1] + v[1]) / 2, (p[2] + v[2]) / 2]; }; }), 6000), 3, 0xffd23f, 56);
 })();
