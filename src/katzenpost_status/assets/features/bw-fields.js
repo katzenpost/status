@@ -33,4 +33,6 @@
     field('field-shear', 'Shear flow', function (x, y, z) { return [y, 0.15 * z, -0.15 * y]; }, 0x00d2a0, 58, 5, 16, 50, 0.16);
 
     field('field-spiralsink', 'Spiral sink', function (x, y, z) { return [-x - y, x - y, -z * 0.4]; }, 0xffd23f, 58, 4, 16, 80, 0.14);
+
+    field('field-quadrupole', 'Quadrupole field', function (x, y, z) { return [x * (x * x - 3 * y * y), y * (y * y - 3 * x * x), z * 0.4]; }, 0x4d8bf0, 58, 5, 14, 40, 0.12);
 })();
