@@ -30,4 +30,6 @@
     attractor('burkeshaw', 'Burke-Shaw attractor', function (p, dt) { var s = 10, v = 4.272, x = p[0], y = p[1], z = p[2]; return [x + dt * (-s * (x + y)), y + dt * (-y - s * x * z), z + dt * (s * x * y + v)]; }, [0.6, 0, 0], 0.01, 5000, 8, [0, 0, 0], 0x4d8bf0, 58);
 
     attractor('hadley', 'Hadley attractor', function (p, dt) { var a = 0.2, b = 4, f = 8, gg = 1, x = p[0], y = p[1], z = p[2]; return [x + dt * (-y * y - z * z - a * x + a * f), y + dt * (x * y - b * x * z - y + gg), z + dt * (b * x * y + x * z - z)]; }, [0.5, 0, 0], 0.03, 5000, 8, [3, 0, 0], 0x9b5de5, 58);
+
+    attractor('rayleighbenard', 'Rayleigh-Benard attractor', function (p, dt) { var a = 9, r = 12, b = 5, x = p[0], y = p[1], z = p[2]; return [x + dt * (-a * x + a * y), y + dt * (r * x - y - x * z), z + dt * (x * y - b * z)]; }, [0.1, 0, 0], 0.01, 5000, 1.4, [0, 0, 12], 0xff8f3f, 62);
 })();
