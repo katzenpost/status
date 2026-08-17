@@ -28,4 +28,6 @@
     cloud('sierpinskiocta', 'Sierpinski octahedron', ifs([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(function (v) { return function (p) { return [(p[0] + v[0]) / 2, (p[1] + v[1]) / 2, (p[2] + v[2]) / 2]; }; }), 6000), 3, 0xffd23f, 56);
 
     cloud('sierpinskitetra3d', 'Sierpinski tetrahedron (3D)', ifs([[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]].map(function (v) { return function (p) { return [(p[0] + v[0]) / 2, (p[1] + v[1]) / 2, (p[2] + v[2]) / 2]; }; }), 6000), 3, 0x2ec4b6, 56);
+
+    cloud('jerusalemcube', 'Jerusalem cube (approx)', ifs((function () { var m = []; for (var a = -1; a <= 1; a++) for (var b = -1; b <= 1; b++) for (var c = -1; c <= 1; c++) { if (Math.abs(a) + Math.abs(b) + Math.abs(c) === 3 || (a === 0 && b === 0 && c === 0)) m.push([a, b, c]); } return m; })().map(function (v) { return function (p) { return [(p[0] + v[0] * 2) / 3, (p[1] + v[1] * 2) / 3, (p[2] + v[2] * 2) / 3]; }; }), 6000), 3, 0x9b5de5, 56);
 })();
