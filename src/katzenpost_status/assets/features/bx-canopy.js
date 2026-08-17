@@ -27,4 +27,6 @@
     canopy('canopy-ternary', 'Ternary canopy', [40 * D, 0, -40 * D], 0.62, 7, 0x9b5de5, 58);
 
     canopy('canopy-asymmetric', 'Asymmetric canopy', [20 * D, -50 * D], 0.76, 9, 0xff8f3f, 58);
+
+    canopy('canopy-pine', 'Pine canopy (narrow)', [15 * D, -15 * D], 0.8, 9, 0x00d2a0, 58);
 })();
