@@ -14,4 +14,6 @@
     function ifs(maps, iters) { return function (THREE) { var p = [0.1, 0.1, 0.1], pts = [], i; for (i = 0; i < iters; i++) { var m = maps[(Math.random() * maps.length) | 0]; p = m(p); if (i > 30 && pts.length < 560) pts.push(new THREE.Vector3(p[0], p[1], p[2])); } var mx = 0; pts.forEach(function (v) { mx = Math.max(mx, Math.abs(v.x), Math.abs(v.y), Math.abs(v.z)); }); var s = 20 / (mx || 1); pts.forEach(function (v) { v.multiplyScalar(s); }); return pts; }; }
 
     cloud('quaternionjulia', 'Quaternion Julia', shell3d(function (x, y, z) { var qx = x, qy = y, qz = z, qw = 0, cx = -0.2, cy = 0.6, cz = 0.2, cw = 0.2, n = 0; for (; n < 12; n++) { var nx = qx * qx - qy * qy - qz * qz - qw * qw + cx; var ny = 2 * qx * qy + cy; var nz = 2 * qx * qz + cz; var nw = 2 * qx * qw + cw; qx = nx; qy = ny; qz = nz; qw = nw; if (qx * qx + qy * qy + qz * qz + qw * qw > 4) break; } return n; }, 1.3, 12), 3, 0x2ec4b6, 54);
+
+    cloud('mandelbulb3', 'Mandelbulb (power 3)', shell3d(mbulb(3), 1.25, 15), 3, 0x4d8bf0, 54);
 })();
