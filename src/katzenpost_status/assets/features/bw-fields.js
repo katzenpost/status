@@ -27,4 +27,6 @@
     field('field-saddle', 'Saddle field', function (x, y, z) { return [x, -y, z * 0.3]; }, 0x9b5de5, 58, 4, 16, 40, 0.18);
 
     field('field-dipole', 'Dipole field', function (x, y, z) { var r = Math.sqrt(x * x + y * y + z * z) + 0.05, r5 = Math.pow(r, 5); return [3 * z * x / r5, 3 * z * y / r5, (3 * z * z - r * r) / r5]; }, 0xff8f3f, 56, 5, 14, 70, 0.12);
+
+    field('field-abc', 'ABC flow', function (x, y, z) { var A = 1, B = 0.7, C = 0.43, X = x * 3, Y = y * 3, Z = z * 3; return [A * Math.sin(Z) + C * Math.cos(Y), B * Math.sin(X) + A * Math.cos(Z), C * Math.sin(Y) + B * Math.cos(X)]; }, 0xff5d8f, 58, 5, 16, 90, 0.12);
 })();
