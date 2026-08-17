@@ -23,4 +23,6 @@
     field('field-source', 'Source-sink field', function (x, y, z) { return [x, y, z]; }, 0x2ec4b6, 58, 4, 16, 40, 0.2);
 
     field('field-vortex', 'Vortex field', function (x, y, z) { return [-y, x, z * 0.15]; }, 0x4d8bf0, 58, 4, 16, 70, 0.14);
+
+    field('field-saddle', 'Saddle field', function (x, y, z) { return [x, -y, z * 0.3]; }, 0x9b5de5, 58, 4, 16, 40, 0.18);
 })();
