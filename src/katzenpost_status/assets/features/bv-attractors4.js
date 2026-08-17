@@ -26,4 +26,6 @@
     attractor('moorespiegel', 'Moore-Spiegel attractor', function (p, dt) { var t = 6, r = 20, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * z, z + dt * (-z - (t - r + r * x * x) * y - t * x)]; }, [0.1, 0, 0], 0.01, 5000, 4, [0, 0, 0], 0x00d2a0, 58);
 
     attractor('sprottjerk', 'Sprott jerk attractor', function (p, dt) { var a = 2.017, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * z, z + dt * (-a * z + y * y - x)]; }, [0.1, 0, 0], 0.03, 5000, 6, [0, 0, 0], 0xffd23f, 58);
+
+    attractor('burkeshaw', 'Burke-Shaw attractor', function (p, dt) { var s = 10, v = 4.272, x = p[0], y = p[1], z = p[2]; return [x + dt * (-s * (x + y)), y + dt * (-y - s * x * z), z + dt * (s * x * y + v)]; }, [0.6, 0, 0], 0.01, 5000, 8, [0, 0, 0], 0x4d8bf0, 58);
 })();
