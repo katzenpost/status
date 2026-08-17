@@ -35,4 +35,6 @@
     field('field-spiralsink', 'Spiral sink', function (x, y, z) { return [-x - y, x - y, -z * 0.4]; }, 0xffd23f, 58, 4, 16, 80, 0.14);
 
     field('field-quadrupole', 'Quadrupole field', function (x, y, z) { return [x * (x * x - 3 * y * y), y * (y * y - 3 * x * x), z * 0.4]; }, 0x4d8bf0, 58, 5, 14, 40, 0.12);
+
+    field('field-roberts', 'Roberts cell flow', function (x, y, z) { var X = x * 3, Y = y * 3; return [Math.sin(X) * Math.cos(Y), -Math.cos(X) * Math.sin(Y), Math.sin(X) * Math.sin(Y) * 0.6]; }, 0x9b5de5, 58, 5, 16, 80, 0.12);
 })();
