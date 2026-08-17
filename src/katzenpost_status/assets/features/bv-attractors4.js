@@ -14,4 +14,6 @@
     }
 
     attractor('arneodo', 'Arneodo attractor', function (p, dt) { var a = -5.5, b = 3.5, c = -1, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * z, z + dt * (-a * x - b * y - z + c * x * x * x)]; }, [0.1, 0, 0], 0.02, 5000, 4, [0, 0, 0], 0x2ec4b6, 60);
+
+    attractor('coullet', 'Coullet attractor', function (p, dt) { var a = 0.8, b = -1.1, c = -0.45, d = -1, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * z, z + dt * (a * x + b * y + c * z + d * x * x * x)]; }, [0.1, 0, 0], 0.03, 5000, 10, [0, 0, 0], 0x4d8bf0, 58);
 })();
