@@ -25,4 +25,6 @@
     field('field-vortex', 'Vortex field', function (x, y, z) { return [-y, x, z * 0.15]; }, 0x4d8bf0, 58, 4, 16, 70, 0.14);
 
     field('field-saddle', 'Saddle field', function (x, y, z) { return [x, -y, z * 0.3]; }, 0x9b5de5, 58, 4, 16, 40, 0.18);
+
+    field('field-dipole', 'Dipole field', function (x, y, z) { var r = Math.sqrt(x * x + y * y + z * z) + 0.05, r5 = Math.pow(r, 5); return [3 * z * x / r5, 3 * z * y / r5, (3 * z * z - r * r) / r5]; }, 0xff8f3f, 56, 5, 14, 70, 0.12);
 })();
