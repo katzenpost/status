@@ -23,4 +23,6 @@
     canopy('canopy-binary30', 'Binary canopy (30 deg)', [30 * D, -30 * D], 0.75, 9, 0x2ec4b6, 58);
 
     canopy('canopy-binary45', 'Binary canopy (45 deg)', [45 * D, -45 * D], 0.72, 9, 0x4d8bf0, 58);
+
+    canopy('canopy-ternary', 'Ternary canopy', [40 * D, 0, -40 * D], 0.62, 7, 0x9b5de5, 58);
 })();
