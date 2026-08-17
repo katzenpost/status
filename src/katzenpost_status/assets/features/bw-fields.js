@@ -31,4 +31,6 @@
     field('field-abc', 'ABC flow', function (x, y, z) { var A = 1, B = 0.7, C = 0.43, X = x * 3, Y = y * 3, Z = z * 3; return [A * Math.sin(Z) + C * Math.cos(Y), B * Math.sin(X) + A * Math.cos(Z), C * Math.sin(Y) + B * Math.cos(X)]; }, 0xff5d8f, 58, 5, 16, 90, 0.12);
 
     field('field-shear', 'Shear flow', function (x, y, z) { return [y, 0.15 * z, -0.15 * y]; }, 0x00d2a0, 58, 5, 16, 50, 0.16);
+
+    field('field-spiralsink', 'Spiral sink', function (x, y, z) { return [-x - y, x - y, -z * 0.4]; }, 0xffd23f, 58, 4, 16, 80, 0.14);
 })();
