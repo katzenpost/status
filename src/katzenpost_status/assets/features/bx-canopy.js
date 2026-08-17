@@ -33,4 +33,6 @@
     canopy('canopy-fan', 'Fan canopy (wide)', [65 * D, -65 * D], 0.68, 8, 0xff5d8f, 58);
 
     canopy('canopy-quaternary', 'Quaternary canopy', [50 * D, 18 * D, -18 * D, -50 * D], 0.56, 6, 0xffd23f, 58);
+
+    canopy('canopy-sympodial', 'Sympodial canopy', [12 * D, -55 * D, 55 * D], 0.66, 7, 0x4d8bf0, 58);
 })();
