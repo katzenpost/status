@@ -20,4 +20,6 @@
     cloud('mandelbulb4', 'Mandelbulb (power 4)', shell3d(mbulb(4), 1.25, 15), 3, 0x9b5de5, 54);
 
     cloud('mandelbulb5', 'Mandelbulb (power 5)', shell3d(mbulb(5), 1.25, 15), 3, 0xff8f3f, 54);
+
+    cloud('mandelbulb6', 'Mandelbulb (power 6)', shell3d(mbulb(6), 1.25, 15), 3, 0xff5d8f, 54);
 })();
