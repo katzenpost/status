@@ -18,4 +18,6 @@
     attractor('coullet', 'Coullet attractor', function (p, dt) { var a = 0.8, b = -1.1, c = -0.45, d = -1, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * z, z + dt * (a * x + b * y + c * z + d * x * x * x)]; }, [0.1, 0, 0], 0.03, 5000, 10, [0, 0, 0], 0x4d8bf0, 58);
 
     attractor('genesiotesi', 'Genesio-Tesi attractor', function (p, dt) { var a = 0.44, b = 1.1, c = 1, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * z, z + dt * (-c * x - b * y - a * z + x * x)]; }, [0.1, 0, 0], 0.02, 5000, 12, [0.5, 0, 0], 0x9b5de5, 58);
+
+    attractor('shimizumorioka', 'Shimizu-Morioka attractor', function (p, dt) { var a = 0.75, b = 0.45, x = p[0], y = p[1], z = p[2]; return [x + dt * y, y + dt * (x * (1 - z) - a * y), z + dt * (-b * z + x * x)]; }, [0.1, 0.1, 0.1], 0.02, 5000, 13, [0, 0, 1], 0xff8f3f, 58);
 })();
