@@ -7,6 +7,7 @@ import io
 import json
 import logging
 import os
+import re
 import subprocess
 import time
 from collections import defaultdict
@@ -3382,9 +3383,9 @@ def generate_report(
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         page_border = "bold cyan" if has_consensus else "bold red"
 
-        def _export_page(
-            page_sections: list[RenderableType], current: str, path: str
-        ) -> None:
+        def _build_page(
+            page_sections: list[RenderableType], current: str
+        ) -> str:
             pc = Console(
                 record=True, width=width, force_terminal=True
             )
@@ -3417,26 +3418,51 @@ def generate_report(
                 html = _inject_html_poller(
                     html, meta_name, generated_at, html_poll_seconds
                 )
-            with open(path, "w", encoding="utf-8") as file:
-                file.write(html)
+            return html
 
-        _export_page(front_sections, "front", output_file)
+        # Build every page, then only touch disk if something actually changed
+        # (ignoring the per-render Generated timestamp and poller token) - so an
+        # unchanged re-render writes nothing and never advances the poll meta.
+        pages: list[tuple[str, str]] = [
+            (str(output_file), _build_page(front_sections, "front"))
+        ]
         if debug_sections:
-            _export_page(
-                debug_sections, "debug",
+            pages.append((
                 str(out_path.with_name(debug_name)),
-            )
+                _build_page(debug_sections, "debug"),
+            ))
         if consensus_sections:
-            _export_page(
-                consensus_sections, "consensus",
+            pages.append((
                 str(out_path.with_name(consensus_name)),
+                _build_page(consensus_sections, "consensus"),
+            ))
+
+        def _norm(s: str) -> str:
+            s = re.sub(
+                r"Generated: \d{4}-\d\d-\d\d \d\d:\d\d", "Generated: X", s
             )
-        # Write the meta file AFTER the html so a poller firing in the gap never
-        # reloads into the stale page; worst case is one missed poll cycle.
-        if html_poll_seconds > 0:
-            out_path.with_name(meta_name).write_text(
-                json.dumps({"generated_at": generated_at}), encoding="utf-8"
-            )
+            return re.sub(r"BASE=[^,]*, N=", "BASE=X, N=", s)
+
+        any_changed = False
+        for path, html in pages:
+            try:
+                if _norm(open(path, encoding="utf-8").read()) == _norm(html):
+                    continue
+            except OSError:
+                pass
+            any_changed = True
+            break
+        if any_changed:
+            for path, html in pages:
+                with open(path, "w", encoding="utf-8") as file:
+                    file.write(html)
+            # Write the meta AFTER the html so a poller firing in the gap never
+            # reloads into a stale page; worst case is one missed poll cycle.
+            if html_poll_seconds > 0:
+                out_path.with_name(meta_name).write_text(
+                    json.dumps({"generated_at": generated_at}),
+                    encoding="utf-8",
+                )
 
 
 async def _collect_network_data(
@@ -3762,26 +3788,31 @@ async def _async_main_inner(ctx: click.Context) -> None:
         except ValueError:
             vantage = None
 
-    # Run the four probes concurrently (unchanged), but stage the writes so an
-    # open viz page updates as soon as the survey finishes (~40s) instead of
-    # waiting for the ~2 min replica probe. The survey (latency/hops/status),
-    # node_status, and dirauth_status are the only inputs the viz consumes;
-    # courier/replica only feed the rich report, so the intermediate viz write
-    # is already complete viz data (not a partial). We never write before the
-    # survey completes: the already-served data file holds the previous run's
-    # complete data, and a consensus-only write would visibly degrade an open
-    # page.
-    survey_task = asyncio.create_task(run_survey_async())
-    echo_task = asyncio.create_task(run_echo_probes_async())
-    courier_task = asyncio.create_task(run_courier_probes_async())
-    replica_task = asyncio.create_task(run_replica_probes_async())
+    # Everything the static pages and the viz need from the FAST data
+    # (consensus + node/dirauth status) is already in hand. Paint the pages and
+    # the viz now, before the slow network-debug probes (survey/echo/courier/
+    # replica) run - so the site redeploys immediately with fresh-but-partial
+    # data and each probe fills in as it finishes. Unchanged pages are skipped.
+    survey_results: dict[str, dict[str, Any]] | None = None
 
-    survey_results = await survey_task
-    echo_results = await echo_task
-    if echo_results:
-        service_probes["echo"] = echo_results
-        if any(ok for ok, _ in echo_results.values()):
-            conn_status.network_online = True
+    def write_report(final: bool) -> None:
+        generate_report(
+            doc,
+            dirauthconf,
+            output_file=htmlout or None,
+            service_probes=service_probes,
+            conn_status=conn_status,
+            dirauth_status=dirauth_status,
+            node_status=node_status,
+            network_name=network_name,
+            show_pki_doc=show_pki_doc,
+            survey_results=survey_results,
+            quiet=quiet if final else True,
+            last_consensus=last_consensus,
+            pigeonhole_geometry=pigeonhole_geometry,
+            viz_link=viz_link,
+            html_poll_seconds=html_poll_seconds,
+        )
 
     def write_viz(write_history: bool) -> None:
         from .viz import generate_viz  # local import avoids a circular import
@@ -3820,15 +3851,33 @@ async def _async_main_inner(ctx: click.Context) -> None:
             write_history=write_history,
         )
 
-    # Intermediate write: complete viz data as soon as the survey is done, so an
-    # open page refreshes early. History is deferred to the final write so the
-    # epoch-deduped scrubber keeps the full snapshot, not this one. Run in a
-    # thread (like run_survey_parallel): generate_viz is synchronous work that
-    # can include RDAP lookups, and the courier/replica probes are still in
-    # flight on this loop, so blocking here would delay their responses and
-    # inflate their measured latencies.
+    # --- First light: the static pages and the viz go out NOW, from the fast
+    # data, before any slow probe runs. Unchanged files are skipped. ---
+    if htmlout:
+        write_report(final=False)
     if viz_path:
         await asyncio.to_thread(write_viz, False)
+
+    # --- Slow network-debug phase: the four probes run concurrently. ---
+    survey_task = asyncio.create_task(run_survey_async())
+    echo_task = asyncio.create_task(run_echo_probes_async())
+    courier_task = asyncio.create_task(run_courier_probes_async())
+    replica_task = asyncio.create_task(run_replica_probes_async())
+
+    survey_results = await survey_task
+    echo_results = await echo_task
+    if echo_results:
+        service_probes["echo"] = echo_results
+        if any(ok for ok, _ in echo_results.values()):
+            conn_status.network_online = True
+
+    # Survey + echo done (~40s): refresh the debug page and viz early, before
+    # the slower courier/replica probes finish. generate_viz runs in a thread so
+    # the in-flight courier/replica responses on this loop are not delayed.
+    if viz_path:
+        await asyncio.to_thread(write_viz, False)
+    if htmlout:
+        write_report(final=False)
 
     courier_results = await courier_task
     replica_results = await replica_task
@@ -3847,24 +3896,9 @@ async def _async_main_inner(ctx: click.Context) -> None:
     if client:
         client.stop()
 
-    # Final writes with the complete data (report needs courier/replica).
-    generate_report(
-        doc,
-        dirauthconf,
-        output_file=htmlout or None,
-        service_probes=service_probes,
-        conn_status=conn_status,
-        dirauth_status=dirauth_status,
-        node_status=node_status,
-        network_name=network_name,
-        show_pki_doc=show_pki_doc,
-        survey_results=survey_results,
-        quiet=quiet,
-        last_consensus=last_consensus,
-        pigeonhole_geometry=pigeonhole_geometry,
-        viz_link=viz_link,
-        html_poll_seconds=html_poll_seconds,
-    )
+    # Final writes with the complete data (report needs courier/replica). The
+    # terminal report (quiet=False) prints once, here, with everything.
+    write_report(final=True)
 
     if viz_path:
         write_viz(write_history=True)
