@@ -3386,8 +3386,11 @@ def generate_report(
         def _build_page(
             page_sections: list[RenderableType], current: str
         ) -> str:
+            # Capture to a StringIO: we only want the recorded HTML, never a
+            # print to stdout (the terminal report is the main `console` above).
             pc = Console(
-                record=True, width=width, force_terminal=True
+                file=io.StringIO(), record=True, width=width,
+                force_terminal=True,
             )
             links = _links_for(current)
             ftr_text = (
