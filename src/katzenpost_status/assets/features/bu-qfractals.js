@@ -16,4 +16,6 @@
     cloud('quaternionjulia', 'Quaternion Julia', shell3d(function (x, y, z) { var qx = x, qy = y, qz = z, qw = 0, cx = -0.2, cy = 0.6, cz = 0.2, cw = 0.2, n = 0; for (; n < 12; n++) { var nx = qx * qx - qy * qy - qz * qz - qw * qw + cx; var ny = 2 * qx * qy + cy; var nz = 2 * qx * qz + cz; var nw = 2 * qx * qw + cw; qx = nx; qy = ny; qz = nz; qw = nw; if (qx * qx + qy * qy + qz * qz + qw * qw > 4) break; } return n; }, 1.3, 12), 3, 0x2ec4b6, 54);
 
     cloud('mandelbulb3', 'Mandelbulb (power 3)', shell3d(mbulb(3), 1.25, 15), 3, 0x4d8bf0, 54);
+
+    cloud('mandelbulb4', 'Mandelbulb (power 4)', shell3d(mbulb(4), 1.25, 15), 3, 0x9b5de5, 54);
 })();
