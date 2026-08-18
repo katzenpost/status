@@ -36,4 +36,6 @@
     circ('mobiusladder', 'Mobius ladder M24', 24, [1, 12], 0xffd23f, 56);
 
     circ('cocktailparty', 'Cocktail-party graph', 18, [1, 2, 3, 4, 5, 6, 7, 8], 0x4d8bf0, 56);
+
+    paley('paley13', 'Paley graph (13)', 13, 0x9b5de5, 54);
 })();
