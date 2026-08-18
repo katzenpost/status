@@ -8,4 +8,6 @@
     function rose3d(k, kz) { return function (t, T) { var th = t * PI2 * 2, r = 19 * Math.cos(k * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 8 * Math.sin(kz * th)); }; }
 
     curve('liss-4-5-3', 'Lissajous 4:5:3', liss(4, 5, 3, Math.PI / 2, 0), 0x2ec4b6, 58, 900);
+
+    curve('liss-5-6-4', 'Lissajous 5:6:4', liss(5, 6, 4, 0.4, 1.1), 0x4d8bf0, 58, 1000);
 })();
