@@ -26,4 +26,6 @@
     contour('cym-2-3', 'Chladni (2,3)', chl(2, 3), 0x4d8bf0, 54);
 
     contour('cym-3-4', 'Chladni (3,4)', chl(3, 4), 0x9b5de5, 54);
+
+    contour('cym-1-4', 'Chladni (1,4)', chl(1, 4), 0xff8f3f, 54);
 })();
