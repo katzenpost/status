@@ -17,4 +17,6 @@
     curve('helixtower', 'Helix tower fill', function (t, T) { var th = t * PI2 * 30, R = 14; return new T.Vector3(Math.cos(th) * R, (t - 0.5) * 36, Math.sin(th) * R); }, 0xff5d8f, 58, 1400);
 
     curve('doublehelix', 'Double helix fill', function (t, T) { var th = t * PI2 * 10, R = 12, s = (t < 0.5) ? 1 : -1, tt = (t < 0.5) ? t * 2 : (t - 0.5) * 2, y = (tt - 0.5) * 34; return new T.Vector3(Math.cos(th) * R * s, y, Math.sin(th) * R * s); }, 0x00d2a0, 58, 1400);
+
+    ptsView('spherefib', 'Fibonacci sphere path', function (T) { var N = 500, GA = PI2 * (1 - 1 / ((1 + Math.sqrt(5)) / 2)), P = [], i; for (i = 0; i < N; i++) { var y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * GA; P.push(new T.Vector3(Math.cos(th) * r * 19, y * 19, Math.sin(th) * r * 19)); } return P; }, 0xffd23f, 58);
 })();
