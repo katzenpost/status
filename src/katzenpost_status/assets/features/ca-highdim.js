@@ -28,4 +28,6 @@
     polyN('demipenteract', 'Demipenteract (5-demicube)', function () { return demicube(5); }, 0xffd23f, 54);
 
     polyN('demihexeract', 'Demihexeract (6-demicube)', function () { return demicube(6); }, 0x4d8bf0, 54);
+
+    polyN('nine-orthoplex', '9-orthoplex', function () { return orthoplex(9); }, 0x9b5de5, 54);
 })();
