@@ -11,4 +11,6 @@
     curve('layerspiral', 'Layered spiral fill', function (t, T) { var th = t * PI2 * 40, r = 2 + (1 - Math.abs(2 * ((t * 6) % 1) - 1)) * 16, z = (t - 0.5) * 34; return new T.Vector3(Math.cos(th) * r, z, Math.sin(th) * r); }, 0x4d8bf0, 60, 2000);
 
     curve('toruswind', 'Dense torus winding', function (t, T) { var phi = t * PI2 * 3, theta = t * PI2 * 40, R = 15, r = 6; return new T.Vector3((R + r * Math.cos(theta)) * Math.cos(phi), r * Math.sin(theta), (R + r * Math.cos(theta)) * Math.sin(phi)); }, 0x9b5de5, 58, 2400);
+
+    curve('sphereboustro', 'Spherical boustrophedon', function (t, T) { var lat = (t - 0.5) * Math.PI, lon = t * PI2 * 24, R = 18; return new T.Vector3(R * Math.cos(lat) * Math.cos(lon), R * Math.sin(lat), R * Math.cos(lat) * Math.sin(lon)); }, 0xff8f3f, 58, 1800);
 })();
