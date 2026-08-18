@@ -37,4 +37,6 @@
     canopy('canopy-sympodial', 'Sympodial canopy', [12 * D, -55 * D, 55 * D], 0.66, 7, 0x4d8bf0, 58);
 
     canopy('canopy-windswept', 'Windswept canopy', [55 * D, 10 * D], 0.74, 9, 0x9b5de5, 58);
+
+    canopy('canopy-bushy', 'Bushy canopy', [35 * D, 12 * D, -12 * D, -35 * D], 0.6, 6, 0x2ec4b6, 58);
 })();
