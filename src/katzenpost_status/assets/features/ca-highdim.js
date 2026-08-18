@@ -24,4 +24,6 @@
     polyN('seven-simplex', '7-simplex', function () { return simplex(7); }, 0xff5d8f, 54);
 
     polyN('eight-simplex', '8-simplex', function () { return simplex(8); }, 0x00d2a0, 54);
+
+    polyN('demipenteract', 'Demipenteract (5-demicube)', function () { return demicube(5); }, 0xffd23f, 54);
 })();
