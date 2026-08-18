@@ -14,4 +14,6 @@
     function simplex(n) { var V = [], i, k; for (i = 0; i < n + 1; i++) { var v = []; for (k = 0; k < n + 1; k++) v.push(k === i ? 1 : 0); V.push(v); } return V; }
 
     polyN('hept7cube', 'Hepteract (7-cube)', function () { return hypercube(7); }, 0x2ec4b6, 54);
+
+    polyN('oct8cube', 'Octeract (8-cube)', function () { return hypercube(8); }, 0x4d8bf0, 54);
 })();
