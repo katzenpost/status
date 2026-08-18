@@ -38,4 +38,6 @@
     circ('cocktailparty', 'Cocktail-party graph', 18, [1, 2, 3, 4, 5, 6, 7, 8], 0x4d8bf0, 56);
 
     paley('paley13', 'Paley graph (13)', 13, 0x9b5de5, 54);
+
+    paley('paley17', 'Paley graph (17)', 17, 0xff8f3f, 54);
 })();
