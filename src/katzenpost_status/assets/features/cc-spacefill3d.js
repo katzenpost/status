@@ -23,4 +23,6 @@
     curve('conichelix2', 'Conic helix cascade', function (t, T) { var th = t * PI2 * 12, r = 2 + Math.abs(2 * ((t * 3) % 1) - 1) * 15, y = (t - 0.5) * 34; return new T.Vector3(Math.cos(th) * r, y, Math.sin(th) * r); }, 0x4d8bf0, 58, 1600);
 
     curve('cylspiral', 'Cylindrical spiral wrap', function (t, T) { var th = t * PI2 * 20, R = 14, y = 18 * Math.sin(t * PI2); return new T.Vector3(Math.cos(th) * R, y, Math.sin(th) * R); }, 0x9b5de5, 58, 1400);
+
+    curve('gosperfill', 'Gosper island fill', function (t, T) { var th = t * PI2 * 7, r = 18 * (0.5 + 0.5 * Math.cos(6 * th)), z = 6 * Math.sin(7 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), z); }, 0xff8f3f, 58, 1200);
 })();
