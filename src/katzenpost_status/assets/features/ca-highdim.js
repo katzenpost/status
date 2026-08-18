@@ -30,4 +30,6 @@
     polyN('demihexeract', 'Demihexeract (6-demicube)', function () { return demicube(6); }, 0x4d8bf0, 54);
 
     polyN('nine-orthoplex', '9-orthoplex', function () { return orthoplex(9); }, 0x9b5de5, 54);
+
+    polyN('nine-simplex', '9-simplex', function () { return simplex(9); }, 0xff8f3f, 54);
 })();
