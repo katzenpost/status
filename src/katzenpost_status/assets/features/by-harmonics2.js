@@ -15,4 +15,6 @@
     function C(a) { return Math.cos(a); } function S(a) { return Math.sin(a); }
 
     ylm('harm-y31', 'Harmonic Y(3,1)', function (t, p) { return S(t) * (5 * C(t) * C(t) - 1) * C(p); }, 0x2ec4b6, 50);
+
+    ylm('harm-y32', 'Harmonic Y(3,2)', function (t, p) { return S(t) * S(t) * C(t) * C(2 * p); }, 0x4d8bf0, 50);
 })();
