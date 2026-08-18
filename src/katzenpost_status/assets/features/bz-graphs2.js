@@ -34,4 +34,6 @@
     circ('circ-24-3-8', 'Circulant C24(3,8)', 24, [3, 8], 0x00d2a0, 56);
 
     circ('mobiusladder', 'Mobius ladder M24', 24, [1, 12], 0xffd23f, 56);
+
+    circ('cocktailparty', 'Cocktail-party graph', 18, [1, 2, 3, 4, 5, 6, 7, 8], 0x4d8bf0, 56);
 })();
