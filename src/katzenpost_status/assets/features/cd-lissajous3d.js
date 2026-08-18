@@ -24,4 +24,6 @@
     curve('rose3d-5', 'Rose 3D (k=5)', rose3d(5, 10), 0x4d8bf0, 58, 800);
 
     curve('rose3d-7', 'Rose 3D (k=7)', rose3d(7, 7), 0x9b5de5, 58, 900);
+
+    curve('rose3d-25', 'Rose 3D (k=2/5)', function (t, T) { var th = t * PI2 * 5, r = 19 * Math.cos(2.5 * th); return new T.Vector3(r * Math.cos(th), r * Math.sin(th), 8 * Math.sin(5 * th)); }, 0xff8f3f, 58, 1200);
 })();
