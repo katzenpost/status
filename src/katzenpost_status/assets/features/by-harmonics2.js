@@ -21,4 +21,6 @@
     ylm('harm-y40', 'Harmonic Y(4,0)', function (t, p) { var c = C(t); return 35 * Math.pow(c, 4) - 30 * c * c + 3; }, 0x9b5de5, 52);
 
     ylm('harm-y42', 'Harmonic Y(4,2)', function (t, p) { return S(t) * S(t) * (7 * C(t) * C(t) - 1) * C(2 * p); }, 0xff8f3f, 50);
+
+    ylm('harm-y44', 'Harmonic Y(4,4)', function (t, p) { return Math.pow(S(t), 4) * C(4 * p); }, 0xff5d8f, 50);
 })();
