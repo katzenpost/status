@@ -21,4 +21,6 @@
     ptsView('spherefib', 'Fibonacci sphere path', function (T) { var N = 500, GA = PI2 * (1 - 1 / ((1 + Math.sqrt(5)) / 2)), P = [], i; for (i = 0; i < N; i++) { var y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * GA; P.push(new T.Vector3(Math.cos(th) * r * 19, y * 19, Math.sin(th) * r * 19)); } return P; }, 0xffd23f, 58);
 
     curve('conichelix2', 'Conic helix cascade', function (t, T) { var th = t * PI2 * 12, r = 2 + Math.abs(2 * ((t * 3) % 1) - 1) * 15, y = (t - 0.5) * 34; return new T.Vector3(Math.cos(th) * r, y, Math.sin(th) * r); }, 0x4d8bf0, 58, 1600);
+
+    curve('cylspiral', 'Cylindrical spiral wrap', function (t, T) { var th = t * PI2 * 20, R = 14, y = 18 * Math.sin(t * PI2); return new T.Vector3(Math.cos(th) * R, y, Math.sin(th) * R); }, 0x9b5de5, 58, 1400);
 })();
