@@ -24,4 +24,6 @@
     circ('circ-24-1-2', 'Circulant C24(1,2)', 24, [1, 2], 0x2ec4b6, 56);
 
     circ('circ-24-1-5', 'Circulant C24(1,5)', 24, [1, 5], 0x4d8bf0, 56);
+
+    circ('circ-24-2-7', 'Circulant C24(2,7)', 24, [2, 7], 0x9b5de5, 56);
 })();
