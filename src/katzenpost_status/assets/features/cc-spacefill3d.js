@@ -15,4 +15,6 @@
     curve('sphereboustro', 'Spherical boustrophedon', function (t, T) { var lat = (t - 0.5) * Math.PI, lon = t * PI2 * 24, R = 18; return new T.Vector3(R * Math.cos(lat) * Math.cos(lon), R * Math.sin(lat), R * Math.cos(lat) * Math.sin(lon)); }, 0xff8f3f, 58, 1800);
 
     curve('helixtower', 'Helix tower fill', function (t, T) { var th = t * PI2 * 30, R = 14; return new T.Vector3(Math.cos(th) * R, (t - 0.5) * 36, Math.sin(th) * R); }, 0xff5d8f, 58, 1400);
+
+    curve('doublehelix', 'Double helix fill', function (t, T) { var th = t * PI2 * 10, R = 12, s = (t < 0.5) ? 1 : -1, tt = (t < 0.5) ? t * 2 : (t - 0.5) * 2, y = (tt - 0.5) * 34; return new T.Vector3(Math.cos(th) * R * s, y, Math.sin(th) * R * s); }, 0x00d2a0, 58, 1400);
 })();
