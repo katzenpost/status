@@ -20,4 +20,6 @@
     curve('liss-8-9-7', 'Lissajous 8:9:7', liss(8, 9, 7, 0.5, 0.9), 0x00d2a0, 58, 1400);
 
     curve('rose3d-3', 'Rose 3D (k=3)', rose3d(3, 6), 0xffd23f, 58, 700);
+
+    curve('rose3d-5', 'Rose 3D (k=5)', rose3d(5, 10), 0x4d8bf0, 58, 800);
 })();
