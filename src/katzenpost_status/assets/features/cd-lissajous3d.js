@@ -22,4 +22,6 @@
     curve('rose3d-3', 'Rose 3D (k=3)', rose3d(3, 6), 0xffd23f, 58, 700);
 
     curve('rose3d-5', 'Rose 3D (k=5)', rose3d(5, 10), 0x4d8bf0, 58, 800);
+
+    curve('rose3d-7', 'Rose 3D (k=7)', rose3d(7, 7), 0x9b5de5, 58, 900);
 })();
