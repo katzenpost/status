@@ -22,4 +22,6 @@
     function chl(n, m) { return function (u, v) { var P = Math.PI; return Math.cos(n * P * u) * Math.cos(m * P * v) - Math.cos(m * P * u) * Math.cos(n * P * v); }; }
 
     contour('cym-1-2', 'Chladni (1,2)', chl(1, 2), 0x2ec4b6, 54);
+
+    contour('cym-2-3', 'Chladni (2,3)', chl(2, 3), 0x4d8bf0, 54);
 })();
