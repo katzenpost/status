@@ -12,4 +12,6 @@
     curve('liss-5-6-4', 'Lissajous 5:6:4', liss(5, 6, 4, 0.4, 1.1), 0x4d8bf0, 58, 1000);
 
     curve('liss-3-5-7', 'Lissajous 3:5:7', liss(3, 5, 7, 0.2, 0.7), 0x9b5de5, 58, 1000);
+
+    curve('liss-7-5-3', 'Lissajous 7:5:3', liss(7, 5, 3, 1.1, 0.3), 0xff8f3f, 58, 1000);
 })();
