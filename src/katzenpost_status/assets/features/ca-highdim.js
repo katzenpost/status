@@ -16,4 +16,6 @@
     polyN('hept7cube', 'Hepteract (7-cube)', function () { return hypercube(7); }, 0x2ec4b6, 54);
 
     polyN('oct8cube', 'Octeract (8-cube)', function () { return hypercube(8); }, 0x4d8bf0, 54);
+
+    polyN('seven-orthoplex', '7-orthoplex', function () { return orthoplex(7); }, 0x9b5de5, 54);
 })();
