@@ -29,4 +29,6 @@
     ylm('harm-y53', 'Harmonic Y(5,3)', function (t, p) { return Math.pow(S(t), 3) * (9 * C(t) * C(t) - 1) * C(3 * p); }, 0xffd23f, 50);
 
     ylm('harm-y55', 'Harmonic Y(5,5)', function (t, p) { return Math.pow(S(t), 5) * C(5 * p); }, 0x4d8bf0, 50);
+
+    ylm('harm-y60', 'Harmonic Y(6,0)', function (t, p) { var c = C(t); return 231 * Math.pow(c, 6) - 315 * Math.pow(c, 4) + 105 * c * c - 5; }, 0x9b5de5, 52);
 })();
