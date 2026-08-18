@@ -22,4 +22,6 @@
     polyN('eight-orthoplex', '8-orthoplex', function () { return orthoplex(8); }, 0xff8f3f, 54);
 
     polyN('seven-simplex', '7-simplex', function () { return simplex(7); }, 0xff5d8f, 54);
+
+    polyN('eight-simplex', '8-simplex', function () { return simplex(8); }, 0x00d2a0, 54);
 })();
