@@ -225,40 +225,52 @@
             // each node to its nearest graph vertex.
             function buildGraph(edges, nodes) {
                 gVerts = []; gAdj = []; nodeVert = {};
-                var vmap = {}, Q = opts.snap || 0.35;
+                var vmap = {}, keyOf = [], Q = opts.snap || 0.35, s, i, t;
                 function vidx(v) {
-                    var k = Math.round(v.x / Q) + '_' + Math.round(v.y / Q) + '_' + Math.round(v.z / Q);
-                    if (vmap[k] == null) { vmap[k] = gVerts.length; gVerts.push(v.clone()); gAdj.push([]); }
+                    var rx = Math.round(v.x / Q), ry = Math.round(v.y / Q), rz = Math.round(v.z / Q);
+                    var k = rx + '_' + ry + '_' + rz;
+                    if (vmap[k] == null) { vmap[k] = gVerts.length; gVerts.push(v.clone()); gAdj.push([]); keyOf.push([rx, ry, rz]); }
                     return vmap[k];
                 }
                 edges.forEach(function (e) {
                     var ia = vidx(e.a), ib = vidx(e.b);
                     if (ia !== ib) { if (gAdj[ia].indexOf(ib) < 0) gAdj[ia].push(ib); if (gAdj[ib].indexOf(ia) < 0) gAdj[ib].push(ia); }
                 });
-                // Connect disconnected components (e.g. the separate circles of a
-                // Seed of Life) with a short bridge to the nearest other vertex,
-                // so packets can still route along the lines across the pattern.
-                var comp = new Array(gVerts.length), nc = 0, s;
-                for (s = 0; s < gVerts.length; s++) comp[s] = -1;
-                for (s = 0; s < gVerts.length; s++) {
-                    if (comp[s] >= 0) continue;
-                    var stack = [s]; comp[s] = nc;
-                    while (stack.length) { var u = stack.pop(); for (var t = 0; t < gAdj[u].length; t++) { var w2 = gAdj[u][t]; if (comp[w2] < 0) { comp[w2] = nc; stack.push(w2); } } }
-                    nc++;
-                }
-                if (nc > 1 && gVerts.length < 1500) {
-                    for (var cc = 1; cc < nc; cc++) {
-                        var bi = -1, bj = -1, bd = Infinity;
-                        for (var i = 0; i < gVerts.length; i++) {
-                            if (comp[i] !== cc) continue;
-                            for (var j = 0; j < gVerts.length; j++) { if (comp[j] >= cc) continue; var dd = gVerts[i].distanceToSquared(gVerts[j]); if (dd < bd) { bd = dd; bi = i; bj = j; } }
+                // Stitch the geometry into ONE traversable graph so packets always
+                // follow the drawn lines (even huge grids like Langton's ant that
+                // used to be too big to bridge). Union-find the components, then
+                // bridge each island outward through the quantized grid (the vmap
+                // keys ARE a grid at resolution Q) to the nearest other component.
+                var parent = new Array(gVerts.length);
+                for (s = 0; s < gVerts.length; s++) parent[s] = s;
+                function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+                function union(a, b) { var ra = find(a), rb = find(b); if (ra !== rb) { parent[ra] = rb; return true; } return false; }
+                for (s = 0; s < gVerts.length; s++) { var a0 = gAdj[s]; for (t = 0; t < a0.length; t++) union(s, a0[t]); }
+                var CAP = 30;
+                function ringBridge(vi) {
+                    var kk = keyOf[vi], bx = kk[0], by = kk[1], bz = kk[2], r, dx, dy, dz;
+                    for (r = 1; r <= CAP; r++) {
+                        for (dx = -r; dx <= r; dx++) for (dy = -r; dy <= r; dy++) for (dz = -r; dz <= r; dz++) {
+                            if (Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) !== r) continue;   // shell only
+                            var vj = vmap[(bx + dx) + '_' + (by + dy) + '_' + (bz + dz)];
+                            if (vj == null || find(vj) === find(vi)) continue;
+                            gAdj[vi].push(vj); gAdj[vj].push(vi); union(vi, vj); return true;
                         }
-                        if (bi >= 0) { gAdj[bi].push(bj); gAdj[bj].push(bi); }
+                    }
+                    return false;
+                }
+                if (gVerts.length > 1) {
+                    var guard = 0, merged = true;
+                    while (merged && guard++ < 24) {
+                        merged = false;
+                        var cnt = {}, main = -1, bn = -1, r2;
+                        for (i = 0; i < gVerts.length; i++) { r2 = find(i); cnt[r2] = (cnt[r2] || 0) + 1; if (cnt[r2] > bn) { bn = cnt[r2]; main = r2; } }
+                        for (s = 0; s < gVerts.length; s++) { if (find(s) === main) continue; if (ringBridge(s)) merged = true; }
                     }
                 }
                 nodes.forEach(function (nd) {
                     var best = -1, bd = Infinity;
-                    for (var i = 0; i < gVerts.length; i++) { var dd = gVerts[i].distanceToSquared(nd.pos); if (dd < bd) { bd = dd; best = i; } }
+                    for (var j = 0; j < gVerts.length; j++) { var dd = gVerts[j].distanceToSquared(nd.pos); if (dd < bd) { bd = dd; best = j; } }
                     nodeVert[nd.name] = best;
                 });
                 pipeCols = window.KATZEN_GEO3D.columns(K.data() || {});
@@ -284,13 +296,16 @@
                 if (!pipeCols || pipeCols.length < 2 || !gVerts.length) return null;
                 var chosen = [], ci;
                 for (ci = 0; ci < pipeCols.length; ci++) { var c = pipeCols[ci]; chosen.push(c[(Math.random() * c.length) | 0]); }
-                var pts = [];
+                var pts = [], stops = [];
                 for (var i = 0; i < chosen.length - 1; i++) {
                     var vp = bfs(nodeVert[chosen[i].name], nodeVert[chosen[i + 1].name]);
                     if (!vp) return null;   // disconnected: caller falls back
                     for (var k = 0; k < vp.length; k++) { if (i > 0 && k === 0) continue; pts.push(gVerts[vp[k]]); }
+                    stops.push(pts.length - 1);   // end of this hop = a real pipeline node (dwell + ripple here)
                 }
-                return pts.length >= 2 ? pts : null;
+                // The intermediate BFS vertices are geometry lines the packet just
+                // traverses; only the hop endpoints (mixes) dwell/shed a ripple.
+                return pts.length >= 2 ? { pts: pts, stops: stops } : null;
             }
 
             function meanDwell() {
@@ -299,11 +314,26 @@
             }
             function spawnPacket() {
                 if (packets.length >= PACK_MAX) return;
-                var p = routeAlongEdges();   // packets follow the geometry's lines
-                if (!p && spawnFn) p = spawnFn();   // fall back only if the graph is disconnected
-                if (!p || p.length < 2) return;
-                if (Math.random() < 0.5) p = p.slice().reverse();   // flows in both directions
-                packets.push({ path: p, seg: 0, t: 0, dwell: 0, speed: 10 + Math.random() * 8 });
+                var r = routeAlongEdges(), path = null, stops = null;   // packets follow the geometry's lines
+                if (r) { path = r.pts; stops = r.stops; }
+                else if (spawnFn) { path = spawnFn(); }   // fall back only if the graph is disconnected
+                if (!path || path.length < 2) return;
+                if (Math.random() < 0.5) {   // flows in both directions
+                    path = path.slice().reverse();
+                    if (stops) stops = stops.map(function (si) { return path.length - 1 - si; });
+                }
+                // Which path indices are "hops" (dwell + shed a ripple): the real
+                // pipeline nodes for routed paths, or every vertex for the short
+                // fallback paths. The final vertex is always a hop (arrival).
+                var stopSet = {};
+                if (stops) { stops.forEach(function (si) { if (si >= 1) stopSet[si] = 1; }); }
+                else { for (var j = 1; j < path.length; j++) stopSet[j] = 1; }
+                stopSet[path.length - 1] = 1;
+                // Scale speed by total path length so long geometry routes (hundreds
+                // of graph verts) transit in bounded time instead of crawling.
+                var total = 0, m; for (m = 0; m < path.length - 1; m++) total += path[m].distanceTo(path[m + 1]);
+                var speed = (10 + Math.random() * 8) * Math.max(1, total / 26);
+                packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: speed, stops: stopSet });
             }
             var _zAxis = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion();
             function triggerShell(pos, color, max, grow, normal) {
@@ -354,7 +384,19 @@
                     }
                     var segLen = a.distanceTo(b) || 1;
                     pk.t += dt * pk.speed / segLen;
-                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, b.clone().sub(a)); }   // arrive -> shed a ripple facing travel dir
+                    while (pk.t >= 1) {
+                        if (pk.stops[pk.seg + 1]) {   // arrive at a real hop: dwell + shed a ripple facing travel dir
+                            pk.t = 1;
+                            pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md;
+                            triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, b.clone().sub(a));
+                            break;
+                        }
+                        // pass straight through an intermediate geometry vertex
+                        pk.seg++;
+                        if (pk.seg >= pk.path.length - 1) { pk.seg = pk.path.length - 1; pk.t = 1; break; }
+                        pk.t -= 1;
+                        a = pk.path[pk.seg]; b = pk.path[pk.seg + 1];
+                    }
                     if (k < PACK_MAX) {
                         var t = pk.t, o = k * 3;
                         w[o] = a.x + (b.x - a.x) * t; w[o + 1] = a.y + (b.y - a.y) * t; w[o + 2] = a.z + (b.z - a.z) * t;
