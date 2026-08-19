@@ -110,16 +110,6 @@
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
 
-            // Colour nodes across the whole scheme: healthy nodes take their
-            // ROLE colour (gateway/mix-layer/service/storage/dirauth), so the
-            // balls span the palette instead of all reading status-cyan; nodes
-            // with a problem keep their status colour (amber/red) so faults still
-            // stand out. Both palettes are themeable (see K.groupColor/statusColor
-            // and window.KATZEN_THEME).
-            function roleColor(n) {
-                try { var st = n && n.status; if (st && st !== 'ok' && K.statusColor) return new THREE.Color(K.statusColor(st)); } catch (e) { }
-                try { return new THREE.Color(K.groupColor({ data: n })); } catch (e2) { return new THREE.Color(0x8aa0b4); }
-            }
             function onResize() {
                 if (!renderer) return;
                 var w = el.clientWidth || window.innerWidth, h = el.clientHeight || window.innerHeight;
@@ -190,10 +180,34 @@
                 var sph = new THREE.SphereGeometry(mob ? 0.9 : 0.7, 12, 12);
                 var metaByName = {};   // layouts drop status/layer; look them up for colour
                 ((K.data() || {}).nodes || []).forEach(function (x) { metaByName[x.name] = x; });
+                // A ball's hue comes from the geometry it sits ON: the colour of
+                // its nearest edge, snapped to the live theme, so the balls belong
+                // to the same palette as the lines and packets instead of a
+                // separate role palette. Faulty nodes keep their status colour so
+                // problems still stand out. A small deterministic brightness
+                // variation keeps them from reading as identical flat disks.
+                var baseHex = (opts.color != null ? opts.color : 0x2ec4b6);
+                function geomHex(pos) {
+                    if (!edges.length) return baseHex;
+                    var best = baseHex, bd = Infinity, i, e, d;
+                    for (i = 0; i < edges.length; i++) {
+                        e = edges[i]; if (!e.a || !e.b) continue;
+                        d = pos.distanceToSquared(e.a); if (d < bd) { bd = d; best = e.color == null ? baseHex : e.color; }
+                        d = pos.distanceToSquared(e.b); if (d < bd) { bd = d; best = e.color == null ? baseHex : e.color; }
+                    }
+                    return best;
+                }
+                function hashName(s) { var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff; return h; }
                 nodes.forEach(function (nd) {
                     nodePos[nd.name] = nd.pos;
-                    var meta = metaByName[nd.name] || {};
-                    var col = roleColor({ status: nd.status || meta.status, type: nd.type, name: nd.name, layer: meta.layer });
+                    var meta = metaByName[nd.name] || {}, st = nd.status || meta.status, col;
+                    if (st && st !== 'ok' && K.statusColor) { col = new THREE.Color(K.statusColor(st)); }
+                    else {
+                        var raw = geomHex(nd.pos), themed = K.themeColor ? K.themeColor(raw) : raw;
+                        col = new THREE.Color(themed);
+                        var f = 0.74 + 0.42 * ((hashName(nd.name || '') % 100) / 100);   // 0.74..1.16 brightness
+                        col.multiplyScalar(f);
+                    }
                     var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: col }));
                     m.position.copy(nd.pos); m.userData = { node: nd }; nodeGroup.add(m);
                 });
