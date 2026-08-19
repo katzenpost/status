@@ -305,13 +305,23 @@
                 if (Math.random() < 0.5) p = p.slice().reverse();   // flows in both directions
                 packets.push({ path: p, seg: 0, t: 0, dwell: 0, speed: 10 + Math.random() * 8 });
             }
-            function triggerShell(pos, color, max, grow) {
+            var _zAxis = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion();
+            function triggerShell(pos, color, max, grow, normal) {
+                if (window.KATZEN_FX_SHELLS === false) return;   // menu toggle
                 for (var i = 0; i < shellPool.length; i++) {
                     var s = shellPool[i];
                     if (s.active) continue;
                     s.active = true; s.age = 0; s.max = max; s.grow = grow;
                     s.mesh.visible = true; s.mesh.position.copy(pos); s.mesh.material.color.setHex(color);
                     s.mesh.scale.set(0.01, 0.01, 0.01); s.mesh.material.opacity = 0.9;
+                    // Orient the ring in 3D: its plane faces the packet's travel
+                    // direction (a ripple it passes through), plus a little jitter
+                    // so no two are coplanar. Heartbeat rings (no normal) tumble.
+                    var n;
+                    if (normal && normal.lengthSq() > 1e-6) n = normal.clone().normalize();
+                    else n = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+                    n.x += (Math.random() - 0.5) * 0.5; n.y += (Math.random() - 0.5) * 0.5; n.normalize();
+                    _q.setFromUnitVectors(_zAxis, n); s.mesh.quaternion.copy(_q);
                     return;
                 }
             }
@@ -344,7 +354,7 @@
                     }
                     var segLen = a.distanceTo(b) || 1;
                     pk.t += dt * pk.speed / segLen;
-                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9); }   // arrive -> shed a layer, mix/queue
+                    if (pk.t >= 1) { pk.t = 1; pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md; triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, b.clone().sub(a)); }   // arrive -> shed a ripple facing travel dir
                     if (k < PACK_MAX) {
                         var t = pk.t, o = k * 3;
                         w[o] = a.x + (b.x - a.x) * t; w[o + 1] = a.y + (b.y - a.y) * t; w[o + 2] = a.z + (b.z - a.z) * t;

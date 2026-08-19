@@ -182,13 +182,15 @@
         function (e) { showFiber = e.target.checked; applyLinks(); });
     var linksLabel = checkboxLabel('<input type="checkbox" checked aria-label="All links"> All links',
         function (e) { K.setAllLinks(e.target.checked); });
+    var ripplesLabel = checkboxLabel('<input type="checkbox" checked aria-label="Ripples"> Ripples',
+        function (e) { window.KATZEN_FX_SHELLS = e.target.checked; });
     var linksInput = linksLabel.querySelector('input');
     function setAllLinksUI(on) { if (linksInput) linksInput.checked = on; K.setAllLinks(on); }
     function nonDirauthLink(a, b) { return a.data.type !== 'dirauth' && b.data.type !== 'dirauth'; }
     function structLinksOn() { K.setLinkFilter(nonDirauthLink); if (linksInput) linksInput.checked = true; K.setAllLinks(true); }
     function fullLinksOn() { K.setLinkFilter(null); if (linksInput) linksInput.checked = true; K.setAllLinks(true); }
     function ownLinksOnly() { K.setLinkFilter(null); if (linksInput) linksInput.checked = false; K.setAllLinks(false); }
-    var checks = [rotLabel, crtLabel, fiberLabel, linksLabel];
+    var checks = [rotLabel, crtLabel, fiberLabel, linksLabel, ripplesLabel];
     var labelsToggle = document.getElementById('labels-toggle');
     if (labelsToggle) {
         labelsToggle.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
@@ -2097,8 +2099,10 @@
         // A fresh open (new tab / shared link) honors a ?overlay=/?view= deep
         // link; a reload or in-session return randomizes instead, so both
         // behaviors coexist: shareable links AND a fresh random view on reload.
-        var freshOpen = true;
-        try { freshOpen = !sessionStorage.getItem('kzViewSeen'); sessionStorage.setItem('kzViewSeen', '1'); } catch (e) { }
+        // Mini (embedded) frames always honor the deep link - they share the
+        // parent tab's sessionStorage, so the reload gate would wrongly fire.
+        var freshOpen = /[?#&]mini=1/i.test(qs);
+        try { if (!freshOpen) { freshOpen = !sessionStorage.getItem('kzViewSeen'); sessionStorage.setItem('kzViewSeen', '1'); } } catch (e) { }
         if (freshOpen) {
             var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(qs);
             if (om && findOverlay(om[1])) { showOverlay(om[1]); pinUrl('overlay:' + om[1]); return; }
