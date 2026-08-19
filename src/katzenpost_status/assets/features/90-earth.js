@@ -111,11 +111,12 @@
         }
         return 'Network layouts';
     }
-    function rebuildViewSelect() {
-        if (!viewSelect) return;
-        var here = curViewId(), ids = viewIds();
-        if (viewSelect.__count !== ids.length) {
-            viewSelect.innerHTML = '';
+    // The floating chooser and the in-menu chooser share this population so both
+    // list the same grouped views and both track the current view.
+    var viewSelects = [];
+    function fillViewSelect(sel, here, ids) {
+        if (sel.__count !== ids.length) {
+            sel.innerHTML = '';
             var groups = {}, order = (window.KATZEN_CATEGORY_ORDER || []).slice();
             ids.forEach(function (vid) { var c = categoryOf(vid); (groups[c] = groups[c] || []).push(vid); if (order.indexOf(c) < 0) order.push(c); });
             order.forEach(function (cat) {
@@ -123,11 +124,15 @@
                 list.sort(function (a, b) { return viewName(a).toLowerCase() < viewName(b).toLowerCase() ? -1 : 1; });
                 var og = document.createElement('optgroup'); og.label = cat + ' (' + list.length + ')';
                 list.forEach(function (vid) { var op = document.createElement('option'); op.value = vid; op.textContent = viewName(vid); og.appendChild(op); });
-                viewSelect.appendChild(og);
+                sel.appendChild(og);
             });
-            viewSelect.__count = ids.length;
+            sel.__count = ids.length;
         }
-        viewSelect.value = here;
+        sel.value = here;
+    }
+    function rebuildViewSelect() {
+        var here = curViewId(), ids = viewIds();
+        viewSelects.forEach(function (sel) { if (sel) fillViewSelect(sel, here, ids); });
     }
     function randomizeView() {
         var ids = viewIds(), here = curViewId();
@@ -153,6 +158,7 @@
         'box-shadow:0 4px 16px rgba(0,0,0,0.6)';
     viewSelect.addEventListener('change', function () { gotoView(viewSelect.value); });
     document.body.appendChild(viewSelect);
+    viewSelects.push(viewSelect);
     // Floating randomize button beside the view chooser.
     var randFloat = document.createElement('button');
     randFloat.id = 'randomize-view';
@@ -222,6 +228,20 @@
         themeRow.appendChild(themeSel);
         wrap.appendChild(themeRow);
     }
+    // In-menu copies of the floating quick-reference controls (the view chooser
+    // and Randomize), so the hamburger menu is self-sufficient and the two stay
+    // in sync via viewSelects/rebuildViewSelect.
+    var menuViewRow = document.createElement('label');
+    menuViewRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
+    menuViewRow.innerHTML = 'View';
+    var menuViewSelect = document.createElement('select');
+    menuViewSelect.setAttribute('aria-label', 'Choose view');
+    menuViewSelect.setAttribute('autocomplete', 'off');
+    menuViewSelect.style.cssText = 'flex:1;min-width:0;background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;border-radius:6px;font:11px/1 monospace;padding:3px 6px;cursor:pointer';
+    menuViewSelect.addEventListener('change', function () { gotoView(menuViewSelect.value); });
+    menuViewRow.appendChild(menuViewSelect);
+    wrap.appendChild(menuViewRow);
+    viewSelects.push(menuViewSelect);
     var randBtn = document.createElement('button');
     randBtn.textContent = 'Randomize view';
     randBtn.style.cssText = 'width:100%;margin-top:6px';

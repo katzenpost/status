@@ -293,7 +293,7 @@
         pokeChrome();
     }
 
-    var CHROME_SEL = '#menu-toggle,#view-select,#load-status,#node-info';
+    var CHROME_SEL = '#menu-toggle,#view-select,#randomize-view,#load-status,#node-info';
     var chromeHidden = false, chromeTimer = 0;
     function chromeEls() { return Array.prototype.slice.call(document.querySelectorAll(CHROME_SEL)); }
     function setChrome(hidden) {
