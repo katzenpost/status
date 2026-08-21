@@ -24,4 +24,6 @@
     surf('sq-spiky', 'Superellipsoid spiky', se(0.2, 3), 50, 28, 0x00d2a0, 60, true, false);
 
     surf('sq-toroid1', 'Supertoroid ring', st(0.4, 0.4, 2), 50, 28, 0xffd23f, 60, true, true);
+
+    surf('sq-toroid2', 'Supertoroid square', st(2.5, 0.5, 2.2), 50, 28, 0xff5d6c, 60, true, true);
 })();
