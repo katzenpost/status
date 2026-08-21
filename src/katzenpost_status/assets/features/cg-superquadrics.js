@@ -12,4 +12,6 @@
     function st(e1, e2, RR) { return function (u, v, T) { var uu = -PI + 2 * PI * u, vv = -PI + 2 * PI * v; return new T.Vector3((RR + sp(Math.cos(vv), e1)) * sp(Math.cos(uu), e2), (RR + sp(Math.cos(vv), e1)) * sp(Math.sin(uu), e2), sp(Math.sin(vv), e1)); }; }
 
     surf('sq-cube', 'Superellipsoid cube', se(0.25, 0.25), 50, 28, 0x2ec4b6, 60, true, false);
+
+    surf('sq-octa', 'Superellipsoid octahedron', se(2.5, 2.5), 50, 28, 0x4d8bf0, 60, true, false);
 })();
