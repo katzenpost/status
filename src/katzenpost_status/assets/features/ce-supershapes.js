@@ -26,4 +26,6 @@
     surf('ss-lobed8', 'Supershape lobed', ss([8,1,1,8,8,1,1,8]), 48, 24, 0xff5d6c, 60, true, false);
 
     surf('ss-shell', 'Supershape shell', ss([2,1,4,8,6,1,1,1]), 48, 24, 0x33ccff, 60, true, false);
+
+    surf('ss-diamond', 'Supershape diamond', ss([4,0.5,0.5,0.5,4,0.5,0.5,0.5]), 48, 24, 0x8a5bff, 60, true, false);
 })();
