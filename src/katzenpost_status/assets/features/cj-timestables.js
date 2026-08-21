@@ -23,4 +23,6 @@
     tt('tt-33', 'Times table x33 (mod 200)', 200, 33, 0xff5d6c);
 
     tt('tt-51', 'Times table x51 (mod 220)', 220, 51, 0x33ccff);
+
+    tt('tt-99', 'Times table x99 (mod 200)', 200, 99, 0x8a5bff);
 })();
