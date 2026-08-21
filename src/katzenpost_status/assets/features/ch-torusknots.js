@@ -10,4 +10,6 @@
     cv('tk-2-3', 'Torus knot (2,3)', tk(2, 3), 0x2ec4b6, 58, 900);
 
     cv('tk-2-5', 'Torus knot (2,5)', tk(2, 5), 0x4d8bf0, 58, 900);
+
+    cv('tk-2-7', 'Torus knot (2,7)', tk(2, 7), 0x9b5de5, 58, 900);
 })();
