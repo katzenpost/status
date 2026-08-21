@@ -14,4 +14,6 @@
     surf('sq-cube', 'Superellipsoid cube', se(0.25, 0.25), 50, 28, 0x2ec4b6, 60, true, false);
 
     surf('sq-octa', 'Superellipsoid octahedron', se(2.5, 2.5), 50, 28, 0x4d8bf0, 60, true, false);
+
+    surf('sq-star', 'Superellipsoid star', se(3, 0.4), 50, 28, 0x9b5de5, 60, true, false);
 })();
