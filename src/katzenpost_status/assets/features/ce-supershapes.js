@@ -18,4 +18,6 @@
     surf('ss-bloom', 'Supershape bloom', ss([3,5,18,18,3,5,18,18]), 48, 24, 0xff5d8f, 60, true, false);
 
     surf('ss-pinch', 'Supershape pinch', ss([7,2,8,8,2,2,8,8]), 48, 24, 0xff8f3f, 60, true, false);
+
+    surf('ss-cushion', 'Supershape cushion', ss([4,1,1,1,4,1,1,1]), 48, 24, 0x00d2a0, 60, true, false);
 })();
