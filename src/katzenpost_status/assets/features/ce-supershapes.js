@@ -24,4 +24,6 @@
     surf('ss-urchin', 'Supershape urchin', ss([10,0.2,1.7,1.7,10,0.2,1.7,1.7]), 48, 24, 0xffd23f, 60, true, false);
 
     surf('ss-lobed8', 'Supershape lobed', ss([8,1,1,8,8,1,1,8]), 48, 24, 0xff5d6c, 60, true, false);
+
+    surf('ss-shell', 'Supershape shell', ss([2,1,4,8,6,1,1,1]), 48, 24, 0x33ccff, 60, true, false);
 })();
