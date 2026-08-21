@@ -26,4 +26,6 @@
     surf('shy-y73', 'Spherical harmonic Y(7,3)', hy(7, 3), 60, 40, 0xff5d6c, 60, true, false);
 
     surf('shy-y75', 'Spherical harmonic Y(7,5)', hy(7, 5), 60, 40, 0x33ccff, 60, true, false);
+
+    surf('shy-y77', 'Spherical harmonic Y(7,7)', hy(7, 7), 60, 40, 0x8a5bff, 60, true, false);
 })();
