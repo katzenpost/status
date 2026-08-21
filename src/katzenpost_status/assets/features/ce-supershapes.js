@@ -10,4 +10,6 @@
     function ss(P) { return function (u, v, T) { var th = -PI + 2 * PI * u, ph = -PI / 2 + PI * v, r1 = superr(th, P[0], P[1], P[2], P[3]), r2 = superr(ph, P[4], P[5], P[6], P[7]); return new T.Vector3(r1 * Math.cos(th) * r2 * Math.cos(ph), r1 * Math.sin(th) * r2 * Math.cos(ph), r2 * Math.sin(ph)); }; }
 
     surf('ss-star6', 'Supershape star', ss([6,0.3,1.7,1.7,6,0.3,1.7,1.7]), 48, 24, 0x2ec4b6, 60, true, false);
+
+    surf('ss-flower5', 'Supershape flower', ss([5,0.4,1.5,1.5,5,0.4,1.5,1.5]), 48, 24, 0x4d8bf0, 60, true, false);
 })();
