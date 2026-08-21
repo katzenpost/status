@@ -18,4 +18,6 @@
     surf('sq-star', 'Superellipsoid star', se(3, 0.4), 50, 28, 0x9b5de5, 60, true, false);
 
     surf('sq-pillow', 'Superellipsoid pillow', se(0.3, 2.6), 50, 28, 0xff5d8f, 60, true, false);
+
+    surf('sq-rounded', 'Superellipsoid rounded', se(0.7, 0.7), 50, 28, 0xff8f3f, 60, true, false);
 })();
