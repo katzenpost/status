@@ -8,4 +8,6 @@
     function lk(a, b, c, pa, pb, pc) { return function (t, T) { var u = 2 * PI * t; return new T.Vector3(Math.cos(a * u + pa), Math.cos(b * u + pb), Math.cos(c * u + pc)); }; }
 
     cv('lk-3-4-7', 'Lissajous knot 3:4:7', lk(3, 4, 7, 0, 1.2, 0.5), 0x2ec4b6, 58, 1200);
+
+    cv('lk-2-3-7', 'Lissajous knot 2:3:7', lk(2, 3, 7, 0.3, 0, 1.1), 0x4d8bf0, 58, 1200);
 })();
