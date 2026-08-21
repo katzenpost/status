@@ -8,4 +8,6 @@
     function tk(p, q) { return function (t, T) { var a = 2 * PI * t, r = 2 + Math.cos(q * a); return new T.Vector3(r * Math.cos(p * a), r * Math.sin(p * a), -Math.sin(q * a)); }; }
 
     cv('tk-2-3', 'Torus knot (2,3)', tk(2, 3), 0x2ec4b6, 58, 900);
+
+    cv('tk-2-5', 'Torus knot (2,5)', tk(2, 5), 0x4d8bf0, 58, 900);
 })();
