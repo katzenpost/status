@@ -22,4 +22,6 @@
     surf('ss-cushion', 'Supershape cushion', ss([4,1,1,1,4,1,1,1]), 48, 24, 0x00d2a0, 60, true, false);
 
     surf('ss-urchin', 'Supershape urchin', ss([10,0.2,1.7,1.7,10,0.2,1.7,1.7]), 48, 24, 0xffd23f, 60, true, false);
+
+    surf('ss-lobed8', 'Supershape lobed', ss([8,1,1,8,8,1,1,8]), 48, 24, 0xff5d6c, 60, true, false);
 })();
