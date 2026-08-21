@@ -17,4 +17,6 @@
     tt('tt-7', 'Times table x7 (mod 200)', 200, 7, 0xff8f3f);
 
     tt('tt-9', 'Times table x9 (mod 240)', 240, 9, 0x00d2a0);
+
+    tt('tt-29', 'Times table x29 (mod 200)', 200, 29, 0xffd23f);
 })();
