@@ -10,4 +10,6 @@
     function hy(l, m) { return function (u, v, T) { var phi = 2 * PI * u, theta = PI * v, r = Math.abs(plgndr(l, m, Math.cos(theta)) * Math.cos(m * phi)); return new T.Vector3(r * Math.sin(theta) * Math.cos(phi), r * Math.sin(theta) * Math.sin(phi), r * Math.cos(theta)); }; }
 
     surf('shy-y41', 'Spherical harmonic Y(4,1)', hy(4, 1), 60, 40, 0x2ec4b6, 60, true, false);
+
+    surf('shy-y51', 'Spherical harmonic Y(5,1)', hy(5, 1), 60, 40, 0x4d8bf0, 60, true, false);
 })();
