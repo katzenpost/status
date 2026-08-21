@@ -26,4 +26,6 @@
     surf('sq-toroid1', 'Supertoroid ring', st(0.4, 0.4, 2), 50, 28, 0xffd23f, 60, true, true);
 
     surf('sq-toroid2', 'Supertoroid square', st(2.5, 0.5, 2.2), 50, 28, 0xff5d6c, 60, true, true);
+
+    surf('sq-toroid3', 'Supertoroid pinched', st(0.5, 2.5, 2), 50, 28, 0x33ccff, 60, true, true);
 })();
