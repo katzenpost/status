@@ -16,4 +16,6 @@
     surf('ss-gear', 'Supershape gear', ss([12,10,10,10,12,10,10,10]), 48, 24, 0x9b5de5, 60, true, false);
 
     surf('ss-bloom', 'Supershape bloom', ss([3,5,18,18,3,5,18,18]), 48, 24, 0xff5d8f, 60, true, false);
+
+    surf('ss-pinch', 'Supershape pinch', ss([7,2,8,8,2,2,8,8]), 48, 24, 0xff8f3f, 60, true, false);
 })();
