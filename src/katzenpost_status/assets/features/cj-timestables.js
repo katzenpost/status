@@ -7,4 +7,6 @@
     function tt(id, name, n, k, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.22, camZ: camZ || 58, layout: function (d, T) { var pts = [], i, E = []; for (i = 0; i < n; i++) { var a = 2 * PI * i / n; pts.push(new T.Vector3(18 * Math.cos(a), 18 * Math.sin(a), 0)); } for (i = 0; i < n; i++) E.push({ a: pts[i], b: pts[(i + 1) % n], color: color }); for (i = 0; i < n; i++) { var j = (i * k) % n; if (j !== i) E.push({ a: pts[i], b: pts[j], color: color }); } return G.anchorLayout(d, T, pts, E); } }); }
 
     tt('tt-2', 'Times table x2 (mod 200)', 200, 2, 0x2ec4b6);
+
+    tt('tt-3', 'Times table x3 (mod 200)', 200, 3, 0x4d8bf0);
 })();
