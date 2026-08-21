@@ -28,4 +28,6 @@
     surf('sq-toroid2', 'Supertoroid square', st(2.5, 0.5, 2.2), 50, 28, 0xff5d6c, 60, true, true);
 
     surf('sq-toroid3', 'Supertoroid pinched', st(0.5, 2.5, 2), 50, 28, 0x33ccff, 60, true, true);
+
+    surf('sq-toroid4', 'Supertoroid rounded', st(1, 1, 1.6), 50, 28, 0x8a5bff, 60, true, true);
 })();
