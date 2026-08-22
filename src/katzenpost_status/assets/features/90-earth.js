@@ -2116,19 +2116,24 @@
     K.on('boot', function () {
         rebuildViewSelect();
         var qs = location.hash + location.search;
-        // A fresh open (new tab / shared link) honors a ?overlay=/?view= deep
-        // link; a reload or in-session return randomizes instead, so both
-        // behaviors coexist: shareable links AND a fresh random view on reload.
-        // Mini (embedded) frames always honor the deep link - they share the
-        // parent tab's sessionStorage, so the reload gate would wrongly fire.
-        var freshOpen = /[?#&]mini=1/i.test(qs);
-        try { if (!freshOpen) { freshOpen = !sessionStorage.getItem('kzViewSeen'); sessionStorage.setItem('kzViewSeen', '1'); } } catch (e) { }
-        if (freshOpen) {
+        // A real NAVIGATION to a ?overlay=/?view= deep link (a shared/typed URL,
+        // a clicked link, or back/forward) honors it; an explicit RELOAD picks a
+        // random view instead. So both behaviors coexist exactly as asked:
+        // opening a shared link lands on that view, hitting reload randomizes.
+        // The Navigation Timing type distinguishes reload from navigate (which
+        // sessionStorage cannot). Embedded mini frames always honor the link.
+        var isMini = /[?#&]mini=1/i.test(qs), navType = 'navigate';
+        try {
+            var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+            if (nav && nav.type) navType = nav.type;
+            else if (performance.navigation) navType = ['navigate', 'reload', 'back_forward'][performance.navigation.type] || 'navigate';
+        } catch (e) { }
+        if (isMini || navType !== 'reload') {
             var om = /[?#&]overlay=([a-z0-9-]+)/i.exec(qs);
             if (om && findOverlay(om[1])) { showOverlay(om[1]); pinUrl('overlay:' + om[1]); return; }
             if (/[?#&]view=/i.test(qs)) { pinUrl(mode); return; }   // spatial view already set at init
         }
-        // No honored deep link: start on a random visualization (also pins it).
+        // Reload, or no deep link: start on a random visualization (also pins it).
         var ids = viewIds(), pick = ids[(Math.random() * ids.length) | 0];
         if (pick) gotoView(pick);
     });
