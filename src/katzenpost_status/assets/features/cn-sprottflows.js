@@ -17,4 +17,6 @@
     fl('sprottk', 'Sprott K flow', function (p, h) { return [p[0] + h * (p[0] * p[1] - p[2]), p[1] + h * (p[0] - p[1]), p[2] + h * (p[0] + 0.3 * p[2])]; }, 0.02, 0xff8f3f);
 
     fl('sprottl', 'Sprott L flow', function (p, h) { return [p[0] + h * (p[1] + 3.9 * p[2]), p[1] + h * (0.9 * p[0] * p[0] - p[1]), p[2] + h * (1 - p[0])]; }, 0.008, 0x00d2a0);
+
+    fl('sprottn', 'Sprott N flow', function (p, h) { return [p[0] + h * (-2 * p[1]), p[1] + h * (p[0] + p[2] * p[2]), p[2] + h * (1 + p[1] - 2 * p[2])]; }, 0.02, 0xffd23f);
 })();
