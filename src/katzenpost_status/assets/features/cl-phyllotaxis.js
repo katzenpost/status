@@ -9,4 +9,6 @@
     phy('phy-disc', 'Phyllotaxis disc', 700, 0.9, function (r) { return 0; }, 0x2ec4b6);
 
     phy('phy-daisy', 'Phyllotaxis daisy', 900, 0.8, function (r) { return 0; }, 0x4d8bf0);
+
+    phy('phy-dome', 'Phyllotaxis dome', 700, 0.9, function (r) { return 8 - r * r * 0.02; }, 0x9b5de5);
 })();
