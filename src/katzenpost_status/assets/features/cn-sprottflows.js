@@ -13,4 +13,6 @@
     fl('sprotti', 'Sprott I flow', function (p, h) { return [p[0] + h * (-0.2 * p[1]), p[1] + h * (p[0] + p[2]), p[2] + h * (p[0] + p[1] * p[1] - p[2])]; }, 0.02, 0x9b5de5);
 
     fl('sprottj', 'Sprott J flow', function (p, h) { return [p[0] + h * (2 * p[2]), p[1] + h * (-2 * p[1] + p[2]), p[2] + h * (-p[0] + p[1] + p[1] * p[1])]; }, 0.02, 0xff5d8f);
+
+    fl('sprottk', 'Sprott K flow', function (p, h) { return [p[0] + h * (p[0] * p[1] - p[2]), p[1] + h * (p[0] - p[1]), p[2] + h * (p[0] + 0.3 * p[2])]; }, 0.02, 0xff8f3f);
 })();
