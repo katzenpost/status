@@ -24,4 +24,6 @@
     m2('map2-duffing', 'Duffing map', function (p) { var a = 2.75, b = 0.2; return [p[1], -b * p[0] + a * p[1] - p[1] * p[1] * p[1]]; }, [0.1, 0], 200, 0xff5d6c);
 
     m2('map2-gumowskimira', 'Gumowski-Mira map', function (p) { var a = -0.2, b = 0.99; function g(x) { return a * x + 2 * (1 - a) * x * x / (1 + x * x); } var ny = b * p[1] + g(p[0]); return [ny, -p[0] + g(ny)]; }, [4, 0], 300, 0x33ccff);
+
+    m2('map2-lozi', 'Lozi map', function (p) { var a = 1.7, b = 0.5; return [1 - a * Math.abs(p[0]) + p[1], b * p[0]]; }, [0.1, 0.1], 200, 0x8a5bff);
 })();
