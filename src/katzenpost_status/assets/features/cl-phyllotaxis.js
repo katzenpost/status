@@ -7,4 +7,6 @@
     function phy(id, name, n, c, lift, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.2, camZ: camZ || 60, layout: function (d, T) { var pts = [], i, E = [], GA = PI * (3 - Math.sqrt(5)); for (i = 0; i < n; i++) { var r = c * Math.sqrt(i), a = i * GA; pts.push(new T.Vector3(r * Math.cos(a), r * Math.sin(a), lift(r))); } fit(pts, 18); for (i = 0; i < n - 1; i++) E.push({ a: pts[i], b: pts[i + 1], color: color }); for (i = 0; i + 8 < n; i++) E.push({ a: pts[i], b: pts[i + 8], color: color }); for (i = 0; i + 13 < n; i++) E.push({ a: pts[i], b: pts[i + 13], color: color }); return G.anchorLayout(d, T, pts, E); } }); }
 
     phy('phy-disc', 'Phyllotaxis disc', 700, 0.9, function (r) { return 0; }, 0x2ec4b6);
+
+    phy('phy-daisy', 'Phyllotaxis daisy', 900, 0.8, function (r) { return 0; }, 0x4d8bf0);
 })();
