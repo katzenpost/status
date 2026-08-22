@@ -8,4 +8,6 @@
     function rou(R, r, k, hh, w) { return function (t, T) { var a = 2 * PI * t, rr = R + r * Math.cos(k * a); return new T.Vector3(rr * Math.cos(a), rr * Math.sin(a), r * Math.sin(k * a) + hh * Math.sin(w * a)); }; }
 
     cv('rou-5-7', 'Toroidal roulette 5:7', rou(10, 6, 5, 5, 7), 0x2ec4b6, 58, 1600);
+
+    cv('rou-7-9', 'Toroidal roulette 7:9', rou(11, 5, 7, 4, 9), 0x4d8bf0, 58, 1600);
 })();
