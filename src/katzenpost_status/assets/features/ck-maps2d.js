@@ -12,4 +12,6 @@
     m2('map2-standard', 'Standard (Chirikov) map', function (p) { var K = 0.971635, np = p[1] + K * Math.sin(p[0]); np = ((np % (2 * PI)) + 2 * PI) % (2 * PI); var nt = ((p[0] + np) % (2 * PI) + 2 * PI) % (2 * PI); return [nt, np]; }, [2, 0.5], 0, 0x4d8bf0);
 
     m2('map2-hopalong', 'Hopalong (Martin) map', function (p) { var a = -55, b = -1, c = -42; return [p[1] - (p[0] < 0 ? -1 : 1) * Math.sqrt(Math.abs(b * p[0] - c)), a - p[0]]; }, [0, 0], 50, 0x9b5de5);
+
+    m2('map2-hopalong2', 'Hopalong (Martin) map II', function (p) { var a = 0.4, b = 1, c = 0; return [p[1] - (p[0] < 0 ? -1 : 1) * Math.sqrt(Math.abs(b * p[0] - c)), a - p[0]]; }, [0, 0], 50, 0xff5d8f);
 })();
