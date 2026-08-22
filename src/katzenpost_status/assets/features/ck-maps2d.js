@@ -18,4 +18,6 @@
     m2('map2-martin', 'Sine Hopalong map', function (p) { var a = PI; return [p[1] - Math.sin(p[0]), a - p[0]]; }, [0, 0], 50, 0xff8f3f);
 
     m2('map2-chip', 'Chip map (Pickover)', function (p) { var a = -15, b = -19, c = 1; return [p[1] - (p[0] < 0 ? -1 : 1) * Math.cos(Math.atan(Math.abs(b * p[0] - c))) * Math.sin(Math.log(Math.abs(a * p[0] - c) + 1)), a - p[0]]; }, [0, 0], 50, 0x00d2a0);
+
+    m2('map2-quadruptwo', 'Quadruptwo (Pickover)', function (p) { var a = 34, b = 1, c = 5, s = (b * p[0] - c) < 0 ? -1 : 1; return [p[1] - s * Math.sin(Math.log(Math.abs(b * p[0] - c) + 1)) * Math.atan((c - b * p[0]) * (c - b * p[0])), a - p[0]]; }, [0, 0], 50, 0xffd23f);
 })();
