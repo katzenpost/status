@@ -17,4 +17,6 @@
     phy('phy-wave', 'Phyllotaxis wave', 700, 0.9, function (r) { return 4 * Math.sin(r * 0.5); }, 0xff8f3f);
 
     phy('phy-bowl', 'Phyllotaxis bowl', 700, 0.9, function (r) { return r * r * 0.02; }, 0x00d2a0);
+
+    phy('phy-dense', 'Phyllotaxis dense', 1100, 0.7, function (r) { return 0; }, 0xffd23f);
 })();
