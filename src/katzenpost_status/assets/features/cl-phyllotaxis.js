@@ -23,4 +23,6 @@
     phy('phy-pinecone', 'Phyllotaxis pinecone', 500, 1.0, function (r) { return r * 0.6; }, 0xff5d6c);
 
     phy('phy-sunflower', 'Phyllotaxis sunflower', 900, 0.85, function (r) { return 0; }, 0x33ccff);
+
+    phy('phy-cactus', 'Phyllotaxis cactus', 600, 0.95, function (r) { return 8 - r * r * 0.02; }, 0x8a5bff);
 })();
