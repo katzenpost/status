@@ -1,0 +1,11 @@
+(function () {
+    "use strict";
+    var K = window.KATZEN;
+    if (!K || !window.KATZEN_GEO3D) return;
+    var G = window.KATZEN_GEO3D, PI = Math.PI;
+    function fit(A, R) { var i, n = A.length, cx = 0, cy = 0, cz = 0; for (i = 0; i < n; i++) { cx += A[i].x; cy += A[i].y; cz += A[i].z; } cx /= n; cy /= n; cz /= n; var mx = 1e-9; for (i = 0; i < n; i++) { A[i].x -= cx; A[i].y -= cy; A[i].z -= cz; mx = Math.max(mx, Math.abs(A[i].x), Math.abs(A[i].y), Math.abs(A[i].z)); } var s = R / mx; for (i = 0; i < n; i++) { A[i].x *= s; A[i].y *= s; A[i].z *= s; } return A; }
+    function knn(pts, k, color) { var E = [], seen = {}, i, j, m; for (i = 0; i < pts.length; i++) { var ds = []; for (j = 0; j < pts.length; j++) if (j !== i) ds.push([pts[i].distanceToSquared(pts[j]), j]); ds.sort(function (a, b) { return a[0] - b[0]; }); for (m = 0; m < k && m < ds.length; m++) { var jj = ds[m][1], a = Math.min(i, jj), b = Math.max(i, jj), key = a + '_' + b; if (!seen[key]) { seen[key] = 1; E.push({ a: pts[i], b: pts[jj], color: color }); } } } return E; }
+    function m2(id, name, step, x0, transient, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.3, camZ: camZ || 58, layout: function (d, T) { var p = x0.slice(), i, P = []; for (i = 0; i < transient; i++) p = step(p); for (i = 0; i < 900; i++) { p = step(p); if (!isFinite(p[0]) || !isFinite(p[1]) || Math.abs(p[0]) > 1e6) break; P.push(new T.Vector3(p[0], p[1], 0)); } fit(P, 18); return G.anchorLayout(d, T, P, knn(P, 2, color)); } }); }
+
+    m2('map2-gingerbread', 'Gingerbread man map', function (p) { return [1 - p[1] + Math.abs(p[0]), p[0]]; }, [-0.1, 0], 100, 0x2ec4b6);
+})();
