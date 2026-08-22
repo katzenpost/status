@@ -8,4 +8,6 @@
     function m2(id, name, step, x0, transient, color, camZ) { G.create({ id: id, name: name, rotateSpeed: 0.3, camZ: camZ || 58, layout: function (d, T) { var p = x0.slice(), i, P = []; for (i = 0; i < transient; i++) p = step(p); for (i = 0; i < 900; i++) { p = step(p); if (!isFinite(p[0]) || !isFinite(p[1]) || Math.abs(p[0]) > 1e6) break; P.push(new T.Vector3(p[0], p[1], 0)); } fit(P, 18); return G.anchorLayout(d, T, P, knn(P, 2, color)); } }); }
 
     m2('map2-gingerbread', 'Gingerbread man map', function (p) { return [1 - p[1] + Math.abs(p[0]), p[0]]; }, [-0.1, 0], 100, 0x2ec4b6);
+
+    m2('map2-standard', 'Standard (Chirikov) map', function (p) { var K = 0.971635, np = p[1] + K * Math.sin(p[0]); np = ((np % (2 * PI)) + 2 * PI) % (2 * PI); var nt = ((p[0] + np) % (2 * PI) + 2 * PI) % (2 * PI); return [nt, np]; }, [2, 0.5], 0, 0x4d8bf0);
 })();
