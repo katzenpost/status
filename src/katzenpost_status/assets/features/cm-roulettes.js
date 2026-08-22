@@ -22,4 +22,6 @@
     cv('rou-8-5', 'Toroidal roulette 8:5', rou(11, 6, 8, 3, 5), 0xffd23f, 58, 1600);
 
     cv('rou-11-7', 'Toroidal roulette 11:7', rou(10, 4, 11, 4, 7), 0xff5d6c, 58, 1600);
+
+    cv('rou-5-13', 'Toroidal roulette 5:13', rou(9, 6, 5, 5, 13), 0x33ccff, 58, 1600);
 })();
