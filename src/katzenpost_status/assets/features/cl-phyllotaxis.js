@@ -15,4 +15,6 @@
     phy('phy-cone', 'Phyllotaxis cone', 700, 0.9, function (r) { return r * 0.6; }, 0xff5d8f);
 
     phy('phy-wave', 'Phyllotaxis wave', 700, 0.9, function (r) { return 4 * Math.sin(r * 0.5); }, 0xff8f3f);
+
+    phy('phy-bowl', 'Phyllotaxis bowl', 700, 0.9, function (r) { return r * r * 0.02; }, 0x00d2a0);
 })();
