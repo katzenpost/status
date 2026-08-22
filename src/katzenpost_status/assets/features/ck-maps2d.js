@@ -14,4 +14,6 @@
     m2('map2-hopalong', 'Hopalong (Martin) map', function (p) { var a = -55, b = -1, c = -42; return [p[1] - (p[0] < 0 ? -1 : 1) * Math.sqrt(Math.abs(b * p[0] - c)), a - p[0]]; }, [0, 0], 50, 0x9b5de5);
 
     m2('map2-hopalong2', 'Hopalong (Martin) map II', function (p) { var a = 0.4, b = 1, c = 0; return [p[1] - (p[0] < 0 ? -1 : 1) * Math.sqrt(Math.abs(b * p[0] - c)), a - p[0]]; }, [0, 0], 50, 0xff5d8f);
+
+    m2('map2-martin', 'Sine Hopalong map', function (p) { var a = PI; return [p[1] - Math.sin(p[0]), a - p[0]]; }, [0, 0], 50, 0xff8f3f);
 })();
