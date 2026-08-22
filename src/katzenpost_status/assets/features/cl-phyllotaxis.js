@@ -19,4 +19,6 @@
     phy('phy-bowl', 'Phyllotaxis bowl', 700, 0.9, function (r) { return r * r * 0.02; }, 0x00d2a0);
 
     phy('phy-dense', 'Phyllotaxis dense', 1100, 0.7, function (r) { return 0; }, 0xffd23f);
+
+    phy('phy-pinecone', 'Phyllotaxis pinecone', 500, 1.0, function (r) { return r * 0.6; }, 0xff5d6c);
 })();
