@@ -161,6 +161,8 @@
         var dyn = mk('div'); dyn.style.cssText = 'display:flex;flex-direction:column;gap:10px'; el.__dyn = dyn;
         body.appendChild(dyn);
         body.appendChild(buildViewer(el, s));
+        var dynC = mk('div'); dynC.style.cssText = 'display:flex;flex-direction:column;gap:10px'; el.__dynC = dynC;
+        body.appendChild(dynC);   // consensus document sits BELOW the viewscreen
         frame.appendChild(body);
         el.appendChild(frame);
         el.__mounted = 1;
@@ -182,6 +184,7 @@
         el.__sub.innerHTML = 'Stardate ' + sd + '<br>' + utc + ' UTC' + (d.epoch != null ? '<br>Epoch ' + d.epoch : '');
 
         var dyn = el.__dyn; dyn.innerHTML = '';
+        var dynC = el.__dynC; dynC.innerHTML = '';
         var row = mk('div', 'row');
         var cells = [['Gateways', c.byType.gateway || 0]];
         c.layers.forEach(function (n, i) { cells.push(['Mix L' + (i + 1), n]); });
@@ -247,7 +250,7 @@
         cg.appendChild(kv('Wire protocol', cons.wire));
         cg.appendChild(kv('Nodes', c.total));
         cg.appendChild(kv('Generated', d.generated_at));
-        cp.appendChild(cg); dyn.appendChild(cp);
+        cp.appendChild(cg); dynC.appendChild(cp);   // below the viewscreen
 
         var pp = mk('div', 'panel'); pp.style.borderLeftColor = s.panel2;
         var h2 = mk('h3', null, 'Loopix Parameters'); h2.style.color = s.panel2; pp.appendChild(h2);
