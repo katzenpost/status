@@ -22,4 +22,6 @@
     m2('map2-quadruptwo', 'Quadruptwo (Pickover)', function (p) { var a = 34, b = 1, c = 5, s = (b * p[0] - c) < 0 ? -1 : 1; return [p[1] - s * Math.sin(Math.log(Math.abs(b * p[0] - c) + 1)) * Math.atan((c - b * p[0]) * (c - b * p[0])), a - p[0]]; }, [0, 0], 50, 0xffd23f);
 
     m2('map2-duffing', 'Duffing map', function (p) { var a = 2.75, b = 0.2; return [p[1], -b * p[0] + a * p[1] - p[1] * p[1] * p[1]]; }, [0.1, 0], 200, 0xff5d6c);
+
+    m2('map2-gumowskimira', 'Gumowski-Mira map', function (p) { var a = -0.2, b = 0.99; function g(x) { return a * x + 2 * (1 - a) * x * x / (1 + x * x); } var ny = b * p[1] + g(p[0]); return [ny, -p[0] + g(ny)]; }, [4, 0], 300, 0x33ccff);
 })();
