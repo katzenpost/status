@@ -30,5 +30,5 @@ function pRing(ci,j,n){var a=n<=1?0:PI2*j/n;return [11*Math.sin(a),11*Math.cos(a
 function pFan(ci,j,n,fr){var a=(fr-0.5)*Math.PI*0.85;return [12*Math.sin(a),0];}
 function pHelix(ci,j,n,fr){var a=ci*1.05+fr*0.6;return [11*Math.sin(a),11*Math.cos(a)];}
 function pStag(ci,j,n,fr){return [(fr-0.5)*24,(ci%2?5:-5)];}
-mk('mix-strata','Stratified mix DAG',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{});});mk('mix-cascade','Cascade columns',0x4d8bf0,62,undefined,function(d,T){return pipe(d,T,{edge:'matched'});});mk('mix-fanout','Layer fan-out',0x9b5de5,60,undefined,function(d,T){return pipe(d,T,{place:pFan});});mk('mix-helix','Pipeline helix',0xff8f3f,64,undefined,function(d,T){return pipe(d,T,{place:pHelix});});
+mk('mix-strata','Stratified mix DAG',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{});});mk('mix-cascade','Cascade columns',0x4d8bf0,62,undefined,function(d,T){return pipe(d,T,{edge:'matched'});});mk('mix-fanout','Layer fan-out',0x9b5de5,60,undefined,function(d,T){return pipe(d,T,{place:pFan});});mk('mix-helix','Pipeline helix',0xff8f3f,64,undefined,function(d,T){return pipe(d,T,{place:pHelix});});mk('mix-dag3d','Staggered 3D DAG',0xd2a0,62,undefined,function(d,T){return pipe(d,T,{place:pStag});});
 })();
