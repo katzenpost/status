@@ -26,5 +26,5 @@ function pipe(d,T,opt){opt=opt||{};var cols=G.columns(d),nc=cols.length,X=num(op
  if(opt.after)opt.after(nodes,edges,cp,T,d);
  return {nodes:nodes,edges:edges};}
 
-mk('strat-cascade','Cascade vs free-route: cascade',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{edge:'matched',color:0x2ec4b6});});
+mk('strat-cascade','Cascade vs free-route: cascade',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{edge:'matched',color:0x2ec4b6});});mk('strat-freeroute','Free-route full bipartite',0x4d8bf0,62,undefined,function(d,T){return pipe(d,T,{});});
 })();
