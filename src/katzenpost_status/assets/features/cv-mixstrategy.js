@@ -26,5 +26,5 @@ function pipe(d,T,opt){opt=opt||{};var cols=G.columns(d),nc=cols.length,X=num(op
  if(opt.after)opt.after(nodes,edges,cp,T,d);
  return {nodes:nodes,edges:edges};}
 
-mk('strat-cascade','Cascade vs free-route: cascade',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{edge:'matched',color:0x2ec4b6});});mk('strat-freeroute','Free-route full bipartite',0x4d8bf0,62,undefined,function(d,T){return pipe(d,T,{});});mk('strat-stratified','Stratified topology',0x9b5de5,62,undefined,function(d,T){return pipe(d,T,{place:function(ci,j,n,fr){return [(fr-0.5)*22,(ci%2?4:-4)];}});});
+mk('strat-cascade','Cascade vs free-route: cascade',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{edge:'matched',color:0x2ec4b6});});mk('strat-freeroute','Free-route full bipartite',0x4d8bf0,62,undefined,function(d,T){return pipe(d,T,{});});mk('strat-stratified','Stratified topology',0x9b5de5,62,undefined,function(d,T){return pipe(d,T,{place:function(ci,j,n,fr){return [(fr-0.5)*22,(ci%2?4:-4)];}});});mk('strat-restricted','Restricted-routes sparse graph',0xff5d8f,62,undefined,function(d,T){var lay=pipe(d,T,{}),edges=lay.edges.filter(function(e,i){return (i*7)%3===0;});return {nodes:lay.nodes,edges:edges};});
 })();
