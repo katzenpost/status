@@ -26,5 +26,5 @@ function pipe(d,T,opt){opt=opt||{};var cols=G.columns(d),nc=cols.length,X=num(op
  if(opt.after)opt.after(nodes,edges,cp,T,d);
  return {nodes:nodes,edges:edges};}
 
-mk('flow-field','Gateway to service flow field',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{color:0x2ec4b6});});mk('flow-torus','Throughput torus',0x4d8bf0,60,undefined,function(d,T){var R=12,rr=5,N=800,L=[],i,loops=5;for(i=0;i<=N;i++){var t=i/N,u=t*PI2*loops,v=t*PI2;L.push(V3(T,(R+rr*Math.cos(v))*Math.cos(u),rr*Math.sin(v),(R+rr*Math.cos(v))*Math.sin(u)));}return G.curveLayout(d,T,L,0x4d8bf0);});
+mk('flow-field','Gateway to service flow field',0x2ec4b6,62,undefined,function(d,T){return pipe(d,T,{color:0x2ec4b6});});mk('flow-torus','Throughput torus',0x4d8bf0,60,undefined,function(d,T){var R=12,rr=5,N=800,L=[],i,loops=5;for(i=0;i<=N;i++){var t=i/N,u=t*PI2*loops,v=t*PI2;L.push(V3(T,(R+rr*Math.cos(v))*Math.cos(u),rr*Math.sin(v),(R+rr*Math.cos(v))*Math.sin(u)));}return G.curveLayout(d,T,L,0x4d8bf0);});mk('flow-congestion','Congestion height-field',0x9b5de5,62,undefined,function(d,T){return pipe(d,T,{place:function(ci,j,n,fr){return [(fr-0.5)*20,6*Math.sin(fr*PI2)*Math.sin(ci)];}});});
 })();
