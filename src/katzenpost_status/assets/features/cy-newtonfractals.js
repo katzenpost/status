@@ -72,4 +72,6 @@
     }
 
     basins('nb-halley-cubic', 'Halley basins (z^3-1)', polyPow(3), stepHalley, 1, 1.6, 56);
+
+    basins('nb-householder-cubic', 'Householder basins (z^3-1)', polyPow(3), stepHouse, 1, 1.6, 56);
 })();
