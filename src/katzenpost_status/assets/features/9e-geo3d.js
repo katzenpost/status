@@ -105,7 +105,7 @@
             var PACK_MAX = mob ? 120 : 320;
             var renderer = null, scene = null, camera = null, controls = null, world = null;
             var nodeGroup = null, edgeLines = null, nodePos = {}, spawnFn = null;
-            var gVerts = [], gAdj = [], nodeVert = {}, pipeCols = [];   // edge graph for routing
+            var gVerts = [], gAdj = [], nodeVert = {}, pipeCols = [], _distCache = {};   // edge graph for routing
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
@@ -238,7 +238,7 @@
             // endpoints) so packets can follow the geometry's lines, and snap
             // each node to its nearest graph vertex.
             function buildGraph(edges, nodes) {
-                gVerts = []; gAdj = []; nodeVert = {};
+                gVerts = []; gAdj = []; nodeVert = {}; _distCache = {};
                 var vmap = {}, keyOf = [], Q = opts.snap || 0.35, s, i, t;
                 function vidx(v) {
                     var rx = Math.round(v.x / Q), ry = Math.round(v.y / Q), rz = Math.round(v.z / Q);
@@ -289,22 +289,54 @@
                 });
                 pipeCols = window.KATZEN_GEO3D.columns(K.data() || {});
             }
-            function bfs(src, dst) {
-                if (src < 0 || dst < 0) return null;
-                if (src === dst) return [src];
-                var prev = {}, q = [src], seen = {}, head = 0; seen[src] = 1;
+            // BFS distance field from a destination vertex over the routing
+            // graph (cached per dst; cleared when the graph rebuilds).
+            function distField(dst) {
+                if (_distCache[dst]) return _distCache[dst];
+                var dist = new Array(gVerts.length), q = [dst], head = 0, i;
+                for (i = 0; i < dist.length; i++) dist[i] = -1;
+                dist[dst] = 0;
                 while (head < q.length) {
                     var u = q[head++], nb = gAdj[u];
-                    for (var i = 0; i < nb.length; i++) {
-                        var w = nb[i];
-                        if (!seen[w]) {
-                            seen[w] = 1; prev[w] = u;
-                            if (w === dst) { var path = [dst], c = dst; while (c !== src) { c = prev[c]; path.push(c); } path.reverse(); return path; }
-                            q.push(w);
-                        }
-                    }
+                    for (i = 0; i < nb.length; i++) { var w = nb[i]; if (dist[w] < 0) { dist[w] = dist[u] + 1; q.push(w); } }
                 }
-                return null;
+                _distCache[dst] = dist; return dist;
+            }
+            // Route one leg src->dst as a BIASED RANDOM WALK: at each vertex pick
+            // among its links (roughly 1/n), so consecutive packets take DIFFERENT
+            // routes and every edge gets used over time (not always the shortest
+            // path). A fraction of steps drift toward dst; after an explore budget
+            // we descend the distance field so the leg always ARRIVES (no partial
+            // legs -> no discontinuous jumps). Immediate backtrack is avoided
+            // except at dead-ends (so L-system trees can escape leaves).
+            function walkLeg(src, dst) {
+                if (src < 0 || dst < 0) return null;
+                if (src === dst) return [src];
+                var dist = distField(dst);
+                if (dist[src] < 0) return null;   // disconnected: caller falls back
+                var path = [src], cur = src, prev = -1, i, budget = Math.min(dist[src] * 2, 120), steps = 0;
+                while (cur !== dst && steps < budget) {
+                    var nb = gAdj[cur]; if (!nb.length) break;
+                    var cand = []; for (i = 0; i < nb.length; i++) if (nb[i] !== prev) cand.push(nb[i]);
+                    if (!cand.length) cand = nb;   // dead-end: allow backtrack
+                    var pick;
+                    if (Math.random() < 0.45) {   // drift toward dst
+                        var bd = Infinity, best = [];
+                        for (i = 0; i < cand.length; i++) { var dd = dist[cand[i]]; if (dd < 0) continue; if (dd < bd) { bd = dd; best = [cand[i]]; } else if (dd === bd) best.push(cand[i]); }
+                        pick = best.length ? best[(Math.random() * best.length) | 0] : cand[(Math.random() * cand.length) | 0];
+                    } else {
+                        pick = cand[(Math.random() * cand.length) | 0];   // ~1/n exploration
+                    }
+                    prev = cur; cur = pick; path.push(cur); steps++;
+                }
+                var guard = 0;   // guaranteed descent to dst on the distance field
+                while (cur !== dst && guard++ < gVerts.length + 5) {
+                    var nb2 = gAdj[cur], nxt = -1, cd = dist[cur];
+                    for (i = 0; i < nb2.length; i++) if (dist[nb2[i]] === cd - 1) { nxt = nb2[i]; break; }
+                    if (nxt < 0) break;
+                    cur = nxt; path.push(cur);
+                }
+                return path.length >= 2 ? path : null;
             }
             function routeAlongEdges() {
                 if (!pipeCols || pipeCols.length < 2 || !gVerts.length) return null;
@@ -312,7 +344,7 @@
                 for (ci = 0; ci < pipeCols.length; ci++) { var c = pipeCols[ci]; chosen.push(c[(Math.random() * c.length) | 0]); }
                 var pts = [], stops = [];
                 for (var i = 0; i < chosen.length - 1; i++) {
-                    var vp = bfs(nodeVert[chosen[i].name], nodeVert[chosen[i + 1].name]);
+                    var vp = walkLeg(nodeVert[chosen[i].name], nodeVert[chosen[i + 1].name]);
                     if (!vp) return null;   // disconnected: caller falls back
                     for (var k = 0; k < vp.length; k++) { if (i > 0 && k === 0) continue; pts.push(gVerts[vp[k]]); }
                     stops.push(pts.length - 1);   // end of this hop = a real pipeline node (dwell + ripple here)
