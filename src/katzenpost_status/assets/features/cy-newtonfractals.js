@@ -84,4 +84,6 @@
     basins('nb-newton-sextic', 'Newton basins (z^6-1)', polyPow(6), stepNewton, 1, 1.7, 56);
 
     basins('nb-newton-octic', 'Newton basins (z^8-1)', polyPow(8), stepNewton, 1, 1.7, 56);
+
+    basins('nb-halley-octic', 'Halley basins (z^8-1)', polyPow(8), stepHalley, 1, 1.7, 56);
 })();
