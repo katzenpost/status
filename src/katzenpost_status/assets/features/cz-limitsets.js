@@ -51,4 +51,6 @@
     schottky('ls-schottky-2-spiral', 'Loxodromic Schottky (2 pairs)', 2, 0.9, 1.2, 56);
 
     schottky('ls-schottky-3', 'Schottky group (3 pairs)', 3, 0.92, 0.0, 56);
+
+    schottky('ls-schottky-3-spiral', 'Loxodromic Schottky (3 pairs)', 3, 0.92, 1.0, 56);
 })();
