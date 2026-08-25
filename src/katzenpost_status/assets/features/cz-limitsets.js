@@ -61,4 +61,6 @@
     schottky('ls-schottky-5', 'Schottky group (5 pairs)', 5, 0.95, 0.0, 56);
 
     schottky('ls-schottky-6', 'Schottky group (6 pairs)', 6, 0.96, 0.0, 56);
+
+    schottky('ls-kleinian-tight', 'Kleinian gasket (near-tangent)', 3, 0.99, 0.4, 56);
 })();
