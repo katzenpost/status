@@ -78,4 +78,6 @@
     basins('nb-newton-quartic', 'Newton basins (z^4-1)', polyPow(4), stepNewton, 1, 1.7, 56);
 
     basins('nb-halley-quartic', 'Halley basins (z^4-1)', polyPow(4), stepHalley, 1, 1.7, 56);
+
+    basins('nb-newton-quintic', 'Newton basins (z^5-1)', polyPow(5), stepNewton, 1, 1.7, 56);
 })();
