@@ -63,4 +63,6 @@
     schottky('ls-schottky-6', 'Schottky group (6 pairs)', 6, 0.96, 0.0, 56);
 
     schottky('ls-kleinian-tight', 'Kleinian gasket (near-tangent)', 3, 0.99, 0.4, 56);
+
+    schottky('ls-kleinian-dust', 'Kleinian dust (loose circles)', 4, 0.6, 1.4, 56);
 })();
