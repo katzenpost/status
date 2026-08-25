@@ -27,7 +27,9 @@
         '.lcx .side{grid-column:1;grid-row:2;display:flex;flex-direction:column;gap:6px}' +
         '.lcx .rail{display:flex;flex-direction:column;gap:6px}' +
         '.lcx .pill{background:var(--acc);color:var(--bg);border-radius:var(--pill);padding:12px;font-size:11px;' +
-        'font-weight:800;text-align:right;min-height:40px;display:flex;align-items:center;justify-content:flex-end}' +
+        'font-weight:800;text-align:right;min-height:40px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer}' +
+        '.lcx .pill.selp{outline:3px solid var(--ink);outline-offset:-3px}' +
+        '.lcx .ntype{opacity:0.5;font-size:8px;margin-left:3px}' +
         '.lcx .elbow-bl{margin-top:auto;height:58px;background:var(--acc);border-bottom-left-radius:var(--corner);border-top-right-radius:8px}' +
         '.lcx .body{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:10px;min-width:0}' +
         '.lcx .row{display:flex;gap:8px;flex-wrap:wrap}' +
@@ -173,11 +175,17 @@
     function refresh(el, s) {
         if (!el.__mounted) mount(el, s);
         var d = K.data() || {}, P = d.parameters || {}, c = counts(d);
+        // Rail pills double as node-type FILTERS for the roster below. Sensors =
+        // the full list (no filter); the active filter pill is outlined. The rail
+        // rebuilds every second, so re-apply the active state each refresh.
         var rail = el.__rail; rail.innerHTML = '';
         var mixTotal = c.layers.reduce(add, 0) || (c.byType.mix || 0);
-        [['Sensors', c.total], ['Gateway', c.byType.gateway || 0], ['Mix net', mixTotal], ['Service', c.byType.service || 0],
-        ['Storage', c.byType.storage || 0], ['Dir-auth', c.byType.dirauth || 0]].forEach(function (r, i) {
-            var p = mk('div', 'pill', r[0] + ' ' + r[1]); p.style.background = s.pills[i % s.pills.length]; rail.appendChild(p);
+        [['Sensors', c.total, null], ['Gateway', c.byType.gateway || 0, 'gateway'], ['Mix net', mixTotal, 'mix'],
+        ['Service', c.byType.service || 0, 'service'], ['Storage', c.byType.storage || 0, 'storage'], ['Dir-auth', c.byType.dirauth || 0, 'dirauth']].forEach(function (r, i) {
+            var active = (el.__typeFilter || null) === r[2];
+            var p = mk('div', 'pill' + (active ? ' selp' : ''), r[0] + ' ' + r[1]); p.style.background = s.pills[i % s.pills.length];
+            p.addEventListener('click', function () { el.__typeFilter = r[2]; refresh(el, s); });
+            rail.appendChild(p);
         });
         var now = new Date(), utc = now.toISOString().slice(0, 19).replace('T', ' ');
         var sd = (41000 + (now.getTime() / 8.64e7 % 1000)).toFixed(1);
@@ -201,27 +209,52 @@
             srow.appendChild(cell);
         });
         sp.appendChild(srow); dyn.appendChild(sp);
+        // dyn holds only the top stats (cells + status); the viewscreen sits above
+        // dynC, and the roster / selected node / consensus / Loopix all go BELOW
+        // the viewscreen (dynC), with Loopix parameters last.
 
-        // Node Roster - clicking a node shows its detail INSIDE the board (no
-        // floating popup); the selection is kept across refreshes by name.
-        var rp = mk('div', 'panel'); rp.appendChild(mk('h3', null, 'Node Roster'));
+        // Node Roster - filtered by the active rail type (full list by default).
+        // Clicking a node shows its detail in the board; selection is kept by a
+        // {idx,name,type} key so colliding names (e.g. a dirauth sharing a mix's
+        // name) stay distinct and are all listed and selectable.
+        var rp = mk('div', 'panel');
+        rp.appendChild(mk('h3', null, 'Node Roster' + (el.__typeFilter ? ' - ' + el.__typeFilter : '')));
         var roster = mk('div', 'roster');
-        (d.nodes || []).slice().sort(function (a, b) { return (a.type + a.name).localeCompare(b.type + b.name); }).forEach(function (n) {
-            var item = mk('div', 'node' + (el.__selNode === n.name ? ' sel' : '')); item.style.color = s.ink; item.style.background = 'rgba(255,255,255,0.06)';
+        var list = (d.nodes || []).map(function (n, idx) { return { n: n, idx: idx }; })
+            .filter(function (e) { return !el.__typeFilter || e.n.type === el.__typeFilter; })
+            .sort(function (a, b) { return (a.n.type + a.n.name).localeCompare(b.n.type + b.n.name); });
+        if (!list.length) roster.appendChild(mk('div', 'hint', 'No nodes of this type.'));
+        list.forEach(function (e) {
+            var n = e.n, sk = el.__sel, isSel = sk && sk.idx === e.idx && sk.name === n.name && sk.type === n.type;
+            var item = mk('div', 'node' + (isSel ? ' sel' : '')); item.style.color = s.ink; item.style.background = 'rgba(255,255,255,0.06)';
             var dot = mk('span', 'dot'); dot.style.background = STATUS_COL[n.status] || '#8899aa'; if (n.status === 'down') dot.className += ' blink';
-            item.appendChild(dot); item.appendChild(mk('span', null, n.name));
-            item.addEventListener('click', function () { el.__selNode = n.name; refresh(el, s); });
+            item.appendChild(dot); item.appendChild(mk('span', null, n.name)); item.appendChild(mk('span', 'ntype', n.type));
+            item.addEventListener('click', function () { el.__sel = { idx: e.idx, name: n.name, type: n.type }; refresh(el, s); });
             roster.appendChild(item);
         });
-        rp.appendChild(roster); dyn.appendChild(rp);
+        rp.appendChild(roster); dynC.appendChild(rp);
 
-        // Selected node detail, rendered as an LCARS panel.
+        // Selected node detail - opened by a roster click, closed by its Close
+        // button (or by selecting another node). Collision-safe lookup: verify
+        // the stored index still points at the same node, else re-find by name+type.
         var np = mk('div', 'panel'); np.style.borderLeftColor = s.accent;
-        var nh = mk('h3', null, 'Selected Node'); nh.style.color = s.accent; np.appendChild(nh);
-        var sn = null; (d.nodes || []).forEach(function (n) { if (n.name === el.__selNode) sn = n; });
+        var nhrow = mk('div'); nhrow.style.cssText = 'display:flex;align-items:center;gap:8px';
+        var nh = mk('h3', null, 'Selected Node'); nh.style.color = s.accent; nh.style.margin = '0'; nhrow.appendChild(nh);
+        var sel = el.__sel, sn = null;
+        if (sel) {
+            var at = (d.nodes || [])[sel.idx];
+            if (at && at.name === sel.name && at.type === sel.type) sn = at;
+            else (d.nodes || []).forEach(function (n) { if (!sn && n.name === sel.name && n.type === sel.type) sn = n; });
+        }
+        if (sn) {
+            var closeB = mk('button', 'vbtn', 'Close'); closeB.style.marginLeft = 'auto'; closeB.style.padding = '4px 10px';
+            closeB.addEventListener('click', function () { el.__sel = null; refresh(el, s); });
+            nhrow.appendChild(closeB);
+        }
+        np.appendChild(nhrow);
         if (!sn) { np.appendChild(mk('div', 'hint', 'Select a node from the roster above.')); }
         else {
-            nh.textContent = sn.name;
+            nh.textContent = sn.name + ' (' + sn.type + ')';
             var det = sn.details || {}, g = sn.geo || {}, grid = mk('div', 'detail');
             grid.appendChild(kv('Type', sn.type));
             grid.appendChild(kv('Status', sn.status));
@@ -235,9 +268,9 @@
             grid.appendChild(kv('Address', (det.addresses || []).join(', ')));
             np.appendChild(grid);
         }
-        dyn.appendChild(np);
+        dynC.appendChild(np);
 
-        // Consensus document, styled as part of the LCARS board.
+        // Consensus document, styled as part of the LCARS board (below viewscreen).
         var cons = d.consensus || {};
         var cp = mk('div', 'panel'); cp.style.borderLeftColor = s.accent2;
         var ch = mk('h3', null, 'Consensus Document'); ch.style.color = s.accent2; cp.appendChild(ch);
@@ -250,15 +283,16 @@
         cg.appendChild(kv('Wire protocol', cons.wire));
         cg.appendChild(kv('Nodes', c.total));
         cg.appendChild(kv('Generated', d.generated_at));
-        cp.appendChild(cg); dynC.appendChild(cp);   // below the viewscreen
+        cp.appendChild(cg); dynC.appendChild(cp);
 
+        // Loopix parameters - last, at the very bottom under the consensus.
         var pp = mk('div', 'panel'); pp.style.borderLeftColor = s.panel2;
         var h2 = mk('h3', null, 'Loopix Parameters'); h2.style.color = s.panel2; pp.appendChild(h2);
         var lam = [['lambdaP', P.LambdaP, s.pills[0]], ['lambdaL', P.LambdaL, s.pills[1]], ['lambdaD', P.LambdaD, s.pills[2]], ['lambdaM', P.LambdaM, s.pills[3]], ['lambdaG', P.LambdaG, s.pills[4]], ['lambdaR', P.LambdaR, s.pills[5 % s.pills.length]]];
         var lmax = 0; lam.forEach(function (x) { if (typeof x[1] === 'number' && x[1] > lmax) lmax = x[1]; });
         lam.forEach(function (x) { pp.appendChild(meter(x[0], x[1], lmax, x[2])); });
         if (typeof P.Mu === 'number') pp.appendChild(meter('Mu', P.Mu, P.Mu, s.accent));
-        dyn.appendChild(pp);
+        dynC.appendChild(pp);
     }
 
     window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
