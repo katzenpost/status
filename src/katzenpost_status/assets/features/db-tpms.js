@@ -61,4 +61,6 @@
     tpms('tp-gyroid-thick', 'Gyroid (CMC companion)', function (x, y, z) { return GY(x, y, z) - 0.7; }, 60);
 
     tpms('tp-primitive-thick', 'Primitive (CMC companion)', function (x, y, z) { return PP(x, y, z) - 0.8; }, 60);
+
+    tpms('tp-diamond-thick', 'Diamond (CMC companion)', function (x, y, z) { return DD(x, y, z) - 0.6; }, 60);
 })();
