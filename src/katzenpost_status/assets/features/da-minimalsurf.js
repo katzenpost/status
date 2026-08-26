@@ -78,4 +78,6 @@
     weSurf('ms-richmond', 'Richmond surface', function (z) { var d = z[0] * z[0] + z[1] * z[1] || 1e-9; var i = cmul([1, 0], [z[0] / d, -z[1] / d]); return cmul(i, i); }, function (z) { return z; }, 0.4, 1.5, 56);
 
     weSurf('ms-richmond3', 'Richmond surface (g=z^3)', function (z) { var d = z[0] * z[0] + z[1] * z[1] || 1e-9; var i = [z[0] / d, -z[1] / d]; return cmul(i, i); }, function (z) { return zpow(z, 3); }, 0.45, 1.45, 56);
+
+    weSurf('ms-twisted', 'Twisted Enneper (g=i z^2)', function (z) { return [1, 0]; }, function (z) { return cmul([0, 1], zpow(z, 2)); }, 0.0, 1.15, 56);
 })();
