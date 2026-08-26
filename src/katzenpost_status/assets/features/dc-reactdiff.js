@@ -52,4 +52,6 @@
     function noiseInit(u, v, W, u0, v0) { var i, N = W * W; for (i = 0; i < N; i++) { u[i] = u0 + (Math.random() - 0.5) * 0.1; v[i] = v0 + (Math.random() - 0.5) * 0.1; } }
 
     rd2(gs('rd-grayscott-coral', 'Gray-Scott (coral)', 0.0545, 0.062));
+
+    rd2(gs('rd-grayscott-mitosis', 'Gray-Scott (mitosis)', 0.0367, 0.0649));
 })();
