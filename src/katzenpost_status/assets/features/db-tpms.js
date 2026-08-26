@@ -57,4 +57,6 @@
     tpms('tp-doubleiwp', 'Double I-WP', function (x, y, z) { var w = IWP(x, y, z); return w * w - 2.0; }, 60);
 
     tpms('tp-doubleneovius', 'Double Neovius', function (x, y, z) { var v = NEO(x, y, z); return v * v - 3.0; }, 60);
+
+    tpms('tp-gyroid-thick', 'Gyroid (CMC companion)', function (x, y, z) { return GY(x, y, z) - 0.7; }, 60);
 })();
