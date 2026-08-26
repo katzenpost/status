@@ -59,4 +59,6 @@
     tpms('tp-doubleneovius', 'Double Neovius', function (x, y, z) { var v = NEO(x, y, z); return v * v - 3.0; }, 60);
 
     tpms('tp-gyroid-thick', 'Gyroid (CMC companion)', function (x, y, z) { return GY(x, y, z) - 0.7; }, 60);
+
+    tpms('tp-primitive-thick', 'Primitive (CMC companion)', function (x, y, z) { return PP(x, y, z) - 0.8; }, 60);
 })();
