@@ -82,4 +82,6 @@
     weSurf('ms-twisted', 'Twisted Enneper (g=i z^2)', function (z) { return [1, 0]; }, function (z) { return cmul([0, 1], zpow(z, 2)); }, 0.0, 1.15, 56);
 
     assoc('ms-associate-25', 'Associate family (25 deg)', 25 * Math.PI / 180, 56);
+
+    assoc('ms-associate-50', 'Associate family (50 deg)', 50 * Math.PI / 180, 56);
 })();
