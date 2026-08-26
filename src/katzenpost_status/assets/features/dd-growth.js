@@ -1,0 +1,55 @@
+(function () {
+    "use strict";
+    var K = window.KATZEN;
+    if (!K || !window.KATZEN_GEO3D) return;
+    var G = window.KATZEN_GEO3D;
+    var PAL = [0x2ec4b6, 0x4d8bf0, 0x9b5de5, 0xff5d8f, 0xff8f3f, 0x00d2a0, 0xffd23f, 0xff5d6c, 0x33ccff, 0x8a5bff];
+    // Cells [x,y,order] -> centred small squares, coloured by growth order.
+    function clusterView(id, name, gen, camZ, sc) {
+        G.create({ id: id, name: name, rotateSpeed: 0.22, camZ: camZ || 60, layout: function (d, THREE) {
+            var cells = gen(), s = sc || 0.9, i, mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9, tot = cells.length || 1;
+            cells.forEach(function (c) { if (c[0] < mnx) mnx = c[0]; if (c[0] > mxx) mxx = c[0]; if (c[1] < mny) mny = c[1]; if (c[1] > mxy) mxy = c[1]; });
+            var cx = (mnx + mxx) / 2, cy = (mny + mxy) / 2, span = Math.max(mxx - mnx, mxy - mny) || 1, sc2 = Math.min(s, 34 / span);
+            var edges = [], anchors = [];
+            var stride = Math.max(1, Math.ceil(cells.length / 340));
+            for (i = 0; i < cells.length; i += stride) {
+                var c = cells[i], x = (c[0] - cx) * sc2, y = (c[1] - cy) * sc2, h = sc2 / 2, col = PAL[Math.min(PAL.length - 1, ((c[2] / tot) * PAL.length) | 0)];
+                var p = [[x - h, y - h], [x + h, y - h], [x + h, y + h], [x - h, y + h]];
+                anchors.push(new THREE.Vector3(x, y, 0));
+                for (var kk = 0; kk < 4; kk++) edges.push({ a: new THREE.Vector3(p[kk][0], p[kk][1], 0), b: new THREE.Vector3(p[(kk + 1) % 4][0], p[(kk + 1) % 4][1], 0), color: col });
+            }
+            if (!edges.length) { anchors = [new THREE.Vector3(-6, 0, 0), new THREE.Vector3(6, 0, 0)]; edges = [{ a: anchors[0], b: anchors[1], color: PAL[0] }]; }
+            return G.anchorLayout(d, THREE, anchors, edges);
+        } });
+    }
+    // Edge list [[x1,y1,x2,y2,band],...] on a grid -> centred line segments (trees, mazes).
+    function graphView(id, name, gen, camZ, sc) {
+        G.create({ id: id, name: name, rotateSpeed: 0.2, camZ: camZ || 60, layout: function (d, THREE) {
+            var segs = gen(), s = sc || 1.0, i, mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9;
+            segs.forEach(function (e) { mnx = Math.min(mnx, e[0], e[2]); mxx = Math.max(mxx, e[0], e[2]); mny = Math.min(mny, e[1], e[3]); mxy = Math.max(mxy, e[1], e[3]); });
+            var cx = (mnx + mxx) / 2, cy = (mny + mxy) / 2, span = Math.max(mxx - mnx, mxy - mny) || 1, sc2 = Math.min(s, 34 / span);
+            var edges = [], anchors = [], seen = {};
+            segs.forEach(function (e) {
+                var a = new THREE.Vector3((e[0] - cx) * sc2, (e[1] - cy) * sc2, 0), b = new THREE.Vector3((e[2] - cx) * sc2, (e[3] - cy) * sc2, 0);
+                edges.push({ a: a, b: b, color: PAL[(e[4] || 0) % PAL.length] });
+                var ka = e[0] + ',' + e[1], kb = e[2] + ',' + e[3];
+                if (!seen[ka]) { seen[ka] = 1; anchors.push(a); } if (!seen[kb]) { seen[kb] = 1; anchors.push(b); }
+            });
+            if (!edges.length) { anchors = [new THREE.Vector3(-6, 0, 0), new THREE.Vector3(6, 0, 0)]; edges = [{ a: anchors[0], b: anchors[1], color: PAL[0] }]; }
+            return G.anchorLayout(d, THREE, anchors, edges);
+        } });
+    }
+    // Height profile h[x] -> a rough interface curve (deposition / KPZ classes).
+    function profileView(id, name, gen, color, camZ) {
+        G.create({ id: id, name: name, rotateSpeed: 0.16, camZ: camZ || 58, layout: function (d, THREE) {
+            var h = gen(), W = h.length, i, mn = 1e9, mx = -1e9;
+            for (i = 0; i < W; i++) { if (h[i] < mn) mn = h[i]; if (h[i] > mx) mx = h[i]; }
+            var rng = (mx - mn) || 1, pts = [];
+            for (i = 0; i < W; i++) pts.push(new THREE.Vector3((i / (W - 1) * 2 - 1) * 18, ((h[i] - mn) / rng) * 16 - 8, 0));
+            return G.curveLayout(d, THREE, pts, color);
+        } });
+    }
+    function key(x, y) { return x + ',' + y; }
+
+    clusterView('gr-eden', 'Eden growth cluster', function () { var grid = {}, front = [[0, 0]], out = [[0, 0, 0]], n = 0; grid[key(0, 0)] = 1; while (out.length < 900 && front.length) { var i = (Math.random() * front.length) | 0, c = front[i], nb = [[c[0] + 1, c[1]], [c[0] - 1, c[1]], [c[0], c[1] + 1], [c[0], c[1] - 1]], open = []; nb.forEach(function (q) { if (!grid[key(q[0], q[1])]) open.push(q); }); if (!open.length) { front.splice(i, 1); continue; } var q = open[(Math.random() * open.length) | 0]; grid[key(q[0], q[1])] = 1; front.push(q); out.push([q[0], q[1], ++n]); } return out; }, 60, 0.9);
+})();
