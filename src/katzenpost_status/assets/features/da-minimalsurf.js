@@ -74,4 +74,6 @@
     weSurf('ms-enneper4', 'Enneper surface (order 4)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 4); }, 0.0, 1.1, 56);
 
     weSurf('ms-enneper5', 'Enneper surface (order 5)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 5); }, 0.0, 1.08, 56);
+
+    weSurf('ms-richmond', 'Richmond surface', function (z) { var d = z[0] * z[0] + z[1] * z[1] || 1e-9; var i = cmul([1, 0], [z[0] / d, -z[1] / d]); return cmul(i, i); }, function (z) { return z; }, 0.4, 1.5, 56);
 })();
