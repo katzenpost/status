@@ -72,4 +72,6 @@
     weSurf('ms-enneper3', 'Enneper surface (order 3)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 3); }, 0.0, 1.12, 56);
 
     weSurf('ms-enneper4', 'Enneper surface (order 4)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 4); }, 0.0, 1.1, 56);
+
+    weSurf('ms-enneper5', 'Enneper surface (order 5)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 5); }, 0.0, 1.08, 56);
 })();
