@@ -68,4 +68,6 @@
     function zpow(z, n) { var r = [1, 0], k; for (k = 0; k < n; k++) r = cmul(r, z); return r; }
 
     weSurf('ms-enneper2', 'Enneper surface (order 2)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 2); }, 0.0, 1.15, 56);
+
+    weSurf('ms-enneper3', 'Enneper surface (order 3)', function (z) { return [1, 0]; }, function (z) { return zpow(z, 3); }, 0.0, 1.12, 56);
 })();
