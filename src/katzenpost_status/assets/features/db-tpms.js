@@ -53,4 +53,6 @@
     tpms('tp-doublediamond', 'Double diamond', function (x, y, z) { var s = DD(x, y, z); return s * s - 0.5; }, 60);
 
     tpms('tp-doubleprimitive', 'Double primitive', function (x, y, z) { var p = PP(x, y, z); return p * p - 1.0; }, 60);
+
+    tpms('tp-doubleiwp', 'Double I-WP', function (x, y, z) { var w = IWP(x, y, z); return w * w - 2.0; }, 60);
 })();
