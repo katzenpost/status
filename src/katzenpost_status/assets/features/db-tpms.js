@@ -55,4 +55,6 @@
     tpms('tp-doubleprimitive', 'Double primitive', function (x, y, z) { var p = PP(x, y, z); return p * p - 1.0; }, 60);
 
     tpms('tp-doubleiwp', 'Double I-WP', function (x, y, z) { var w = IWP(x, y, z); return w * w - 2.0; }, 60);
+
+    tpms('tp-doubleneovius', 'Double Neovius', function (x, y, z) { var v = NEO(x, y, z); return v * v - 3.0; }, 60);
 })();
