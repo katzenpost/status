@@ -49,4 +49,6 @@
     tpms('tp-lidinoid', 'Lidinoid surface', function (x, y, z) { return 0.5 * (Math.sin(2 * x) * Math.cos(y) * Math.sin(z) + Math.sin(2 * y) * Math.cos(z) * Math.sin(x) + Math.sin(2 * z) * Math.cos(x) * Math.sin(y)) - 0.5 * (Math.cos(2 * x) * Math.cos(2 * y) + Math.cos(2 * y) * Math.cos(2 * z) + Math.cos(2 * z) * Math.cos(2 * x)) + 0.15; }, 60);
 
     tpms('tp-doublegyroid', 'Double gyroid', function (x, y, z) { var g = GY(x, y, z); return g * g - 0.4; }, 60);
+
+    tpms('tp-doublediamond', 'Double diamond', function (x, y, z) { var s = DD(x, y, z); return s * s - 0.5; }, 60);
 })();
