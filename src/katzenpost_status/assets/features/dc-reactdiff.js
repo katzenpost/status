@@ -58,4 +58,6 @@
     rd2(gs('rd-grayscott-spots', 'Gray-Scott (spots)', 0.03, 0.062));
 
     rd2(gs('rd-grayscott-maze', 'Gray-Scott (maze)', 0.029, 0.057));
+
+    rd2(gs('rd-grayscott-worms', 'Gray-Scott (worms)', 0.058, 0.065));
 })();
