@@ -62,4 +62,6 @@
     rd2(gs('rd-grayscott-worms', 'Gray-Scott (worms)', 0.058, 0.065));
 
     rd2(gs('rd-grayscott-flower', 'Gray-Scott (flower)', 0.055, 0.063));
+
+    rd2({ id: 'rd-fitzhugh', name: 'FitzHugh-Nagumo labyrinth', W: 48, steps: 5000, dt: 0.05, Du: 1.0, Dv: 4.0, field: 'u', frac: 0.5, init: function (u, v, W) { var i, N = W * W; for (i = 0; i < N; i++) { u[i] = (Math.random() - 0.5) * 0.6; v[i] = (Math.random() - 0.5) * 0.6; } }, react: function (u, v) { return [u - u * u * u - v, 0.01 * (u - v)]; } });
 })();
