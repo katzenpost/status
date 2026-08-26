@@ -66,4 +66,6 @@
     rd2({ id: 'rd-fitzhugh', name: 'FitzHugh-Nagumo labyrinth', W: 48, steps: 5000, dt: 0.05, Du: 1.0, Dv: 4.0, field: 'u', frac: 0.5, init: function (u, v, W) { var i, N = W * W; for (i = 0; i < N; i++) { u[i] = (Math.random() - 0.5) * 0.6; v[i] = (Math.random() - 0.5) * 0.6; } }, react: function (u, v) { return [u - u * u * u - v, 0.01 * (u - v)]; } });
 
     rd2({ id: 'rd-brusselator', name: 'Brusselator (Turing)', W: 46, steps: 3000, dt: 0.006, Du: 2.0, Dv: 16.0, field: 'u', frac: 0.5, init: function (u, v, W) { noiseInit(u, v, W, 4.5, 1.6667); }, react: function (u, v) { var A = 4.5, B = 7.5; return [A - (B + 1) * u + u * u * v, B * u - u * u * v]; } });
+
+    rd2({ id: 'rd-gierermeinhardt', name: 'Gierer-Meinhardt spots', W: 46, steps: 2600, dt: 0.02, Du: 0.4, Dv: 8.0, field: 'u', frac: 0.55, init: function (u, v, W) { noiseInit(u, v, W, 1, 1); }, react: function (u, v) { var h = v || 1e-3; return [u * u / h - u + 0.04, u * u - v]; } });
 })();
