@@ -84,4 +84,6 @@
     assoc('ms-associate-25', 'Associate family (25 deg)', 25 * Math.PI / 180, 56);
 
     assoc('ms-associate-50', 'Associate family (50 deg)', 50 * Math.PI / 180, 56);
+
+    assoc('ms-associate-75', 'Associate family (75 deg)', 75 * Math.PI / 180, 56);
 })();
