@@ -54,4 +54,6 @@
     rd2(gs('rd-grayscott-coral', 'Gray-Scott (coral)', 0.0545, 0.062));
 
     rd2(gs('rd-grayscott-mitosis', 'Gray-Scott (mitosis)', 0.0367, 0.0649));
+
+    rd2(gs('rd-grayscott-spots', 'Gray-Scott (spots)', 0.03, 0.062));
 })();
