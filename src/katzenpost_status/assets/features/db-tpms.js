@@ -51,4 +51,6 @@
     tpms('tp-doublegyroid', 'Double gyroid', function (x, y, z) { var g = GY(x, y, z); return g * g - 0.4; }, 60);
 
     tpms('tp-doublediamond', 'Double diamond', function (x, y, z) { var s = DD(x, y, z); return s * s - 0.5; }, 60);
+
+    tpms('tp-doubleprimitive', 'Double primitive', function (x, y, z) { var p = PP(x, y, z); return p * p - 1.0; }, 60);
 })();
