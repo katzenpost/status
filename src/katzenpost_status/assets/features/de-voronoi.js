@@ -56,4 +56,6 @@
     sitesView('vr-delaunay-sphere', 'Delaunay graph on a sphere', function (T) { return fibSphere(150, T); }, 6, 56);
 
     sitesView('vr-lloyd-sphere', 'Lloyd relaxation on a sphere', function (T) { return relaxSphere(140, 60, T); }, 6, 56);
+
+    sitesView('vr-delaunay-torus', 'Delaunay graph on a torus', function (T) { var pts = [], i, N = 150; for (i = 0; i < N; i++) { var u = Math.random() * 2 * Math.PI, v = Math.random() * 2 * Math.PI, R = 12, r = 5.2; pts.push(new T.Vector3((R + r * Math.cos(v)) * Math.cos(u), (R + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v))); } return pts; }, 5, 60);
 })();
