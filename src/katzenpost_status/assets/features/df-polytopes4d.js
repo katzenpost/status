@@ -68,4 +68,6 @@
     hopf('p4-hopf-torus', 'Hopf fibres over one latitude', (function () { var b = [], j; for (j = 0; j < 24; j++) b.push([0.9, 2 * Math.PI * j / 24]); return b; })(), 60);
 
     hopf('p4-hopf-linked', 'Hopf fibres (linking)', [[0.4, 0], [0.7, 1.4], [1.0, 2.8], [1.2, 4.2], [0.55, 5.4]], 60);
+
+    hopf('p4-hopf-spiral', 'Hopf fibres over a spiral', (function () { var b = [], j; for (j = 0; j < 28; j++) b.push([0.25 + 1.1 * j / 28, 2 * Math.PI * j * 3 / 28]); return b; })(), 60);
 })();
