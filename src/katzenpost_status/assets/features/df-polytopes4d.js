@@ -64,4 +64,6 @@
     function ring(nEta, nPh) { var b = [], i, j; for (i = 0; i < nEta; i++) for (j = 0; j < nPh; j++) b.push([0.35 + (i + 1) / (nEta + 1) * 0.9, 2 * Math.PI * j / nPh]); return b; }
 
     hopf('p4-hopf-fibration', 'Hopf fibration (base grid)', ring(3, 8), 60);
+
+    hopf('p4-hopf-torus', 'Hopf fibres over one latitude', (function () { var b = [], j; for (j = 0; j < 24; j++) b.push([0.9, 2 * Math.PI * j / 24]); return b; })(), 60);
 })();
