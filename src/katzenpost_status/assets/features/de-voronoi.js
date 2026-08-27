@@ -66,4 +66,6 @@
     sitesView('vr-cvt', 'Centroidal Voronoi tessellation', function (T) { var n = 90, sites = randSites(n), M = 46, it, i, gx, gy; for (it = 0; it < 7; it++) { var sx = new Float32Array(n), sy = new Float32Array(n), cnt = new Int32Array(n); for (gx = 0; gx < M; gx++) for (gy = 0; gy < M; gy++) { var px = gx / (M - 1) * 2 - 1, py = gy / (M - 1) * 2 - 1, bd = 1e9, bi = 0; for (i = 0; i < n; i++) { var dx = px - sites[i][0], dy = py - sites[i][1], dd = dx * dx + dy * dy; if (dd < bd) { bd = dd; bi = i; } } sx[bi] += px; sy[bi] += py; cnt[bi]++; } for (i = 0; i < n; i++) if (cnt[i]) { sites[i][0] = sx[i] / cnt[i]; sites[i][1] = sy[i] / cnt[i]; } } return sites.map(function (q) { return new T.Vector3(q[0] * 18, q[1] * 18, 0); }); }, 4, 56);
 
     sitesView('vr-jittered', 'Jittered grid sites', function (T) { var g = 11, pts = [], i, j; for (i = 0; i < g; i++) for (j = 0; j < g; j++) { var x = (i + 0.5 + (Math.random() - 0.5) * 0.8) / g * 2 - 1, y = (j + 0.5 + (Math.random() - 0.5) * 0.8) / g * 2 - 1; pts.push(new T.Vector3(x * 18, y * 18, 0)); } return pts; }, 4, 56);
+
+    voronoiRaster('vr-voronoi-plane', 'Voronoi diagram (Euclidean)', randSites(26), 0, 0, 56);
 })();
