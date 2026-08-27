@@ -80,4 +80,6 @@
     duoprism('p4-duoprism-4-8', 'Duoprism (4-8)', 4, 8, 60);
 
     duoprism('p4-duoprism-3-12', 'Duoprism (3-12)', 3, 12, 60);
+
+    duoprism('p4-duoprism-5-8', 'Duoprism (5-8)', 5, 8, 60);
 })();
