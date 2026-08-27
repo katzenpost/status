@@ -76,4 +76,6 @@
     cliffordNest('p4-cliffordnest', 'Nested Clifford tori', [0.5, 0.785, 1.05], 60);
 
     duoprism('p4-duoprism-6-6', 'Duoprism (6-6)', 6, 6, 60);
+
+    duoprism('p4-duoprism-4-8', 'Duoprism (4-8)', 4, 8, 60);
 })();
