@@ -72,4 +72,6 @@
     hopf('p4-hopf-spiral', 'Hopf fibres over a spiral', (function () { var b = [], j; for (j = 0; j < 28; j++) b.push([0.25 + 1.1 * j / 28, 2 * Math.PI * j * 3 / 28]); return b; })(), 60);
 
     hopf('p4-hopf-hexbase', 'Hopf fibres (hex base)', (function () { var b = [[0.5, 0]], i; for (i = 0; i < 6; i++) b.push([1.0, 2 * Math.PI * i / 6]); for (i = 0; i < 6; i++) b.push([0.75, 2 * Math.PI * (i + 0.5) / 6]); return b; })(), 60);
+
+    cliffordNest('p4-cliffordnest', 'Nested Clifford tori', [0.5, 0.785, 1.05], 60);
 })();
