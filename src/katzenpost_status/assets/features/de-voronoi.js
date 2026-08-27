@@ -58,4 +58,6 @@
     sitesView('vr-lloyd-sphere', 'Lloyd relaxation on a sphere', function (T) { return relaxSphere(140, 60, T); }, 6, 56);
 
     sitesView('vr-delaunay-torus', 'Delaunay graph on a torus', function (T) { var pts = [], i, N = 150; for (i = 0; i < N; i++) { var u = Math.random() * 2 * Math.PI, v = Math.random() * 2 * Math.PI, R = 12, r = 5.2; pts.push(new T.Vector3((R + r * Math.cos(v)) * Math.cos(u), (R + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v))); } return pts; }, 5, 60);
+
+    sitesView('vr-poisson-sphere', 'Poisson-disk on a sphere', function (T) { var uv = [], tries = 0, minC = Math.cos(0.32); while (uv.length < 150 && tries < 30000) { tries++; var u = Math.random() * 2 - 1, th = Math.random() * 2 * Math.PI, r = Math.sqrt(1 - u * u), x = Math.cos(th) * r, y = u, z = Math.sin(th) * r, ok = true, i; for (i = 0; i < uv.length; i++) { if (uv[i][0] * x + uv[i][1] * y + uv[i][2] * z > minC) { ok = false; break; } } if (ok) uv.push([x, y, z]); } return uv.map(function (q) { return new T.Vector3(q[0] * 17, q[1] * 17, q[2] * 17); }); }, 6, 56);
 })();
