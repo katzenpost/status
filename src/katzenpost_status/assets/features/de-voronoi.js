@@ -68,4 +68,6 @@
     sitesView('vr-jittered', 'Jittered grid sites', function (T) { var g = 11, pts = [], i, j; for (i = 0; i < g; i++) for (j = 0; j < g; j++) { var x = (i + 0.5 + (Math.random() - 0.5) * 0.8) / g * 2 - 1, y = (j + 0.5 + (Math.random() - 0.5) * 0.8) / g * 2 - 1; pts.push(new T.Vector3(x * 18, y * 18, 0)); } return pts; }, 4, 56);
 
     voronoiRaster('vr-voronoi-plane', 'Voronoi diagram (Euclidean)', randSites(26), 0, 0, 56);
+
+    voronoiRaster('vr-voronoi-manhattan', 'Voronoi diagram (Manhattan)', randSites(26), 1, 0, 56);
 })();
