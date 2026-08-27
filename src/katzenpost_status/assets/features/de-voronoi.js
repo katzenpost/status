@@ -70,4 +70,6 @@
     voronoiRaster('vr-voronoi-plane', 'Voronoi diagram (Euclidean)', randSites(26), 0, 0, 56);
 
     voronoiRaster('vr-voronoi-manhattan', 'Voronoi diagram (Manhattan)', randSites(26), 1, 0, 56);
+
+    voronoiRaster('vr-voronoi-torus', 'Voronoi diagram (toroidal)', randSites(24), 0, 1, 56);
 })();
