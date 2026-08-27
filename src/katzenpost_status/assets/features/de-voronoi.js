@@ -54,4 +54,6 @@
     }
 
     sitesView('vr-delaunay-sphere', 'Delaunay graph on a sphere', function (T) { return fibSphere(150, T); }, 6, 56);
+
+    sitesView('vr-lloyd-sphere', 'Lloyd relaxation on a sphere', function (T) { return relaxSphere(140, 60, T); }, 6, 56);
 })();
