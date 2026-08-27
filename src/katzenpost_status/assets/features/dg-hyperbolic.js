@@ -52,4 +52,6 @@
     tiling('hy-tiling-4-5', 'Hyperbolic tiling {4,5}', 4, 5, 130, 56);
 
     tiling('hy-tiling-5-4', 'Hyperbolic tiling {5,4}', 5, 4, 110, 56);
+
+    tiling('hy-tiling-3-8', 'Hyperbolic tiling {3,8}', 3, 8, 160, 56);
 })();
