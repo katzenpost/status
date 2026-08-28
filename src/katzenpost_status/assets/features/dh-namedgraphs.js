@@ -62,4 +62,6 @@
     gp('ng-genpetersen-13-5', 'Generalized Petersen GP(13,5)', 13, 5, 58);
 
     kneser('ng-kneser-6-2', 'Kneser graph K(6,2)', 6, 2, 58);
+
+    kneser('ng-kneser-7-3', 'Kneser graph K(7,3)', 7, 3, 58);
 })();
