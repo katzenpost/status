@@ -120,7 +120,10 @@
         bar.appendChild(sel); bar.appendChild(btn);
         var bezel = mk('div', 'bezel');
         var scr = document.createElement('iframe'); scr.className = 'screen';
-        scr.setAttribute('title', 'Live mixnet viewscreen'); scr.setAttribute('loading', 'lazy');
+        // NOT loading="lazy": the src is only set while the board is shown, and a
+        // lazy iframe whose src is assigned while the panel is still display:none
+        // would defer loading (blank viewscreen until the user changed the feed).
+        scr.setAttribute('title', 'Live mixnet viewscreen');
         bezel.appendChild(scr);
         wrap.appendChild(bar); wrap.appendChild(bezel);
         el.__scr = scr; el.__vsel = sel; el.__ovs = ovs;
@@ -304,6 +307,7 @@
             id: s.id, name: s.name, el: el,
             onShow: function () {
                 el.__running = true; refresh(el, s);
+                if (!el.__viewId && el.__ovs && el.__ovs.length) { el.__viewId = el.__ovs[(Math.random() * el.__ovs.length) | 0].id; if (el.__vsel) el.__vsel.value = el.__viewId; }
                 if (el.__viewId && el.__scr) el.__scr.src = location.pathname + '?overlay=' + el.__viewId + '&mini=1';
                 document.body.classList.add('lcars-active');   // node selection shows inside the board
                 if (!timer) timer = setInterval(function () { refresh(el, s); }, 1000);
