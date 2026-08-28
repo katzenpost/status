@@ -54,4 +54,6 @@
     }
 
     gp('ng-genpetersen-7-2', 'Generalized Petersen GP(7,2)', 7, 2, 58);
+
+    gp('ng-genpetersen-9-2', 'Generalized Petersen GP(9,2)', 9, 2, 58);
 })();
