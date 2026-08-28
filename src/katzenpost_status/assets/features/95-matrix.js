@@ -204,5 +204,6 @@
     });
     function redrawIfShown() { if (el.style.display !== 'none') draw(); }
     window.addEventListener('resize', redrawIfShown);
+    if (K.on) K.on('theme', redrawIfShown);
     if (window.visualViewport) window.visualViewport.addEventListener('resize', redrawIfShown);
 })();

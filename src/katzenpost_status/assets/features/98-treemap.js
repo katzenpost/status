@@ -4,8 +4,12 @@
     if (!K) return;
     if (window.KATZEN_NO_WEBGL) return;
 
-    var HUES = ['#5b8ff9', '#61ddaa', '#f6bd16', '#7262fd',
-                '#78d3f8', '#9661bc', '#f6903d', '#ff99c3'];
+    var HUESBASE = [0x5b8ff9, 0x61ddaa, 0xf6bd16, 0x7262fd,
+                    0x78d3f8, 0x9661bc, 0xf6903d, 0xff99c3];
+    function HUEAT(i) {
+        var b = HUESBASE[((i % HUESBASE.length) + HUESBASE.length) % HUESBASE.length];
+        return (K.themeColor && K.hex6) ? K.hex6(K.themeColor(b)) : '#' + ('000000' + b.toString(16)).slice(-6);
+    }
     var BG = '#030508', AMBER = '#ffb454', LABEL = '#9fb3c2', MUTED = '#7b8e9d';
     var PAD_T = 104, MARGIN = 16;   // PAD_T clears the title, caption and top controls
 
@@ -129,7 +133,7 @@
 
         items.forEach(function (it, idx) {
             var r = it.rect; if (!r) return;
-            var g = it.g, color = HUES[idx % HUES.length];
+            var g = it.g, color = HUEAT(idx);
             ctx.fillStyle = color;
             ctx.fillRect(r.x + 1, r.y + 1, Math.max(0, r.w - 2), Math.max(0, r.h - 2));
             tiles.push({ x: r.x, y: r.y, w: r.w, h: r.h, asn: g.asn, net: g.net, count: g.count });
@@ -174,5 +178,6 @@
     });
     function redrawIfShown() { if (el.style.display !== 'none') draw(); }
     window.addEventListener('resize', redrawIfShown);
+    if (K.on) K.on('theme', redrawIfShown);
     if (window.visualViewport) window.visualViewport.addEventListener('resize', redrawIfShown);
 })();

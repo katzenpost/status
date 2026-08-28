@@ -5,10 +5,14 @@
     if (window.KATZEN_NO_WEBGL) return;
 
     var ROLES = ['dirauth', 'gateway', 'mix', 'service', 'storage', 'out'];
-    var HUE = {
-        dirauth: '#ffd23f', gateway: '#2ec4b6', mix: '#4d8bf0',
-        service: '#ff8f3f', storage: '#00d2a0', out: '#9b5de5'
+    var HUEBASE = {
+        dirauth: 0xffd23f, gateway: 0x2ec4b6, mix: 0x4d8bf0,
+        service: 0xff8f3f, storage: 0x00d2a0, out: 0x9b5de5
     };
+    function HUEOF(k) {
+        var b = HUEBASE[k]; if (b == null) return '#9fb3c2';
+        return (K.themeColor && K.hex6) ? K.hex6(K.themeColor(b)) : '#' + ('000000' + b.toString(16)).slice(-6);
+    }
     var PAD_T = 104;       // clears the title / caption / top controls
     var PAD_B = 40;
 
@@ -127,7 +131,7 @@
             var y1 = cy + rInner * Math.sin(arcs[b].mid);
             var w = 1 + (c / maxEdge) * 14;
             ctx.globalAlpha = 0.32;
-            ctx.strokeStyle = HUE[a] || '#9fb3c2';
+            ctx.strokeStyle = HUEOF(a);
             ctx.lineWidth = w;
             ctx.beginPath();
             ctx.moveTo(x0, y0);
@@ -138,7 +142,7 @@
 
         present.forEach(function (r) {
             var arc = arcs[r];
-            ctx.strokeStyle = HUE[r] || '#9fb3c2';
+            ctx.strokeStyle = HUEOF(r);
             ctx.lineWidth = band;
             ctx.lineCap = 'butt';
             ctx.beginPath();
@@ -152,7 +156,7 @@
             var lx = cx + (radius + 12) * Math.cos(arc.mid);
             var ly = cy + (radius + 12) * Math.sin(arc.mid);
             ctx.textAlign = Math.cos(arc.mid) < -0.15 ? 'right' : (Math.cos(arc.mid) > 0.15 ? 'left' : 'center');
-            ctx.fillStyle = HUE[r] || '#9fb3c2';
+            ctx.fillStyle = HUEOF(r);
             ctx.fillText(r + ' (' + arc.count + ')', lx, ly);
         });
     }
@@ -165,5 +169,6 @@
     });
     function redrawIfShown() { if (el.style.display !== 'none') draw(); }
     window.addEventListener('resize', redrawIfShown);
+    if (K.on) K.on('theme', redrawIfShown);
     if (window.visualViewport) window.visualViewport.addEventListener('resize', redrawIfShown);
 })();
