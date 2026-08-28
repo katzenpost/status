@@ -68,4 +68,6 @@
     debruijn('ng-debruijn-2-3', 'de Bruijn graph B(2,3)', 2, 3, 58);
 
     debruijn('ng-debruijn-2-4', 'de Bruijn graph B(2,4)', 2, 4, 58);
+
+    debruijn('ng-debruijn-3-2', 'de Bruijn graph B(3,2)', 3, 2, 58);
 })();
