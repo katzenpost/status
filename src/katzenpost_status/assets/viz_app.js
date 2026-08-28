@@ -293,7 +293,7 @@
         pokeChrome();
     }
 
-    var CHROME_SEL = '#menu-toggle,#view-select,#randomize-view,#load-status,#node-info';
+    var CHROME_SEL = '#menu-toggle,#quickbar,#load-status,#node-info';
     var chromeHidden = false, chromeTimer = 0;
     function chromeEls() { return Array.prototype.slice.call(document.querySelectorAll(CHROME_SEL)); }
     function setChrome(hidden) {
@@ -376,10 +376,8 @@
         toggle.setAttribute('aria-expanded', v ? 'true' : 'false');
         toggle.textContent = v ? '✕' : '☰';
         toggle.setAttribute('aria-label', v ? 'Hide menu' : 'Show menu');
-        // The floating scene chooser sits where the open panel lands; hide it
-        // while the menu is open so the two do not overlap.
-        var vs = document.getElementById('view-select');
-        if (vs) vs.style.display = v ? 'none' : '';
+        var qb = document.getElementById('quickbar');
+        if (qb) qb.style.display = v ? 'none' : '';
     }
 
     function clearWorld() {

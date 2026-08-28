@@ -147,30 +147,28 @@
     // No dedicated overlay-close button: an overlay is just another view, so
     // switching views (via the chooser) replaces it. Selecting a spatial view
     // hides any overlay in gotoView/hideOverlays.
+    var quickbar = document.createElement('div');
+    quickbar.id = 'quickbar';
+    quickbar.style.cssText = 'position:fixed;z-index:30;top:calc(max(12px, env(safe-area-inset-top)) + 52px);' +
+        'left:max(12px, env(safe-area-inset-left));display:flex;gap:8px;align-items:center;' +
+        'max-width:calc(100vw - 24px);transition:opacity 0.4s ease';
+    var qbCss = 'height:34px;background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;' +
+        'border-radius:8px;font:12px/1 monospace;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.6)';
     var viewSelect = document.createElement('select');
     viewSelect.id = 'view-select';
     viewSelect.setAttribute('aria-label', 'Choose view');
     viewSelect.setAttribute('autocomplete', 'off');   // we restore the view ourselves
-    viewSelect.style.cssText = 'position:fixed;z-index:30;top:calc(max(12px, env(safe-area-inset-top)) + 52px);' +
-        'left:max(12px, env(safe-area-inset-left));max-width:160px;height:34px;' +
-        'background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;' +
-        'border-radius:8px;font:12px/1 monospace;cursor:pointer;padding:0 8px;' +
-        'box-shadow:0 4px 16px rgba(0,0,0,0.6)';
+    viewSelect.style.cssText = qbCss + ';max-width:180px;min-width:0;padding:0 8px;flex:0 1 auto';
     viewSelect.addEventListener('change', function () { gotoView(viewSelect.value); });
-    document.body.appendChild(viewSelect);
     viewSelects.push(viewSelect);
-    // Floating randomize button beside the view chooser.
     var randFloat = document.createElement('button');
     randFloat.id = 'randomize-view';
     randFloat.textContent = 'Random';
     randFloat.setAttribute('aria-label', 'Randomize view');
-    randFloat.style.cssText = 'position:fixed;z-index:30;top:calc(max(12px, env(safe-area-inset-top)) + 52px);' +
-        'left:calc(max(12px, env(safe-area-inset-left)) + 168px);height:34px;' +
-        'background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;' +
-        'border-radius:8px;font:12px/1 monospace;cursor:pointer;padding:0 10px;' +
-        'box-shadow:0 4px 16px rgba(0,0,0,0.6)';
+    randFloat.style.cssText = qbCss + ';padding:0 12px;flex:0 0 auto;white-space:nowrap';
     randFloat.addEventListener('click', randomizeView);
-    document.body.appendChild(randFloat);
+    quickbar.appendChild(viewSelect); quickbar.appendChild(randFloat);
+    document.body.appendChild(quickbar);
     updateBtn();
     wrap.appendChild(btn);
     function checkboxLabel(html, onchange) {
