@@ -70,4 +70,6 @@
     debruijn('ng-debruijn-2-4', 'de Bruijn graph B(2,4)', 2, 4, 58);
 
     debruijn('ng-debruijn-3-2', 'de Bruijn graph B(3,2)', 3, 2, 58);
+
+    cayleyA4('ng-cayley-a4', 'Cayley graph of A4', 58);
 })();
