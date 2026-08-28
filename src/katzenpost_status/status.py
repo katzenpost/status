@@ -3409,6 +3409,13 @@ def generate_report(
                 )
             )
             html = pc.export_html(inline_styles=True, theme=MONOKAI)
+            html = html.replace(
+                "</style>",
+                "body{display:flex;justify-content:center;"
+                "align-items:flex-start;margin:0;padding:16px 12px}"
+                "pre{margin:0}</style>",
+                1,
+            )
             for g, (href, title) in links.items():
                 a = (
                     f'<a href="{html_escape(href, quote=True)}" '
