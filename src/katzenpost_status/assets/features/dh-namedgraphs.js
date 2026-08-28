@@ -66,4 +66,6 @@
     kneser('ng-kneser-7-3', 'Kneser graph K(7,3)', 7, 3, 58);
 
     debruijn('ng-debruijn-2-3', 'de Bruijn graph B(2,3)', 2, 3, 58);
+
+    debruijn('ng-debruijn-2-4', 'de Bruijn graph B(2,4)', 2, 4, 58);
 })();
