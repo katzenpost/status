@@ -226,9 +226,6 @@
         themeRow.appendChild(themeSel);
         wrap.appendChild(themeRow);
     }
-    // In-menu copies of the floating quick-reference controls (the view chooser
-    // and Randomize), so the hamburger menu is self-sufficient and the two stay
-    // in sync via viewSelects/rebuildViewSelect.
     var menuViewRow = document.createElement('label');
     menuViewRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
     menuViewRow.innerHTML = 'View';
@@ -238,13 +235,13 @@
     menuViewSelect.style.cssText = 'flex:1;min-width:0;background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;border-radius:6px;font:11px/1 monospace;padding:3px 6px;cursor:pointer';
     menuViewSelect.addEventListener('change', function () { gotoView(menuViewSelect.value); });
     menuViewRow.appendChild(menuViewSelect);
-    wrap.appendChild(menuViewRow);
     viewSelects.push(menuViewSelect);
     var randBtn = document.createElement('button');
     randBtn.textContent = 'Randomize view';
     randBtn.style.cssText = 'width:100%;margin-top:6px';
     randBtn.addEventListener('click', randomizeView);
-    wrap.appendChild(randBtn);
+    wrap.insertBefore(randBtn, wrap.firstChild);
+    wrap.insertBefore(menuViewRow, wrap.firstChild);
     var shareBtn = document.createElement('button');
     shareBtn.textContent = 'Copy link to this view';
     shareBtn.style.cssText = 'width:100%;margin-top:6px';
@@ -1953,11 +1950,11 @@
 
     function frameCluster() {
         var ll = meanLatLon(null) || [45, -20];
-        var camLat = THREE.MathUtils.clamp(ll[0] - 5, -20, 55);
         var narrow = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
-        var cam = geoToVec(camLat, ll[1], R * (narrow ? 2.6 : 1.62));
+        var look = geoToVec(ll[0], ll[1], SURF * 0.9);
+        var cam = geoToVec(ll[0], ll[1], R * (narrow ? 3.0 : 2.05));
         K.worldRoot().rotation.set(0, 0, 0);
-        K.snapTo(cam.x, cam.y, cam.z, 0, 0, 0);
+        K.snapTo(cam.x, cam.y, cam.z, look.x, look.y, look.z);
     }
     function frameSubset(pred) { frame(pred, 1.45, [-140, 30]); }
 
