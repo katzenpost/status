@@ -15,4 +15,4 @@ var PHI=(1+Math.sqrt(5))/2,S2=Math.sqrt(2);
 function T5(t){return 16*Math.pow(t,5)-20*Math.pow(t,3)+5*t;}
 function T6(t){return 32*Math.pow(t,6)-48*Math.pow(t,4)+18*t*t-1;}
 function T8(t){return 128*Math.pow(t,8)-256*Math.pow(t,6)+160*Math.pow(t,4)-32*t*t+1;}
-isoV('clebsch-cubic','Clebsch diagonal cubic',function(x,y,z){return 81*(x*x*x+y*y*y+z*z*z)-189*(x*x*y+x*x*z+y*y*x+y*y*z+z*z*x+z*z*y)+54*x*y*z+126*(x*y+y*z+z*x)-9*(x*x+y*y+z*z)-9*(x+y+z)+1;},2.1,0x2ec4b6,58);})();
+isoV('clebsch-cubic','Clebsch diagonal cubic',function(x,y,z){return 81*(x*x*x+y*y*y+z*z*z)-189*(x*x*y+x*x*z+y*y*x+y*y*z+z*z*x+z*z*y)+54*x*y*z+126*(x*y+y*z+z*x)-9*(x*x+y*y+z*z)-9*(x+y+z)+1;},2.1,0x2ec4b6,58);isoV('cayley-cubic','Cayley nodal cubic',function(x,y,z){return -5*(x*x*y+x*x*z+y*y*x+y*y*z+z*z*x+z*z*y)+2*(x*y+y*z+z*x);},1.2,0x4d8bf0,58);})();
