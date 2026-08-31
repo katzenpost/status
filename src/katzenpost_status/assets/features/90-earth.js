@@ -69,6 +69,7 @@
         return ids[(i + 1) % ids.length];
     }
     function showOverlay(id) {
+        if (curOverlay && curOverlay !== id) { var prev = findOverlay(curOverlay); if (prev && prev.onHide) prev.onHide(); }
         overlayList().forEach(function (o) { if (o.el) o.el.style.display = (o.id === id) ? 'block' : 'none'; });
         curOverlay = id;
         var ov = findOverlay(id); if (ov && ov.onShow) ov.onShow();
@@ -204,6 +205,22 @@
         return a.textContent.trim().toLowerCase() < b.textContent.trim().toLowerCase() ? -1 : 1;
     });
     checks.forEach(function (l) { wrap.appendChild(l); });
+    if (window.KATZEN_SPEED == null) window.KATZEN_SPEED = 1;
+    var speedRow = document.createElement('label');
+    speedRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:#9fb3c2';
+    var speedVal = document.createElement('span');
+    speedVal.style.cssText = 'width:34px;text-align:right;color:#ffb454';
+    speedVal.textContent = (+window.KATZEN_SPEED).toFixed(2) + 'x';
+    var speed = document.createElement('input');
+    speed.type = 'range'; speed.min = '0.1'; speed.max = '2'; speed.step = '0.05';
+    speed.value = String(window.KATZEN_SPEED);
+    speed.setAttribute('aria-label', 'Packet speed');
+    speed.style.cssText = 'flex:1;min-width:0;accent-color:#ffb454;cursor:pointer';
+    speed.addEventListener('input', function () { window.KATZEN_SPEED = +speed.value; speedVal.textContent = (+speed.value).toFixed(2) + 'x'; });
+    speedRow.appendChild(document.createTextNode('Speed'));
+    speedRow.appendChild(speed);
+    speedRow.appendChild(speedVal);
+    wrap.appendChild(speedRow);
     var regionRow = document.createElement('div');
     regionRow.style.cssText = 'display:flex;gap:6px;margin-top:6px';
     var euBtn = document.createElement('button');

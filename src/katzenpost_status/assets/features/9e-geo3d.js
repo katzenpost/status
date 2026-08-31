@@ -429,7 +429,7 @@
                         continue;
                     }
                     var segLen = a.distanceTo(b) || 1;
-                    pk.t += dt * pk.speed / segLen;
+                    pk.t += dt * pk.speed * (window.KATZEN_SPEED || 1) / segLen;
                     while (pk.t >= 1) {
                         if (pk.stops[pk.seg + 1]) {   // arrive at a real hop: dwell + shed a ripple facing travel dir
                             pk.t = 1;
@@ -474,6 +474,25 @@
             K.on('theme', function () { if (world && running) rebuild(); });   // recolour balls on theme switch
             window.addEventListener('resize', function () { if (running) onResize(); });
 
+            function teardownGL() {
+                if (!renderer) return;
+                try {
+                    if (nodeGroup) { world.remove(nodeGroup); disposeGroup(nodeGroup); }
+                    if (edgeLines) { world.remove(edgeLines); disposeGroup(edgeLines); }
+                    if (packPts) { if (packPts.geometry) packPts.geometry.dispose(); if (packPts.material) packPts.material.dispose(); }
+                    for (var i = 0; i < shellPool.length; i++) { var m = shellPool[i].mesh; if (m) { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); } }
+                    if (controls && controls.dispose) controls.dispose();
+                    renderer.dispose();
+                    var gl = renderer.getContext && renderer.getContext();
+                    var lose = gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
+                    if (lose) lose.loseContext();
+                    if (renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+                } catch (e) { }
+                renderer = null; scene = null; camera = null; controls = null; world = null;
+                nodeGroup = null; edgeLines = null; packPts = null; shellPool = []; packets = [];
+                gVerts = []; gAdj = []; nodeVert = {}; _distCache = {};
+            }
+
             window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
             window.KATZEN_OVERLAYS.push({
                 id: opts.id, name: opts.name, el: el,
@@ -482,7 +501,7 @@
                     rebuild(); packets = []; spawnAcc = 0; lastT = 0; onResize();
                     if (!running) { running = true; raf = requestAnimationFrame(loop); }
                 },
-                onHide: function () { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+                onHide: function () { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; teardownGL(); }
             });
         }
     };

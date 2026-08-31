@@ -1001,7 +1001,7 @@
         Packet.prototype.update = function (dt) {
             if (this.dwell > 0) { this.dwell -= dt; return true; }
             if (this.seg >= this.path.length - 1) { worldRoot.remove(this.mesh); return false; }
-            this.progress += dt * this.speed;
+            this.progress += dt * this.speed * (window.KATZEN_SPEED || 1);
             if (this.progress >= 1.0) {
                 var node = this.path[this.seg + 1]; node.flash(this.color);
                 this.seg++; this.progress = 0; this.mesh.position.copy(node.mesh.position);
