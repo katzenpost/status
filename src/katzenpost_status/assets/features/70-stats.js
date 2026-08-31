@@ -25,8 +25,9 @@
     function country(o) {
         var g = o.data.geo;
         if (!g || !g.label) return 'Unknown';
-        var p = g.label.split(',');
-        return p[p.length - 1].trim().replace(/^The\s+/i, '') || 'Unknown';
+        var p = String(g.label).split(',');
+        var last = p[p.length - 1];
+        return (last == null ? '' : String(last).trim().replace(/^The\s+/i, '')) || 'Unknown';
     }
     function layerKey(o) { return o.data.layer == null ? '?' : String(o.data.layer); }
     function asKey(o) { return o.data.asn ? (o.data.asn + (o.data.net ? ' ' + o.data.net : '')) : ''; }

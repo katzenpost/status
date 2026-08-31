@@ -25,8 +25,9 @@
     function countryOf(n) {
         var g = n.geo;
         if (!g || !g.label) return null;
-        var p = g.label.split(',');
-        return p[p.length - 1].trim() || null;
+        var p = String(g.label).split(',');
+        var last = p[p.length - 1];
+        return (last == null ? null : String(last).trim()) || null;
     }
     function entropy(keys) {   // Shannon entropy (bits) of a list of category keys
         var m = {}, tot = 0;
