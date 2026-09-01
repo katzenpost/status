@@ -944,6 +944,7 @@
         'tk-4-7': 'Knots & braids',
         'tk-5-6': 'Knots & braids',
         'tk-5-7': 'Knots & braids',
+        'togliatti-quintic': 'Surfaces',
         'tonnetz': 'Harmony & music',
         'tonnetz-lattice': 'Harmony & music',
         'toroidal': 'Curves & attractors',
