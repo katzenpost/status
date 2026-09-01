@@ -50,6 +50,7 @@ APP_JS_NAME = "katzenpost-viz.js"
 
 FEATURES_SRC = ASSETS_DIR / "features"
 FEATURES_SUBDIR = "features"
+FEATURE_BUNDLE_NAME = "features.bundle.js"
 
 VENDOR_SCRIPTS = [
     "three.min.js",
@@ -564,6 +565,18 @@ def _feature_files() -> list[str]:
     return sorted(p.name for p in FEATURES_SRC.glob("*.js"))
 
 
+def _feature_bundle_text() -> str:
+    parts = [
+        (FEATURES_SRC / name).read_text(encoding="utf-8")
+        for name in _feature_files()
+    ]
+    return "\n;\n".join(parts) + "\n"
+
+
+def _feature_bundle_url() -> str:
+    return f"{ASSETS_SUBDIR}/{FEATURES_SUBDIR}/{FEATURE_BUNDLE_NAME}"
+
+
 def _asset_version(path: Path) -> str:
     """Short content hash so a changed asset gets a fresh URL (cache-bust)."""
     try:
@@ -597,6 +610,11 @@ def _cache_bust(html: str) -> str:
 
     def repl(match: re.Match[str]) -> str:
         url = match.group(1)
+        if url == _feature_bundle_url():
+            ver = hashlib.md5(
+                _feature_bundle_text().encode("utf-8")
+            ).hexdigest()[:8]
+            return f'src="{url}?v={ver}"'
         src = _resolve_asset_source(url)
         if src is None or not src.exists():
             return match.group(0)
@@ -616,10 +634,7 @@ def render_shell_html(
     same every run (idempotent), apart from the per-asset cache-busting hashes
     which change only when an asset's content changes."""
     shell = SHELL_PATH.read_text(encoding="utf-8")
-    feature_tags = "\n    ".join(
-        f'<script src="{ASSETS_SUBDIR}/{FEATURES_SUBDIR}/{name}"></script>'
-        for name in _feature_files()
-    )
+    feature_tags = f'<script src="{_feature_bundle_url()}"></script>'
     html = (
         shell.replace("__NETWORK_NAME__", html_escape(network_name))
         .replace("__ASSETS_DIR__", ASSETS_SUBDIR)
@@ -657,15 +672,10 @@ def _write_static_assets(assets_dir: Path) -> None:
     _write_if_changed(
         assets_dir / APP_JS_NAME, APP_JS_PATH.read_text(encoding="utf-8")
     )
-    features = _feature_files()
-    if features:
+    if _feature_files():
         feat_dir = assets_dir / FEATURES_SUBDIR
         feat_dir.mkdir(parents=True, exist_ok=True)
-        for name in features:
-            _write_if_changed(
-                feat_dir / name,
-                (FEATURES_SRC / name).read_text(encoding="utf-8"),
-            )
+        _write_if_changed(feat_dir / FEATURE_BUNDLE_NAME, _feature_bundle_text())
     earth_src = ASSETS_DIR / "earth"
     if earth_src.is_dir():
         earth_dir = assets_dir / "earth"

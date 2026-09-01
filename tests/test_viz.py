@@ -273,7 +273,7 @@ def test_assets_are_cache_busted(tmp_path):
     for needle in (
         f"{viz.ASSETS_SUBDIR}/three.min.js",
         f"{viz.ASSETS_SUBDIR}/{viz.APP_JS_NAME}",
-        f"{viz.ASSETS_SUBDIR}/{viz.FEATURES_SUBDIR}/9e-geo3d.js",
+        f"{viz.ASSETS_SUBDIR}/{viz.FEATURES_SUBDIR}/{viz.FEATURE_BUNDLE_NAME}",
     ):
         assert re.search(re.escape(needle) + r'\?v=[0-9a-f]{6,}"', html), needle
 
