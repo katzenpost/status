@@ -110,7 +110,7 @@
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
-            var pdHandler = null, puHandler = null;
+            var pdHandler = null, puHandler = null, lastSig = null;
 
             function onResize() {
                 if (!renderer) return;
@@ -187,12 +187,6 @@
                 var sph = new THREE.SphereGeometry(mob ? 0.9 : 0.7, 12, 12);
                 var metaByName = {};   // layouts drop status/layer; look them up for colour
                 ((K.data() || {}).nodes || []).forEach(function (x) { metaByName[x.name] = x; });
-                // A ball's hue comes from the geometry it sits ON: the colour of
-                // its nearest edge, snapped to the live theme, so the balls belong
-                // to the same palette as the lines and packets instead of a
-                // separate role palette. Faulty nodes keep their status colour so
-                // problems still stand out. A small deterministic brightness
-                // variation keeps them from reading as identical flat disks.
                 var baseHex = (opts.color != null ? opts.color : 0x2ec4b6);
                 function geomHex(pos) {
                     if (!edges.length) return baseHex;
@@ -207,16 +201,13 @@
                 function hashName(s) { var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff; return h; }
                 nodes.forEach(function (nd) {
                     nodePos[nd.name] = nd.pos;
-                    var meta = metaByName[nd.name] || {}, st = nd.status || meta.status, col;
-                    if (st && st !== 'ok' && K.statusColor) { col = new THREE.Color(K.statusColor(st)); }
-                    else {
-                        var raw = geomHex(nd.pos), themed = K.themeColor ? K.themeColor(raw) : raw;
-                        col = new THREE.Color(themed);
-                        var f = 0.74 + 0.42 * ((hashName(nd.name || '') % 100) / 100);   // 0.74..1.16 brightness
-                        col.multiplyScalar(f);
-                    }
+                    var raw = geomHex(nd.pos), themed = K.themeColor ? K.themeColor(raw) : raw;
+                    var base = new THREE.Color(themed);
+                    base.multiplyScalar(0.74 + 0.42 * ((hashName(nd.name || '') % 100) / 100));
+                    var meta = metaByName[nd.name] || {}, st = nd.status || meta.status;
+                    var col = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : base;
                     var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: col }));
-                    m.position.copy(nd.pos); m.userData = { node: nd }; nodeGroup.add(m);
+                    m.position.copy(nd.pos); m.userData = { node: nd, base: base }; nodeGroup.add(m);
                 });
                 world.add(nodeGroup);
                 if (edges.length) {
@@ -239,6 +230,22 @@
                 spawnFn = lay.spawn || null;
                 buildGraph(edges, nodes);
                 if (controls && lay.target) { controls.target.copy(lay.target); controls.update(); }
+                lastSig = nodeSig();
+            }
+
+            function nodeSig() {
+                var d = K.data() || {}, ns = d.nodes || [], i, out = '';
+                for (i = 0; i < ns.length; i++) out += ns[i].name + ':' + ns[i].type + ':' + ns[i].layer + '|';
+                return out + '#' + JSON.stringify(d.layers || []);
+            }
+            function recolorNodes() {
+                if (!nodeGroup) return;
+                var meta = {}; ((K.data() || {}).nodes || []).forEach(function (x) { meta[x.name] = x; });
+                nodeGroup.children.forEach(function (m) {
+                    var nd = m.userData.node, st = (meta[nd.name] || {}).status;
+                    var c = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : m.userData.base;
+                    if (c) m.material.color.copy(c);
+                });
             }
 
             // Build a routing graph from the edges (merging near-coincident
@@ -477,8 +484,8 @@
                 raf = requestAnimationFrame(loop);
             }
 
-            K.on('data', function () { if (world && running) rebuild(); });
-            K.on('theme', function () { if (world && running) rebuild(); });   // recolour balls on theme switch
+            K.on('data', function () { if (!world || !running) return; if (nodeSig() === lastSig) recolorNodes(); else rebuild(); });
+            K.on('theme', function () { if (world && running) rebuild(); });
             window.addEventListener('resize', function () { if (running) onResize(); });
 
             function teardownGL() {
