@@ -189,13 +189,15 @@
         function (e) { K.setAllLinks(e.target.checked); });
     var ripplesLabel = checkboxLabel('<input type="checkbox" checked aria-label="Ripples"> Ripples',
         function (e) { window.KATZEN_FX_SHELLS = e.target.checked; });
+    var soundLabel = checkboxLabel('<input type="checkbox" aria-label="Sound"> Sound',
+        function (e) { window.KATZEN_SOUND = e.target.checked; });
     var linksInput = linksLabel.querySelector('input');
     function setAllLinksUI(on) { if (linksInput) linksInput.checked = on; K.setAllLinks(on); }
     function nonDirauthLink(a, b) { return a.data.type !== 'dirauth' && b.data.type !== 'dirauth'; }
     function structLinksOn() { K.setLinkFilter(nonDirauthLink); if (linksInput) linksInput.checked = true; K.setAllLinks(true); }
     function fullLinksOn() { K.setLinkFilter(null); if (linksInput) linksInput.checked = true; K.setAllLinks(true); }
     function ownLinksOnly() { K.setLinkFilter(null); if (linksInput) linksInput.checked = false; K.setAllLinks(false); }
-    var checks = [rotLabel, crtLabel, fiberLabel, linksLabel, ripplesLabel];
+    var checks = [rotLabel, crtLabel, fiberLabel, linksLabel, ripplesLabel, soundLabel];
     var labelsToggle = document.getElementById('labels-toggle');
     if (labelsToggle) {
         labelsToggle.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
@@ -221,6 +223,22 @@
     speedRow.appendChild(speed);
     speedRow.appendChild(speedVal);
     wrap.appendChild(speedRow);
+    if (window.KATZEN_DELAY == null) window.KATZEN_DELAY = 1;
+    var delayRow = document.createElement('label');
+    delayRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
+    var delayVal = document.createElement('span');
+    delayVal.style.cssText = 'width:34px;text-align:right;color:#ffb454';
+    delayVal.textContent = (+window.KATZEN_DELAY).toFixed(2) + 'x';
+    var delay = document.createElement('input');
+    delay.type = 'range'; delay.min = '0.2'; delay.max = '4'; delay.step = '0.1';
+    delay.value = String(window.KATZEN_DELAY);
+    delay.setAttribute('aria-label', 'Mix delay');
+    delay.style.cssText = 'flex:1;min-width:0;accent-color:#ffb454;cursor:pointer';
+    delay.addEventListener('input', function () { window.KATZEN_DELAY = +delay.value; delayVal.textContent = (+delay.value).toFixed(2) + 'x'; });
+    delayRow.appendChild(document.createTextNode('Mix delay'));
+    delayRow.appendChild(delay);
+    delayRow.appendChild(delayVal);
+    wrap.appendChild(delayRow);
     var regionRow = document.createElement('div');
     regionRow.style.cssText = 'display:flex;gap:6px;margin-top:6px';
     var euBtn = document.createElement('button');

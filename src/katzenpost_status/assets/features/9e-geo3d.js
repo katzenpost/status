@@ -5,6 +5,24 @@
     var THREE = K.THREE;
     if (!THREE) return;
     var SHARED_R = null;
+    var AUDIO = null, lastBlip = 0;
+    function blip(freq) {
+        if (!window.KATZEN_SOUND) return;
+        try {
+            if (!AUDIO) AUDIO = new (window.AudioContext || window.webkitAudioContext)();
+            if (AUDIO.state === 'suspended') AUDIO.resume();
+            var now = AUDIO.currentTime;
+            if (now - lastBlip < 0.03) return;
+            lastBlip = now;
+            var o = AUDIO.createOscillator(), g = AUDIO.createGain();
+            o.type = 'sine'; o.frequency.value = freq;
+            g.gain.setValueAtTime(0.0001, now);
+            g.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+            o.connect(g); g.connect(AUDIO.destination);
+            o.start(now); o.stop(now + 0.2);
+        } catch (e) { }
+    }
 
     // Shared factory for 3D "sacred geometry / fractal" overlays. A geometry
     // supplies a layout(data) -> { nodes:[{name,type,pos}], edges:[{a,b,color}],
@@ -168,7 +186,7 @@
                     ptr.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
                     ray.setFromCamera(ptr, camera);
                     var hit = ray.intersectObjects(nodeGroup.children, false)[0];
-                    if (hit && hit.object.userData.node && K.reselect) { var n = hit.object.userData.node; K.reselect(n.name, n.type); }
+                    if (hit && hit.object.userData.node) { var n = hit.object.userData.node; if (K.reselect) K.reselect(n.name, n.type); spawnFromNode(n.name); }
                 };
                 renderer.domElement.addEventListener('pointerdown', pdHandler);
                 renderer.domElement.addEventListener('pointerup', puHandler);
@@ -370,7 +388,8 @@
 
             function meanDwell() {
                 var d = K.data() || {}, mu = (d.parameters && d.parameters.Mu) || 0;
-                return mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
+                var base = mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
+                return base * (window.KATZEN_DELAY || 1);
             }
             function spawnPacket() {
                 if (packets.length >= PACK_MAX) return;
@@ -394,6 +413,19 @@
                 var total = 0, m; for (m = 0; m < path.length - 1; m++) total += path[m].distanceTo(path[m + 1]);
                 var speed = (10 + Math.random() * 8) * Math.max(1, total / 26);
                 packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: speed, stops: stopSet });
+            }
+            function spawnFromNode(name) {
+                if (packets.length >= PACK_MAX || nodeVert[name] == null || !pipeCols || pipeCols.length < 2) return;
+                var last = pipeCols[pipeCols.length - 1], dst = last[(Math.random() * last.length) | 0];
+                if (!dst || nodeVert[dst.name] == null) return;
+                var vp = walkLeg(nodeVert[name], nodeVert[dst.name]);
+                if (!vp || vp.length < 2) return;
+                var path = [], i; for (i = 0; i < vp.length; i++) path.push(gVerts[vp[i]]);
+                var stopSet = {}; stopSet[path.length - 1] = 1;
+                var total = 0; for (i = 0; i < path.length - 1; i++) total += path[i].distanceTo(path[i + 1]);
+                packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: (14 + Math.random() * 6) * Math.max(1, total / 26), stops: stopSet, user: 1 });
+                triggerShell(path[0], K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 1.6, 14);
+                blip(660);
             }
             var _zAxis = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion();
             function triggerShell(pos, color, max, grow, normal) {
@@ -449,6 +481,7 @@
                             pk.t = 1;
                             pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md;
                             triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, b.clone().sub(a));
+                            blip(pk.user ? 660 : 300 + Math.abs((b.x * 37 + b.y * 53 + b.z * 71) | 0) % 380);
                             break;
                         }
                         // pass straight through an intermediate geometry vertex
