@@ -4,6 +4,7 @@
     if (!K) return;
     var THREE = K.THREE;
     if (!THREE) return;
+    var SHARED_R = null;
 
     // Shared factory for 3D "sacred geometry / fractal" overlays. A geometry
     // supplies a layout(data) -> { nodes:[{name,type,pos}], edges:[{a,b,color}],
@@ -109,6 +110,7 @@
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
+            var pdHandler = null, puHandler = null;
 
             function onResize() {
                 if (!renderer) return;
@@ -118,12 +120,15 @@
             function disposeGroup(g) { g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); }
 
             function initGL() {
-                try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' }); }
-                catch (e) { return false; }
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-                el.appendChild(renderer.domElement);
-                renderer.domElement.style.cssText = 'display:block;width:100%;height:100%';
-        if (window.KATZEN_CRT) window.KATZEN_CRT(el);
+                if (!SHARED_R) {
+                    try { SHARED_R = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' }); }
+                    catch (e) { SHARED_R = null; return false; }
+                    SHARED_R.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+                    SHARED_R.domElement.style.cssText = 'display:block;width:100%;height:100%';
+                }
+                renderer = SHARED_R;
+                if (renderer.domElement.parentNode !== el) el.appendChild(renderer.domElement);
+                if (window.KATZEN_CRT) window.KATZEN_CRT(el);
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera(52, 1, 0.1, 4000);
                 // elevated 3/4 view by default so stellated relief reads as 3D
@@ -155,8 +160,8 @@
                 }
 
                 var ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), dx = 0, dy = 0;
-                renderer.domElement.addEventListener('pointerdown', function (ev) { dx = ev.clientX; dy = ev.clientY; });
-                renderer.domElement.addEventListener('pointerup', function (ev) {
+                pdHandler = function (ev) { dx = ev.clientX; dy = ev.clientY; };
+                puHandler = function (ev) {
                     if (!nodeGroup || Math.abs(ev.clientX - dx) + Math.abs(ev.clientY - dy) > 6) return;
                     var rect = renderer.domElement.getBoundingClientRect();
                     ptr.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
@@ -164,7 +169,9 @@
                     ray.setFromCamera(ptr, camera);
                     var hit = ray.intersectObjects(nodeGroup.children, false)[0];
                     if (hit && hit.object.userData.node && K.reselect) { var n = hit.object.userData.node; K.reselect(n.name, n.type); }
-                });
+                };
+                renderer.domElement.addEventListener('pointerdown', pdHandler);
+                renderer.domElement.addEventListener('pointerup', puHandler);
                 onResize();
                 return true;
             }
@@ -482,15 +489,14 @@
                     if (packPts) { if (packPts.geometry) packPts.geometry.dispose(); if (packPts.material) packPts.material.dispose(); }
                     for (var i = 0; i < shellPool.length; i++) { var m = shellPool[i].mesh; if (m) { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); } }
                     if (controls && controls.dispose) controls.dispose();
-                    renderer.dispose();
-                    var gl = renderer.getContext && renderer.getContext();
-                    var lose = gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
-                    if (lose) lose.loseContext();
-                    if (renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+                    if (pdHandler) renderer.domElement.removeEventListener('pointerdown', pdHandler);
+                    if (puHandler) renderer.domElement.removeEventListener('pointerup', puHandler);
+                    if (renderer.domElement.parentNode === el) el.removeChild(renderer.domElement);
                 } catch (e) { }
                 renderer = null; scene = null; camera = null; controls = null; world = null;
                 nodeGroup = null; edgeLines = null; packPts = null; shellPool = []; packets = [];
                 gVerts = []; gAdj = []; nodeVert = {}; _distCache = {};
+                pdHandler = null; puHandler = null;
             }
 
             window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
