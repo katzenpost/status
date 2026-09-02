@@ -125,7 +125,7 @@
             var renderer = null, scene = null, camera = null, controls = null, world = null;
             var nodeGroup = null, edgeLines = null, nodePos = {}, spawnFn = null;
             var gVerts = [], gAdj = [], nodeVert = {}, pipeCols = [], _distCache = {};   // edge graph for routing
-            var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, lastT = 0;
+            var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, coverAcc = 0, lastT = 0;
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
             var pdHandler = null, puHandler = null, lastSig = null;
@@ -391,7 +391,7 @@
                 var base = mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
                 return base * (window.KATZEN_DELAY || 1);
             }
-            function spawnPacket() {
+            function spawnPacket(cover) {
                 if (packets.length >= PACK_MAX) return;
                 var r = routeAlongEdges(), path = null, stops = null;   // packets follow the geometry's lines
                 if (r) { path = r.pts; stops = r.stops; }
@@ -412,7 +412,7 @@
                 // of graph verts) transit in bounded time instead of crawling.
                 var total = 0, m; for (m = 0; m < path.length - 1; m++) total += path[m].distanceTo(path[m + 1]);
                 var speed = (10 + Math.random() * 8) * Math.max(1, total / 26);
-                packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: speed, stops: stopSet });
+                packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: speed, stops: stopSet, cover: cover ? 1 : 0 });
             }
             function spawnFromNode(name) {
                 if (packets.length >= PACK_MAX || nodeVert[name] == null || !pipeCols || pipeCols.length < 2) return;
@@ -493,7 +493,7 @@
                     if (k < PACK_MAX) {
                         var t = pk.t, o = k * 3;
                         w[o] = a.x + (b.x - a.x) * t; w[o + 1] = a.y + (b.y - a.y) * t; w[o + 2] = a.z + (b.z - a.z) * t;
-                        c[o] = mr; c[o + 1] = mg; c[o + 2] = mb; k++;
+                        if (pk.cover) { c[o] = dr; c[o + 1] = dg; c[o + 2] = db; } else { c[o] = mr; c[o + 1] = mg; c[o + 2] = mb; } k++;
                     }
                 }
                 packPts.geometry.setDrawRange(0, k);
@@ -508,6 +508,8 @@
                 var rate = (typeof K.trafficRate === 'function' ? K.trafficRate() : 0) || 0;
                 spawnAcc += dt * (6 + Math.min(40, rate * 0.6));
                 while (spawnAcc >= 1) { spawnPacket(); spawnAcc -= 1; }
+                var cover = window.KATZEN_COVER || 0;
+                if (cover > 0) { coverAcc += dt * cover * 42; while (coverAcc >= 1) { spawnPacket(true); coverAcc -= 1; } }
                 heartAcc += dt;
                 if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 2.6, 22); }   // epoch heartbeat
                 updatePackets(dt);
