@@ -41,7 +41,7 @@ function mcSurface(f,span,iso,N){
             for(p=0;p<3;p++){var pp=P[p],k=Math.round(pp[0]/q)+'_'+Math.round(pp[1]/q)+'_'+Math.round(pp[2]/q);if(vmap[k]==null){vmap[k]=verts.length;verts.push(pp);}ky.push(vmap[k]);}
             for(p=0;p<3;p++){var a=ky[p],b=ky[(p+1)%3];if(a===b)continue;var kk=a<b?a+'#'+b:b+'#'+a;if(!eseen[kk]){eseen[kk]=1;edges.push([a,b]);}}
         }
-        if(edges.length<=6000||tries>8)return {verts:verts,edges:edges};
+        if(edges.length<=6000||tries>8){var parent=[],ii;for(ii=0;ii<verts.length;ii++)parent[ii]=ii;function find(x){while(parent[x]!==x){parent[x]=parent[parent[x]];x=parent[x];}return x;}for(ii=0;ii<edges.length;ii++){var ra=find(edges[ii][0]),rb=find(edges[ii][1]);if(ra!==rb)parent[ra]=rb;}var cnt={};for(ii=0;ii<verts.length;ii++){var rr=find(ii);cnt[rr]=(cnt[rr]||0)+1;}var kept=[];for(ii=0;ii<edges.length;ii++){if(cnt[find(edges[ii][0])]>=24)kept.push(edges[ii]);}return {verts:verts,edges:kept};}
         q*=1.4;
     }
 }
