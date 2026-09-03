@@ -16,12 +16,16 @@ from katzenpost_status import status  # noqa: E402
 def test_poller_not_injected_when_disabled():
     html = "<html><body>hi</body></html>"
     assert status._inject_html_poller(html, "index.meta.json", "t", 0) == html
-    assert status._inject_html_poller(html, "index.meta.json", "t", -1) == html
+    assert (
+        status._inject_html_poller(html, "index.meta.json", "t", -1) == html
+    )
 
 
 def test_poller_injected_before_body_close():
     html = "<html><body>hi</body></html>"
-    out = status._inject_html_poller(html, "index.meta.json", "2026-09-03T00:00:00Z", 60)
+    out = status._inject_html_poller(
+        html, "index.meta.json", "2026-09-03T00:00:00Z", 60
+    )
     assert out != html
     assert "<script>" in out
     assert "index.meta.json" in out

@@ -28,9 +28,7 @@ async def test_echo_probe_multiple_pings():
             config_path, desc, timeout=30.0, debug=True
         )
 
-        assert result_code == "OK", (
-            f"Echo probe failed: {result_code}"
-        )
+        assert result_code == "OK", f"Echo probe failed: {result_code}"
         assert latency_ms is not None
         assert latency_ms > 0
     finally:

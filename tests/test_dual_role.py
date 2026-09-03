@@ -39,8 +39,14 @@ def test_mix_role_not_masked_by_dirauth():
     survey = _dual_role_survey()
     # The name-aggregated node_status is the OLD conflated value (up).
     node_status = {"wauland": (True, 12.0)}
-    assert role_tcp_status("wauland", "mix", survey, node_status) == (False, None)
-    assert role_tcp_status("wauland", "dirauth", survey, node_status) == (True, 12.0)
+    assert role_tcp_status("wauland", "mix", survey, node_status) == (
+        False,
+        None,
+    )
+    assert role_tcp_status("wauland", "dirauth", survey, node_status) == (
+        True,
+        12.0,
+    )
 
 
 def test_icmp_latency_is_role_scoped():
@@ -63,7 +69,13 @@ def test_mix_category_matches_layer_types():
 def test_role_falls_back_to_node_status_when_role_not_surveyed():
     # A pure mix with no survey entry should fall back to node_status by name.
     node_status = {"cryptonymity": (True, 8.0)}
-    assert role_tcp_status("cryptonymity", "mix", {}, node_status) == (True, 8.0)
-    assert role_tcp_status("cryptonymity", "mix", None, node_status) == (True, 8.0)
+    assert role_tcp_status("cryptonymity", "mix", {}, node_status) == (
+        True,
+        8.0,
+    )
+    assert role_tcp_status("cryptonymity", "mix", None, node_status) == (
+        True,
+        8.0,
+    )
     # Unknown node, no data anywhere.
     assert role_tcp_status("nobody", "mix", {}, {}) == (False, None)
