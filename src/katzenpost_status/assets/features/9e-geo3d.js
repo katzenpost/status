@@ -4,7 +4,7 @@
     if (!K) return;
     var THREE = K.THREE;
     if (!THREE) return;
-    var SHARED_R = null;
+    var SHARED_R = null, ACTIVE_REBUILD = null;
     function snd(t) { if (K.playSound) K.playSound(t); }
     function shapeGeom(THREE, r) {
         switch (window.KATZEN_SHAPE) {
@@ -157,6 +157,8 @@
                     catch (e) { SHARED_R = null; return false; }
                     SHARED_R.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
                     SHARED_R.domElement.style.cssText = 'display:block;width:100%;height:100%';
+                    SHARED_R.domElement.addEventListener('webglcontextlost', function (ev) { ev.preventDefault(); }, false);
+                    SHARED_R.domElement.addEventListener('webglcontextrestored', function () { if (ACTIVE_REBUILD) ACTIVE_REBUILD(); }, false);
                 }
                 renderer = SHARED_R;
                 if (renderer.domElement.parentNode !== el) el.appendChild(renderer.domElement);
@@ -570,9 +572,10 @@
                 onShow: function () {
                     if (!renderer && !initGL()) return;
                     rebuild(); packets = []; spawnAcc = 0; lastT = 0; onResize();
+                    ACTIVE_REBUILD = rebuild;
                     if (!running) { running = true; raf = requestAnimationFrame(loop); }
                 },
-                onHide: function () { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; teardownGL(); }
+                onHide: function () { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; if (ACTIVE_REBUILD === rebuild) ACTIVE_REBUILD = null; teardownGL(); }
             });
         }
     };

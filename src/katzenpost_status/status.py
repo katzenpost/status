@@ -1981,7 +1981,9 @@ def make_gateway_table(
 
         is_operational = node in operational_nodes
 
-        if is_operational:
+        if is_operational and survey_results and not tcp_up and icmp_latency is None:
+            status = Text("DEGRADED (in consensus, no response)", style="yellow")
+        elif is_operational:
             latency_str = (
                 f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             )
@@ -2034,7 +2036,9 @@ def make_service_table(
 
         is_operational = node in operational_nodes
 
-        if is_operational:
+        if is_operational and survey_results and not tcp_up and icmp_latency is None:
+            status = Text("DEGRADED (in consensus, no response)", style="yellow")
+        elif is_operational:
             latency_str = (
                 f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             )
@@ -2088,7 +2092,9 @@ def make_storage_table(
 
         is_operational = node in operational_nodes
 
-        if is_operational:
+        if is_operational and survey_results and not tcp_up and icmp_latency is None:
+            status = Text("DEGRADED (in consensus, no response)", style="yellow")
+        elif is_operational:
             latency_str = (
                 f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             )
@@ -2146,7 +2152,9 @@ def make_topology_table(
 
         is_operational = node_name in operational_nodes
 
-        if is_operational:
+        if is_operational and survey_results and not tcp_up and icmp_latency is None:
+            status = Text("DEGRADED (in consensus, no response)", style="yellow")
+        elif is_operational:
             latency_str = (
                 f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             )

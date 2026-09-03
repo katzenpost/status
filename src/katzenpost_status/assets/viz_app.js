@@ -16,9 +16,10 @@
         window.KATZEN_NO_WEBGL = !ok;
     })();
 
-    var STATUS_HEX = { ok: 0x00f3ff, out: 0xffaa00, down: 0xff2d6b, unknown: 0x556677 };
+    var STATUS_HEX = { ok: 0x00f3ff, degraded: 0xffcc33, out: 0xffaa00, down: 0xff2d6b, unknown: 0x556677 };
     var STATUS_LABEL = {
-        ok: "In consensus - reachable", out: "Reachable - not in consensus",
+        ok: "In consensus - reachable", degraded: "In consensus - unreachable",
+        out: "Reachable - not in consensus",
         down: "Down & out", unknown: "Address unknown"
     };
     function statusColor(s) { return STATUS_HEX[s] !== undefined ? STATUS_HEX[s] : 0x556677; }

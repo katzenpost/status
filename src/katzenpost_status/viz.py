@@ -65,6 +65,7 @@ VENDOR_SCRIPTS = [
 
 STATUS_COLORS = {
     "ok": "#00f3ff",
+    "degraded": "#ffcc33",
     "out": "#ffaa00",
     "down": "#ff2d6b",
     "unknown": "#556677",
@@ -242,8 +243,9 @@ def _node_entry(
 
     latency = tcp_lat if tcp_lat is not None else icmp_lat
 
+    reachable = bool(tcp_up) or icmp_lat is not None
     if in_consensus:
-        status = "ok"
+        status = "ok" if (reachable or not surveyed) else "degraded"
     elif tcp_up:
         status = "out"
     elif surveyed:
