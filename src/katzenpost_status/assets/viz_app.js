@@ -110,6 +110,7 @@
     var coneGeo, UP_Y;
     var lastData = null;
     var contextLost = false;   // true while the WebGL context is gone (see initThree)
+    var suspended = false;     // true while a fullscreen overlay covers the main scene
     var styleAttemptPending = false;   // a 3D-style build is unconfirmed until a frame renders
 
     var NODE_STYLES = ['flat', 'extruded', 'pieces', 'machine'];
@@ -1686,6 +1687,7 @@
         requestAnimationFrame(animate);
         if (document.hidden) return;   // pause the loop on a hidden tab (battery)
         if (contextLost) return;       // GPU dropped the context; wait for restore
+        if (suspended) return;         // an overlay covers the main scene; skip its render+bloom
         var dt = Math.min(clock.getDelta(), 0.1), t = clock.getElapsedTime();
         declutterTimer -= dt;
         if (declutterTimer <= 0) { declutterTimer = 0.25; updateClusters(); declutterLabels(); }
@@ -1782,6 +1784,7 @@
         currentShape: function () { return currentShape; },
         setShape: function (name) { if (SHAPE_NAMES.indexOf(name) < 0) return; currentShape = name; window.KATZEN_SHAPE = name; runHooks(HOOKS.shape, name); },
         playSound: function (type) { playSound(type); },
+        setSuspended: function (v) { suspended = !!v; },
         showVantage: showVantage,
         showLink: showLink,
         topoPairs: function () { return topoPairs; },

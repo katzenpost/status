@@ -3871,7 +3871,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
             pigeonhole_geometry=pigeonhole_geometry,
             viz_link=viz_link,
             html_poll_seconds=html_poll_seconds,
-            probes_pending=not final,
+            probes_pending=(not final) and ping_enabled and client is not None,
         )
 
     def write_viz(write_history: bool) -> None:

@@ -786,6 +786,7 @@
         'rucklidge': 'Rare attractors',
         'rudinshapiro': 'Number theory',
         'rule110': 'Fields & automata',
+        'rule110-seed': 'Fields & automata',
         'rule184': 'Fields & automata',
         'rule30': 'Fields & automata',
         'rule90': 'Fields & automata',

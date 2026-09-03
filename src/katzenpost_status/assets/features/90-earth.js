@@ -69,6 +69,7 @@
         return ids[(i + 1) % ids.length];
     }
     function showOverlay(id) {
+        if (K.setSuspended) K.setSuspended(true);
         if (curOverlay && curOverlay !== id) { var prev = findOverlay(curOverlay); if (prev && prev.onHide) prev.onHide(); }
         overlayList().forEach(function (o) { if (o.el) o.el.style.display = (o.id === id) ? 'block' : 'none'; });
         curOverlay = id;
@@ -79,6 +80,7 @@
         if (curOverlay) { var ov = findOverlay(curOverlay); if (ov && ov.onHide) ov.onHide(); }
         overlayList().forEach(function (o) { if (o.el) o.el.style.display = 'none'; });
         curOverlay = null;
+        if (K.setSuspended) K.setSuspended(false);
     }
     function gotoNextView() { gotoView(nextViewId()); }
     function gotoView(vid) {

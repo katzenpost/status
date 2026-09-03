@@ -357,7 +357,7 @@
             // legs -> no discontinuous jumps). Immediate backtrack is avoided
             // except at dead-ends (so L-system trees can escape leaves).
             function walkLeg(src, dst) {
-                if (src < 0 || dst < 0) return null;
+                if (src == null || dst == null || src < 0 || dst < 0) return null;
                 if (src === dst) return [src];
                 var dist = distField(dst);
                 if (dist[src] < 0) return null;   // disconnected: caller falls back
@@ -562,6 +562,9 @@
             }
 
             window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
+            for (var _di = 0; _di < window.KATZEN_OVERLAYS.length; _di++) {
+                if (window.KATZEN_OVERLAYS[_di].id === opts.id) { if (window.console) console.warn('KATZEN: duplicate overlay id ' + opts.id); break; }
+            }
             window.KATZEN_OVERLAYS.push({
                 id: opts.id, name: opts.name, el: el,
                 onShow: function () {

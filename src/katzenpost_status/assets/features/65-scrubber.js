@@ -42,7 +42,7 @@
         if (i < 0 || i >= index.length) return;
         pos = i;
         var e = index[i];
-        fetch(histBase + e.file, { cache: 'force-cache' })
+        fetch(histBase + e.file + '?ts=' + (e.generated_at || ''), { cache: 'no-store' })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) {
                 if (!data) return;
@@ -94,7 +94,7 @@
     }
 
     document.getElementById('hist-prev').addEventListener('click', function () {
-        loadEpoch(pos < 0 ? index.length - 1 : Math.max(0, pos - 1));
+        loadEpoch(pos < 0 ? Math.max(0, index.length - 2) : Math.max(0, pos - 1));
     });
     document.getElementById('hist-next').addEventListener('click', function () {
         if (pos < 0) return;
