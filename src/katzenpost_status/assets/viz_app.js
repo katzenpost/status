@@ -273,7 +273,7 @@
             if (!window.KATZEN_NO_WEBGL) { selectedObj = null; clearSelPath(); }
             var i = document.getElementById('node-info'); if (i) i.style.display = 'none';
         });
-        if (isMobile()) setMenuVisible(false);
+        setMenuVisible(false);
     }
 
     function onResize() {
@@ -283,7 +283,7 @@
         if (crtPass) crtPass.uniforms.uRes.value.set(w, h);
     }
 
-    var menuVisible = !isMobile();
+    var menuVisible = false;
     function setMenuVisible(v) {
         menuVisible = v;
         var panel = document.getElementById('hud-panel');

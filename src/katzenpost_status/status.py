@@ -3337,21 +3337,22 @@ def generate_report(
     if output_file:
         html = console.export_html(inline_styles=True, theme=MONOKAI)
         if viz_link:
-            # The only link to the animated page: a small, discreet pi in the
-            # bottom-right corner (rendered via the &pi; entity to keep the
-            # source ASCII).
+            # The only link to the animated page: a small, discreet pi placed
+            # just to the right of the version number in the footer (rendered
+            # via the &pi; entity to keep the source ASCII).
             safe_link = html_escape(viz_link, quote=True)
-            footer = (
+            pi_link = (
                 f'<a href="{safe_link}" title="Live visualization" '
-                'style="position:fixed;bottom:10px;right:14px;z-index:50;'
-                "text-decoration:none;color:#00f3ff;opacity:0.45;"
-                'font-family:monospace;font-size:20px;line-height:1;">'
-                "&pi;</a>\n"
+                'style="text-decoration:none;color:#00f3ff;opacity:0.55;">'
+                "&pi;</a>"
             )
-            if "</body>" in html:
-                html = html.replace("</body>", footer + "</body>", 1)
+            marker = f"v{__version__}"
+            if marker in html:
+                html = html.replace(marker, marker + " " + pi_link, 1)
+            elif "</body>" in html:
+                html = html.replace("</body>", pi_link + "</body>", 1)
             else:
-                html += footer
+                html += pi_link
         # Optional main-page auto-refresh: bake the current timestamp into a
         # small inline poller and drop a sibling meta file carrying the same
         # value. When a later render advances the meta timestamp, an open page
