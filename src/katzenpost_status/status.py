@@ -2928,13 +2928,14 @@ def make_pki_doc_panel(
     )
 
 
-def make_footer(network_name: str) -> Text:
+def make_footer(network_name: str, viz: bool = False) -> Text:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    return Text(
-        f"{network_name} status - Generated: {now} - v{__version__}",
-        style="dim",
-        justify="center",
-    )
+    text = f"{network_name} status - Generated: {now} - v{__version__}"
+    if viz:
+        # Reserve the pi column here so Rich keeps the box aligned; the HTML
+        # export wraps this same glyph in a link (no added width).
+        text += " \u03c0"
+    return Text(text, style="dim", justify="center")
 
 
 def _inject_html_poller(
@@ -3248,7 +3249,7 @@ def generate_report(
         border_style="cyan",
     )
 
-    footer = make_footer(network_name)
+    footer = make_footer(network_name, viz=bool(viz_link))
 
     sections: list[RenderableType] = [
         status_section,
@@ -3337,22 +3338,18 @@ def generate_report(
     if output_file:
         html = console.export_html(inline_styles=True, theme=MONOKAI)
         if viz_link:
-            # The only link to the animated page: a small, discreet pi placed
-            # just to the right of the version number in the footer (rendered
-            # via the &pi; entity to keep the source ASCII).
+            # The only link to the animated page: wrap the pi that make_footer
+            # already reserved in the footer (just right of the version number)
+            # in a link. Wrapping adds no columns, so the box stays aligned.
             safe_link = html_escape(viz_link, quote=True)
             pi_link = (
                 f'<a href="{safe_link}" title="Live visualization" '
                 'style="text-decoration:none;color:#00f3ff;opacity:0.55;">'
-                "&pi;</a>"
+                "\u03c0</a>"
             )
-            marker = f"v{__version__}"
-            if marker in html:
-                html = html.replace(marker, marker + " " + pi_link, 1)
-            elif "</body>" in html:
-                html = html.replace("</body>", pi_link + "</body>", 1)
-            else:
-                html += pi_link
+            anchor = f"v{__version__} \u03c0"
+            if anchor in html:
+                html = html.replace(anchor, f"v{__version__} " + pi_link, 1)
         # Optional main-page auto-refresh: bake the current timestamp into a
         # small inline poller and drop a sibling meta file carrying the same
         # value. When a later render advances the meta timestamp, an open page
