@@ -274,6 +274,25 @@
             var i = document.getElementById('node-info'); if (i) i.style.display = 'none';
         });
         setMenuVisible(false);
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            var t = e.target, tag = t && t.tagName;
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' ||
+                (t && t.isContentEditable)) return;
+            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
+        });
+    }
+
+    function toggleFullscreen() {
+        try {
+            var d = document, el = d.documentElement;
+            var fsEl = d.fullscreenElement || d.webkitFullscreenElement;
+            if (fsEl) {
+                (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+            } else if (el.requestFullscreen || el.webkitRequestFullscreen) {
+                (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+            }
+        } catch (err) { /* fullscreen may be blocked; ignore */ }
     }
 
     function onResize() {
