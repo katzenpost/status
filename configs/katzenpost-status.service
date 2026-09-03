@@ -8,6 +8,19 @@ Type=oneshot
 User=katzenpost-status
 Group=katzenpost-status
 
-ExecStart=/usr/local/bin/uv run --directory /var/lib/katzenpost-status/src/katzenpost-status/ katzenpost-status --config /etc/katzenpost/thinclient.toml --dirauthconf /etc/katzenpost/authority.toml --htmlout /var/www/status.namenlos.network/index.html --ping --pki-document --survey --quiet
+# GeoIP for node placement + the AS/operator diversity view. Two independent,
+# both-optional sources, so this works with no setup and improves if you add a
+# database:
+#   * --geoip-db / --geoip-asn-db point at the standard GeoLite2 (or the free,
+#     no-account DB-IP Lite) .mmdb files. If absent the render degrades
+#     gracefully -- placement falls back to the curated table and AS is left to
+#     the whois fallback below. Safe to leave on even without the files.
+#   * --asn-whois resolves each node's AS via RDAP (ipwhois) when no ASN
+#     database is present -- no database file, no account. Results are cached in
+#     --asn-cache (IP-to-AS is static), so only new IPs are ever queried.
+# --html-poll-seconds makes the main status page poll a tiny index.meta.json and
+# auto-refresh when a newer render lands (the timer reruns this unit), so an open
+# tab updates on its own without a manual reload.
+ExecStart=/usr/local/bin/uv run --directory /var/lib/katzenpost-status/src/katzenpost-status/ katzenpost-status --config /etc/katzenpost/thinclient.toml --dirauthconf /etc/katzenpost/authority.toml --htmlout /var/www/status.namenlos.network/index.html --visualize --vizout /var/www/status.namenlos.network/visualize.html --geoip-db /usr/share/GeoIP/GeoLite2-City.mmdb --geoip-asn-db /usr/share/GeoIP/GeoLite2-ASN.mmdb --asn-whois --asn-cache /var/lib/katzenpost-status/asn-cache.json --ping --pki-document --survey --html-poll-seconds 60 --quiet
 
 Nice=10
