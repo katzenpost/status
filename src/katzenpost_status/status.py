@@ -252,6 +252,47 @@ def get_consensus_cache_path(cache_path: Path | None = None) -> Path:
     return cache_dir / "last_consensus.json"
 
 
+def get_probe_cache_path(cache_path: Path | None = None) -> Path:
+    if cache_path:
+        return cache_path.parent / "last_probes.json"
+    cache_dir = Path.home() / ".cache" / "katzenpost-status"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir / "last_probes.json"
+
+
+def load_probe_cache(cache_path: Path | None = None) -> "ServiceProbeResults":
+    p = get_probe_cache_path(cache_path)
+    if not p.exists():
+        return {}
+    try:
+        with open(p, "r") as f:
+            raw = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    out: ServiceProbeResults = {}
+    for cat, providers in (raw or {}).items():
+        if not isinstance(providers, dict):
+            continue
+        conv: dict[str, Any] = {}
+        for k, v in providers.items():
+            if isinstance(v, (list, tuple)) and len(v) == 2:
+                conv[k] = (bool(v[0]), v[1])
+        out[cat] = conv
+    return out
+
+
+def save_probe_cache(
+    service_probes: "ServiceProbeResults", cache_path: Path | None = None
+) -> None:
+    p = get_probe_cache_path(cache_path)
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w") as f:
+            json.dump(service_probes, f)
+    except OSError:
+        pass
+
+
 def load_last_consensus(
     cache_path: Path | None = None,
 ) -> dict[str, Any] | None:
@@ -1385,6 +1426,7 @@ def make_ping_table(
     service_probes: ServiceProbeResults,
     capabilities: dict[str, list[str]],
     survey_results: dict[str, dict[str, Any]] | None = None,
+    probes_pending: bool = False,
 ) -> Table:
     table = Table(
         title="Kaetzchen Service Active Probes",
@@ -1400,7 +1442,6 @@ def make_ping_table(
 
     # Echo probes
     echo_providers = capabilities.get("echo", [])
-    echo_ran = "echo" in service_probes
     echo_results = service_probes.get("echo", {})
     for provider in sorted(echo_providers):
         service_name = f"echo@{provider}"
@@ -1411,7 +1452,7 @@ def make_ping_table(
                     service_name,
                     Text(service_name, style="dim"),
                     Text("Probing...", style="yellow")
-                    if not echo_ran
+                    if probes_pending
                     else Text("Unsupported", style="dim"),
                 )
             )
@@ -1441,7 +1482,6 @@ def make_ping_table(
 
     # Courier probes (independent, not derived from replica probes)
     courier_providers = capabilities.get("courier", [])
-    courier_ran = "courier" in service_probes
     courier_results = service_probes.get("courier", {})
     for provider in sorted(courier_providers):
         service_name = f"courier@{provider}"
@@ -1452,7 +1492,7 @@ def make_ping_table(
                     service_name,
                     Text(service_name, style="dim"),
                     Text("Probing...", style="yellow")
-                    if not courier_ran
+                    if probes_pending
                     else Text("Unsupported", style="dim"),
                 )
             )
@@ -1482,7 +1522,6 @@ def make_ping_table(
 
     # Replica probes - format: courier@provider->replica
     storage_replicas = capabilities.get("_storage_replicas", [])
-    replica_ran = "replica" in service_probes
     replica_results = service_probes.get("replica", {})
 
     for courier in sorted(courier_providers):
@@ -1503,7 +1542,7 @@ def make_ping_table(
                         sort_key,
                         service_label,
                         Text("Probing...", style="yellow")
-                        if not replica_ran
+                        if probes_pending
                         else Text("Unsupported", style="dim"),
                     )
                 )
@@ -3000,6 +3039,7 @@ def generate_report(
     pigeonhole_geometry: dict[str, Any] | None = None,
     viz_link: str | None = None,
     html_poll_seconds: int = 0,
+    probes_pending: bool = False,
 ) -> None:
     if conn_status is None:
         conn_status = ConnectionStatus()
@@ -3142,7 +3182,7 @@ def generate_report(
 
     if has_consensus:
         ping_table = make_ping_table(
-            service_probes, capabilities, survey_results
+            service_probes, capabilities, survey_results, probes_pending
         )
         status_content.append(Align.center(ping_table))
     if outages_panel:
@@ -3417,7 +3457,7 @@ def generate_report(
                     border_style=page_border,
                 )
             )
-            html = pc.export_html(inline_styles=True, theme=MONOKAI)
+            html = pc.export_html(inline_styles=False, theme=MONOKAI)
             html = html.replace(
                 "</style>",
                 "body{display:flex;justify-content:center;"
@@ -3672,7 +3712,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
         save_last_consensus(epoch, epoch_time_str, cache_path)
 
     survey_results: dict[str, dict[str, Any]] | None = None
-    service_probes: ServiceProbeResults = {}
+    service_probes: ServiceProbeResults = load_probe_cache(cache_path)
     all_targets: list[SurveyTarget] = []
 
     if run_survey:
@@ -3831,6 +3871,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
             pigeonhole_geometry=pigeonhole_geometry,
             viz_link=viz_link,
             html_poll_seconds=html_poll_seconds,
+            probes_pending=not final,
         )
 
     def write_viz(write_history: bool) -> None:
@@ -3918,6 +3959,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
     # Final writes with the complete data (report needs courier/replica). The
     # terminal report (quiet=False) prints once, here, with everything.
     write_report(final=True)
+    save_probe_cache(service_probes, cache_path)
 
     if viz_path:
         write_viz(write_history=True)
