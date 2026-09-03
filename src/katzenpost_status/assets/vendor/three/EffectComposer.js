@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright 2010-2021 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ *
+ * Vendored unmodified from three.js r128 (examples/js). See ./LICENSE.
+ */
+
 ( function () {
 
 	class EffectComposer {
