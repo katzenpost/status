@@ -139,6 +139,7 @@
             var nodeGroup = null, edgeLines = null, nodePos = {}, spawnFn = null;
             var gVerts = [], gAdj = [], nodeVert = {}, pipeCols = [], _distCache = {};   // edge graph for routing
             var packets = [], packPts = null, packPos = null, packCol = null, spawnAcc = 0, coverAcc = 0, lastT = 0;
+            var fpsEma = 60, slowMode = false;
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
             var pdHandler = null, puHandler = null, lastSig = null;
@@ -406,7 +407,7 @@
                 return base * (window.KATZEN_DELAY || 1);
             }
             function spawnPacket(cover) {
-                if (packets.length >= PACK_MAX) return;
+                if (packets.length >= (slowMode ? (PACK_MAX * 0.4) | 0 : PACK_MAX)) return;
                 var r = routeAlongEdges(), path = null, stops = null;   // packets follow the geometry's lines
                 if (r) { path = r.pts; stops = r.stops; }
                 else if (spawnFn) { path = spawnFn(); }   // fall back only if the graph is disconnected
@@ -518,20 +519,23 @@
 
             function loop() {
                 if (!running) return;
+                raf = requestAnimationFrame(loop);
+                if (typeof document !== 'undefined' && document.hidden) { lastT = 0; return; }
                 var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : 0;
                 var dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0.016; lastT = now;
+                fpsEma = fpsEma * 0.92 + (1 / Math.max(dt, 1e-3)) * 0.08;
+                slowMode = fpsEma < 34;
                 var rate = (typeof K.trafficRate === 'function' ? K.trafficRate() : 0) || 0;
-                spawnAcc += dt * (6 + Math.min(40, rate * 0.6));
+                spawnAcc += dt * (slowMode ? 3 : (6 + Math.min(40, rate * 0.6)));
                 while (spawnAcc >= 1) { spawnPacket(); spawnAcc -= 1; }
                 var cover = window.KATZEN_COVER || 0;
-                if (cover > 0) { coverAcc += dt * cover * 42; while (coverAcc >= 1) { spawnPacket(true); coverAcc -= 1; } }
+                if (cover > 0 && !slowMode) { coverAcc += dt * cover * 42; while (coverAcc >= 1) { spawnPacket(true); coverAcc -= 1; } }
                 heartAcc += dt;
-                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 2.6, 22); snd('heartbeat'); }   // epoch heartbeat
+                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 2.6, 22); snd('heartbeat'); }
                 updatePackets(dt);
                 updateShells(dt);
                 if (controls) controls.update();
                 renderer.render(scene, camera);
-                raf = requestAnimationFrame(loop);
             }
 
             K.on('data', function () { if (!world || !running) return; if (nodeSig() === lastSig) recolorNodes(); else rebuild(); });
