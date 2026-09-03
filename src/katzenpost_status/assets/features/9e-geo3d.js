@@ -142,7 +142,7 @@
             var fpsEma = 60, slowMode = false;
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
-            var pdHandler = null, puHandler = null, lastSig = null;
+            var pdHandler = null, puHandler = null, lastSig = null, _lay = null;
 
             function onResize() {
                 if (!renderer) return;
@@ -210,12 +210,17 @@
                 return true;
             }
 
-            function rebuild() {
+            function rebuild(reuse) {
                 if (nodeGroup) { world.remove(nodeGroup); disposeGroup(nodeGroup); nodeGroup = null; }
                 if (edgeLines) { world.remove(edgeLines); disposeGroup(edgeLines); edgeLines = null; }
                 nodePos = {}; spawnFn = null;
-                var lay = opts.layout(K.data() || {}, THREE, K) || {};
-                if (opts.stellate !== false) window.KATZEN_GEO3D.stellate(lay, THREE);   // no shape stays flat
+                var lay;
+                if (reuse && _lay) { lay = _lay; }
+                else {
+                    lay = opts.layout(K.data() || {}, THREE, K) || {};
+                    if (opts.stellate !== false) window.KATZEN_GEO3D.stellate(lay, THREE);
+                    _lay = lay;
+                }
                 var nodes = lay.nodes || [], edges = lay.edges || [];
                 nodeGroup = new THREE.Group();
                 var sph = shapeGeom(THREE, mob ? 0.9 : 0.7);
@@ -541,8 +546,8 @@
             }
 
             K.on('data', function () { if (!world || !running) return; if (nodeSig() === lastSig) recolorNodes(); else rebuild(); });
-            K.on('theme', function () { if (world && running) rebuild(); });
-            K.on('shape', function () { if (world && running) rebuild(); });
+            K.on('theme', function () { if (world && running) rebuild(true); });
+            K.on('shape', function () { if (world && running) rebuild(true); });
             window.addEventListener('resize', function () { if (running) onResize(); });
 
             function teardownGL() {
@@ -560,7 +565,7 @@
                 renderer = null; scene = null; camera = null; controls = null; world = null;
                 nodeGroup = null; edgeLines = null; packPts = null; shellPool = []; packets = [];
                 gVerts = []; gAdj = []; nodeVert = {}; _distCache = {};
-                pdHandler = null; puHandler = null;
+                pdHandler = null; puHandler = null; _lay = null;
             }
 
             window.KATZEN_OVERLAYS = window.KATZEN_OVERLAYS || [];
