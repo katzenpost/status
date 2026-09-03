@@ -156,7 +156,36 @@
         try { if (window.localStorage) localStorage.removeItem('katzen.styleAttempt'); } catch (e) { }
     }
 
-    var HOOKS = { boot: [], build: [], data: [], node: [], frame: [], theme: [] };
+    var HOOKS = { boot: [], build: [], data: [], node: [], frame: [], theme: [], shape: [] };
+    var SHAPE_NAMES = ['orbs', 'cubes', 'octahedra', 'tetrahedra', 'dodecahedra', 'icosahedra', 'cones', 'cylinders', 'rings', 'crystals'];
+    var currentShape = 'orbs';
+    if (typeof window.KATZEN_SHAPE === 'string' && SHAPE_NAMES.indexOf(window.KATZEN_SHAPE) >= 0) currentShape = window.KATZEN_SHAPE;
+    window.KATZEN_SHAPE = currentShape;
+    var AUDIO = null, sndLast = {};
+    function playSound(type) {
+        if (!window.KATZEN_SOUND) return;
+        try {
+            if (!AUDIO) AUDIO = new (window.AudioContext || window.webkitAudioContext)();
+            if (AUDIO.state === 'suspended') AUDIO.resume();
+            var now = AUDIO.currentTime;
+            var spec = {
+                arrive: { f: 523, w: 'triangle', d: 0.13, g: 0.05, th: 0.03 },
+                ring: { f: 784, w: 'sine', d: 0.22, g: 0.035, th: 0.05 },
+                heartbeat: { f: 146, w: 'sine', d: 0.5, g: 0.06, th: 0.2 },
+                send: { f: 660, w: 'square', d: 0.16, g: 0.05, th: 0.0, up: 990 }
+            }[type] || { f: 440, w: 'sine', d: 0.12, g: 0.04, th: 0.04 };
+            if (now - (sndLast[type] || 0) < spec.th) return;
+            sndLast[type] = now;
+            var o = AUDIO.createOscillator(), gg = AUDIO.createGain();
+            o.type = spec.w; o.frequency.setValueAtTime(spec.f, now);
+            if (spec.up) o.frequency.exponentialRampToValueAtTime(spec.up, now + spec.d);
+            gg.gain.setValueAtTime(0.0001, now);
+            gg.gain.exponentialRampToValueAtTime(spec.g, now + 0.008);
+            gg.gain.exponentialRampToValueAtTime(0.0001, now + spec.d);
+            o.connect(gg); gg.connect(AUDIO.destination);
+            o.start(now); o.stop(now + spec.d + 0.02);
+        } catch (e) { }
+    }
     function runHooks(list, a, b) {
         for (var i = 0; i < list.length; i++) {
             try { list[i](a, b); } catch (e) { /* a feature must not break the app */ }
@@ -1003,7 +1032,7 @@
             if (this.seg >= this.path.length - 1) { worldRoot.remove(this.mesh); return false; }
             this.progress += dt * this.speed * (window.KATZEN_SPEED || 1);
             if (this.progress >= 1.0) {
-                var node = this.path[this.seg + 1]; node.flash(this.color);
+                var node = this.path[this.seg + 1]; node.flash(this.color); playSound('arrive');
                 this.seg++; this.progress = 0; this.mesh.position.copy(node.mesh.position);
                 if (this.seg >= this.path.length - 1) { worldRoot.remove(this.mesh); return false; }
                 this.dwell = hopDwell(); return true;
@@ -1326,7 +1355,11 @@
         matrix: { status: { ok: 0x39ff14, out: 0xaaff00, down: 0xff3355, unknown: 0x2f6b2f }, group: { gateway: 0x39ff14, service: 0x7CFC00, storage: 0x00d24a, dirauth: 0xb6ff00, out: 0x4a7a4a }, mix: [0x00ff66, 0x39ff14, 0x7CFC00, 0x00d24a], tier: [0x39ff14, 0x00d24a, 0x7CFC00, 0xb6ff00, 0x2f8b2f] },
         ice: { status: { ok: 0x8fe8ff, out: 0xffd27f, down: 0xff6f91, unknown: 0x6a8595 }, group: { gateway: 0x8fe8ff, service: 0xc9e8ff, storage: 0x5fd0e0, dirauth: 0xe0f4ff, out: 0x7aa0b0 }, mix: [0x4d8bf0, 0x6fb8ff, 0x8fe8ff, 0xbfe8ff], tier: [0x8fe8ff, 0x6fb8ff, 0x4d8bf0, 0xc9e8ff, 0x5fd0e0] },
         neon: { status: { ok: 0x00f3ff, out: 0xffe600, down: 0xff2079, unknown: 0x7a3aa0 }, group: { gateway: 0x00f3ff, service: 0xff2079, storage: 0x39ff14, dirauth: 0xffe600, out: 0xb46cff }, mix: [0x9b5de5, 0xff2079, 0x00f3ff, 0xc06cff], tier: [0x00f3ff, 0xc06cff, 0xff2079, 0xffe600, 0x39ff14] },
-        ember: { status: { ok: 0xff7a1a, out: 0xffc24d, down: 0xff2d3d, unknown: 0x6b4a3a }, group: { gateway: 0xff7a1a, service: 0xffc24d, storage: 0xd23a2a, dirauth: 0xffd23f, out: 0x8a5a3a }, mix: [0xff2d3d, 0xff7a1a, 0xffc24d, 0xd23a2a], tier: [0xffc24d, 0xff7a1a, 0xff2d3d, 0xd23a2a, 0xffd23f] }
+        ember: { status: { ok: 0xff7a1a, out: 0xffc24d, down: 0xff2d3d, unknown: 0x6b4a3a }, group: { gateway: 0xff7a1a, service: 0xffc24d, storage: 0xd23a2a, dirauth: 0xffd23f, out: 0x8a5a3a }, mix: [0xff2d3d, 0xff7a1a, 0xffc24d, 0xd23a2a], tier: [0xffc24d, 0xff7a1a, 0xff2d3d, 0xd23a2a, 0xffd23f] },
+        sakura: { status: { ok: 0xff9ec4, out: 0xffd1a1, down: 0xff5d8f, unknown: 0x9a7a88 }, group: { gateway: 0xff9ec4, service: 0xffc4dd, storage: 0xd98fbf, dirauth: 0xffe0ec, out: 0xb07a95 }, mix: [0xff77aa, 0xff9ec4, 0xffc4dd, 0xe58fbf], tier: [0xff9ec4, 0xff77aa, 0xd98fbf, 0xffc4dd, 0xffd1a1] },
+        gold: { status: { ok: 0xffd24d, out: 0xffb000, down: 0xd18a00, unknown: 0x8a7a4a }, group: { gateway: 0xffd24d, service: 0xffe08a, storage: 0xf0b429, dirauth: 0xfff0b0, out: 0xb09a5a }, mix: [0xffb000, 0xffd24d, 0xffe08a, 0xf0b429], tier: [0xffd24d, 0xffb000, 0xf0b429, 0xffe08a, 0xd1a000] },
+        vapor: { status: { ok: 0x8affff, out: 0xff8ae0, down: 0xff5db1, unknown: 0x7a6a9a }, group: { gateway: 0x8affff, service: 0xff8ae0, storage: 0xb28aff, dirauth: 0xc4faff, out: 0x9a7ab0 }, mix: [0xb28aff, 0xff8ae0, 0x8affff, 0x8a9aff], tier: [0x8affff, 0xff8ae0, 0xb28aff, 0x8a9aff, 0xffc4f0] },
+        mint: { status: { ok: 0x7fe8c8, out: 0xffd98a, down: 0xff8a9a, unknown: 0x6a8a80 }, group: { gateway: 0x7fe8c8, service: 0xa8f0d8, storage: 0x4fc9a8, dirauth: 0xd0f8ea, out: 0x7a9a90 }, mix: [0x4fc9a8, 0x7fe8c8, 0xa8f0d8, 0x5fd9b8], tier: [0x7fe8c8, 0x4fc9a8, 0xa8f0d8, 0xd0f8ea, 0x9ae0c8] }
     };
     var DEF = { status: {}, group: {} }, kk;
     for (kk in STATUS_HEX) DEF.status[kk] = STATUS_HEX[kk];
@@ -1745,6 +1778,10 @@
         themeNames: function () { var a = [], k; for (k in THEMES) a.push(k); return a; },
         currentTheme: function () { return currentTheme; },
         setTheme: function (name) { if (!THEMES[name]) return; currentTheme = name; applyThemePalette(THEMES[name]); nodeObjs.forEach(function (o) { o.statusHex = statusColor(o.data.status); o._setIcon(o.statusHex, false); }); runHooks(HOOKS.theme, name); },
+        shapeNames: function () { return SHAPE_NAMES.slice(); },
+        currentShape: function () { return currentShape; },
+        setShape: function (name) { if (SHAPE_NAMES.indexOf(name) < 0) return; currentShape = name; window.KATZEN_SHAPE = name; runHooks(HOOKS.shape, name); },
+        playSound: function (type) { playSound(type); },
         showVantage: showVantage,
         showLink: showLink,
         topoPairs: function () { return topoPairs; },

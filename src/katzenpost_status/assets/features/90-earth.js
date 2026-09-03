@@ -135,9 +135,16 @@
         var here = curViewId(), ids = viewIds();
         viewSelects.forEach(function (sel) { if (sel) fillViewSelect(sel, here, ids); });
     }
+    function randomizeSkin() {
+        try {
+            if (K.themeNames && K.setTheme) { var tn = K.themeNames(), t = tn[(Math.random() * tn.length) | 0]; K.setTheme(t); var ts = document.getElementById('theme-select'); if (ts) ts.value = t; }
+            if (K.shapeNames && K.setShape) { var sn = K.shapeNames(), sh = sn[(Math.random() * sn.length) | 0]; K.setShape(sh); var ss = document.getElementById('shape-select'); if (ss) ss.value = sh; }
+        } catch (e) { }
+    }
     function randomizeView() {
         var ids = viewIds(), here = curViewId();
         var pool = ids.filter(function (v) { return v !== here; });
+        randomizeSkin();
         if (pool.length) gotoView(pool[(Math.random() * pool.length) | 0]);
     }
     function updateBtn() {
@@ -190,7 +197,7 @@
     var ripplesLabel = checkboxLabel('<input type="checkbox" checked aria-label="Ripples"> Ripples',
         function (e) { window.KATZEN_FX_SHELLS = e.target.checked; });
     var soundLabel = checkboxLabel('<input type="checkbox" aria-label="Sound"> Sound',
-        function (e) { window.KATZEN_SOUND = e.target.checked; });
+        function (e) { window.KATZEN_SOUND = e.target.checked; if (e.target.checked && K.playSound) K.playSound('send'); });
     var linksInput = linksLabel.querySelector('input');
     function setAllLinksUI(on) { if (linksInput) linksInput.checked = on; K.setAllLinks(on); }
     function nonDirauthLink(a, b) { return a.data.type !== 'dirauth' && b.data.type !== 'dirauth'; }
@@ -207,7 +214,7 @@
         return a.textContent.trim().toLowerCase() < b.textContent.trim().toLowerCase() ? -1 : 1;
     });
     checks.forEach(function (l) { wrap.appendChild(l); });
-    if (window.KATZEN_SPEED == null) window.KATZEN_SPEED = 1;
+    if (window.KATZEN_SPEED == null) window.KATZEN_SPEED = 0.15;
     var speedRow = document.createElement('label');
     speedRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:#9fb3c2';
     var speedVal = document.createElement('span');
@@ -223,7 +230,7 @@
     speedRow.appendChild(speed);
     speedRow.appendChild(speedVal);
     wrap.appendChild(speedRow);
-    if (window.KATZEN_DELAY == null) window.KATZEN_DELAY = 1;
+    if (window.KATZEN_DELAY == null) window.KATZEN_DELAY = 2;
     var delayRow = document.createElement('label');
     delayRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
     var delayVal = document.createElement('span');
@@ -253,6 +260,7 @@
         themeRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
         themeRow.innerHTML = 'Theme';
         var themeSel = document.createElement('select');
+        themeSel.id = 'theme-select';
         themeSel.setAttribute('aria-label', 'Colour theme');
         themeSel.style.cssText = 'flex:1;background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;border-radius:6px;font:11px/1 monospace;padding:3px 6px;cursor:pointer';
         K.themeNames().forEach(function (nm) { var op = document.createElement('option'); op.value = nm; op.textContent = nm.charAt(0).toUpperCase() + nm.slice(1); themeSel.appendChild(op); });
@@ -260,6 +268,20 @@
         themeSel.addEventListener('change', function () { K.setTheme(themeSel.value); });
         themeRow.appendChild(themeSel);
         wrap.appendChild(themeRow);
+    }
+    if (typeof K.shapeNames === 'function') {
+        var shapeRow = document.createElement('label');
+        shapeRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
+        shapeRow.innerHTML = 'Shape';
+        var shapeSel = document.createElement('select');
+        shapeSel.id = 'shape-select';
+        shapeSel.setAttribute('aria-label', 'Node shape theme');
+        shapeSel.style.cssText = 'flex:1;background:rgba(8,12,20,0.9);border:1px solid rgba(255,180,84,0.4);color:#ffb454;border-radius:6px;font:11px/1 monospace;padding:3px 6px;cursor:pointer';
+        K.shapeNames().forEach(function (nm) { var op = document.createElement('option'); op.value = nm; op.textContent = nm.charAt(0).toUpperCase() + nm.slice(1); shapeSel.appendChild(op); });
+        shapeSel.value = K.currentShape();
+        shapeSel.addEventListener('change', function () { K.setShape(shapeSel.value); });
+        shapeRow.appendChild(shapeSel);
+        wrap.appendChild(shapeRow);
     }
     var menuViewRow = document.createElement('label');
     menuViewRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:#9fb3c2';
@@ -2164,6 +2186,7 @@
             if (/[?#&]view=/i.test(qs)) { pinUrl(mode); return; }   // spatial view already set at init
         }
         // Reload, or no deep link: start on a random visualization (also pins it).
+        randomizeSkin();
         var ids = viewIds(), pick = ids[(Math.random() * ids.length) | 0];
         if (pick) gotoView(pick);
     });

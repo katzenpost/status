@@ -4,7 +4,7 @@
     if (!K) return;
     var hud = document.getElementById('hud-panel');
     if (!hud) return;
-    if (window.KATZEN_DELAY == null) window.KATZEN_DELAY = 1;
+    if (window.KATZEN_DELAY == null) window.KATZEN_DELAY = 2;
     if (window.KATZEN_COVER == null) window.KATZEN_COVER = 0;
 
     var PRESETS = [
@@ -113,6 +113,6 @@
     });
     if (K.on) { K.on('theme', apply); K.on('data', apply); }
     hud.appendChild(box);
-    latC.s.value = '0.28'; bwC.s.value = '0.32';
+    latC.s.value = '0.5'; bwC.s.value = '0.32';
     apply();
 })();

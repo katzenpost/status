@@ -5,23 +5,36 @@
     var THREE = K.THREE;
     if (!THREE) return;
     var SHARED_R = null;
-    var AUDIO = null, lastBlip = 0;
-    function blip(freq) {
-        if (!window.KATZEN_SOUND) return;
-        try {
-            if (!AUDIO) AUDIO = new (window.AudioContext || window.webkitAudioContext)();
-            if (AUDIO.state === 'suspended') AUDIO.resume();
-            var now = AUDIO.currentTime;
-            if (now - lastBlip < 0.03) return;
-            lastBlip = now;
-            var o = AUDIO.createOscillator(), g = AUDIO.createGain();
-            o.type = 'sine'; o.frequency.value = freq;
-            g.gain.setValueAtTime(0.0001, now);
-            g.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
-            g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-            o.connect(g); g.connect(AUDIO.destination);
-            o.start(now); o.stop(now + 0.2);
-        } catch (e) { }
+    function snd(t) { if (K.playSound) K.playSound(t); }
+    function shapeGeom(THREE, r) {
+        switch (window.KATZEN_SHAPE) {
+            case 'cubes': return new THREE.BoxGeometry(r * 1.6, r * 1.6, r * 1.6);
+            case 'octahedra': return new THREE.OctahedronGeometry(r * 1.15);
+            case 'tetrahedra': return new THREE.TetrahedronGeometry(r * 1.3);
+            case 'dodecahedra': return new THREE.DodecahedronGeometry(r * 1.05);
+            case 'icosahedra': return new THREE.IcosahedronGeometry(r * 1.1);
+            case 'cones': return new THREE.ConeGeometry(r * 1.1, r * 2.2, 14);
+            case 'cylinders': return new THREE.CylinderGeometry(r * 0.9, r * 0.9, r * 1.8, 14);
+            case 'rings': return new THREE.TorusGeometry(r * 0.95, r * 0.4, 10, 20);
+            case 'crystals': return new THREE.OctahedronGeometry(r * 1.5, 0);
+            default: return new THREE.SphereGeometry(r, 12, 12);
+        }
+    }
+    var _spriteCache = {};
+    function packetSprite(THREE) {
+        var kind = { cubes: 'sq', octahedra: 'di', crystals: 'st', tetrahedra: 'tri', cones: 'tri', rings: 'ring', cylinders: 'sq' }[window.KATZEN_SHAPE] || 'dot';
+        if (_spriteCache[kind]) return _spriteCache[kind];
+        var s = 32, cv = document.createElement('canvas'); cv.width = cv.height = s;
+        var c = cv.getContext('2d'); c.fillStyle = '#fff'; c.strokeStyle = '#fff'; c.lineWidth = 4; var h = s / 2;
+        c.beginPath();
+        if (kind === 'sq') { c.rect(6, 6, 20, 20); c.fill(); }
+        else if (kind === 'di') { c.moveTo(h, 3); c.lineTo(29, h); c.lineTo(h, 29); c.lineTo(3, h); c.closePath(); c.fill(); }
+        else if (kind === 'tri') { c.moveTo(h, 4); c.lineTo(28, 28); c.lineTo(4, 28); c.closePath(); c.fill(); }
+        else if (kind === 'ring') { c.arc(h, h, 11, 0, 6.2832); c.stroke(); }
+        else if (kind === 'st') { var i, a; for (i = 0; i < 10; i++) { a = -Math.PI / 2 + i * Math.PI / 5; var rr = (i % 2) ? 5 : 13; var x = h + rr * Math.cos(a), y = h + rr * Math.sin(a); if (i) c.lineTo(x, y); else c.moveTo(x, y); } c.closePath(); c.fill(); }
+        else { c.arc(h, h, 13, 0, 6.2832); c.fill(); }
+        var tex = new THREE.CanvasTexture(cv);
+        _spriteCache[kind] = tex; return tex;
     }
 
     // Shared factory for 3D "sacred geometry / fractal" overlays. A geometry
@@ -202,7 +215,8 @@
                 if (opts.stellate !== false) window.KATZEN_GEO3D.stellate(lay, THREE);   // no shape stays flat
                 var nodes = lay.nodes || [], edges = lay.edges || [];
                 nodeGroup = new THREE.Group();
-                var sph = new THREE.SphereGeometry(mob ? 0.9 : 0.7, 12, 12);
+                var sph = shapeGeom(THREE, mob ? 0.9 : 0.7);
+                if (packPts) { packPts.material.map = packetSprite(THREE); packPts.material.needsUpdate = true; }
                 var metaByName = {};   // layouts drop status/layer; look them up for colour
                 ((K.data() || {}).nodes || []).forEach(function (x) { metaByName[x.name] = x; });
                 var baseHex = (opts.color != null ? opts.color : 0x2ec4b6);
@@ -425,11 +439,12 @@
                 var total = 0; for (i = 0; i < path.length - 1; i++) total += path[i].distanceTo(path[i + 1]);
                 packets.push({ path: path, seg: 0, t: 0, dwell: 0, speed: (14 + Math.random() * 6) * Math.max(1, total / 26), stops: stopSet, user: 1 });
                 triggerShell(path[0], K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 1.6, 14);
-                blip(660);
+                snd('send');
             }
             var _zAxis = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion();
             function triggerShell(pos, color, max, grow, normal) {
                 if (window.KATZEN_FX_SHELLS === false) return;   // menu toggle
+                snd('ring');
                 for (var i = 0; i < shellPool.length; i++) {
                     var s = shellPool[i];
                     if (s.active) continue;
@@ -481,7 +496,7 @@
                             pk.t = 1;
                             pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md;
                             triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, b.clone().sub(a));
-                            blip(pk.user ? 660 : 300 + Math.abs((b.x * 37 + b.y * 53 + b.z * 71) | 0) % 380);
+                            snd('arrive');
                             break;
                         }
                         // pass straight through an intermediate geometry vertex
@@ -511,7 +526,7 @@
                 var cover = window.KATZEN_COVER || 0;
                 if (cover > 0) { coverAcc += dt * cover * 42; while (coverAcc >= 1) { spawnPacket(true); coverAcc -= 1; } }
                 heartAcc += dt;
-                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 2.6, 22); }   // epoch heartbeat
+                if (heartAcc >= 12) { heartAcc = 0; triggerShell(ORIGIN, K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff, 2.6, 22); snd('heartbeat'); }   // epoch heartbeat
                 updatePackets(dt);
                 updateShells(dt);
                 if (controls) controls.update();
@@ -521,6 +536,7 @@
 
             K.on('data', function () { if (!world || !running) return; if (nodeSig() === lastSig) recolorNodes(); else rebuild(); });
             K.on('theme', function () { if (world && running) rebuild(); });
+            K.on('shape', function () { if (world && running) rebuild(); });
             window.addEventListener('resize', function () { if (running) onResize(); });
 
             function teardownGL() {
