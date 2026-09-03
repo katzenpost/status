@@ -572,7 +572,13 @@ def _feature_bundle_text() -> str:
         (FEATURES_SRC / name).read_text(encoding="utf-8")
         for name in _feature_files()
     ]
-    return "\n;\n".join(parts) + "\n"
+    text = "\n;\n".join(parts) + "\n"
+    try:
+        import rjsmin
+
+        return rjsmin.jsmin(text)
+    except Exception:
+        return text
 
 
 def _feature_bundle_url() -> str:
