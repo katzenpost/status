@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>__NETWORK_NAME__ Mixnet - Live Consensus Visualization</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0; overflow: hidden; background-color: #000;
+            font-family: 'Courier New', ui-monospace, 'DejaVu Sans Mono', monospace;
+            color: #f6e3c4; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none;
+        }
+        /* Retro-futurist CRT: dense scanlines, RGB phosphor stripes, a moving
+           sweep band, and a gentle flicker. */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 5; overflow: hidden;
+            background:
+                repeating-linear-gradient(to bottom,
+                    rgba(0,0,0,0.34) 0px, rgba(0,0,0,0.34) 1px,
+                    rgba(0,0,0,0) 2px, rgba(0,0,0,0) 3px),
+                repeating-linear-gradient(to right,
+                    rgba(255,120,0,0.035) 0px, rgba(255,120,0,0.035) 1px,
+                    rgba(0,180,255,0.035) 2px, rgba(0,0,0,0) 3px);
+            animation: crtflicker 3.5s infinite steps(60);
+        }
+        .scanlines::after {
+            content: ''; position: absolute; left: 0; right: 0; height: 20%;
+            background: linear-gradient(to bottom,
+                rgba(255,190,120,0) 0%, rgba(255,190,120,0.06) 50%, rgba(255,190,120,0) 100%);
+            animation: crtsweep 7s linear infinite;
+        }
+        @keyframes crtflicker { 0%,100% { opacity: 0.92; } 50% { opacity: 0.8; } }
+        @keyframes crtsweep { 0% { transform: translateY(-30vh); } 100% { transform: translateY(120vh); } }
+        #canvas-container { width: 100vw; height: 100vh; height: 100dvh; position: absolute; top: 0; left: 0; touch-action: none; }
+        .vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+            background: radial-gradient(circle at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.42) 100%); z-index: 2;
+        }
+        #menu-toggle {
+            position: fixed; top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); z-index: 30;
+            width: 44px; height: 44px; padding: 0; border-radius: 8px; background: rgba(8, 12, 20, 0.9);
+            border: 1px solid rgba(255, 180, 84, 0.4); color: #ffb454; font-size: 18px; line-height: 1; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        #menu-toggle:hover, #menu-toggle:focus-visible { background: rgba(255, 180, 84, 0.2); border-color: #ffb454; outline: none; }
+        .hud-panel {
+            position: fixed; top: max(12px, env(safe-area-inset-top)); left: max(64px, calc(12px + env(safe-area-inset-left) + 44px)); z-index: 20;
+            background: rgba(8, 12, 20, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 180, 84, 0.3); border-radius: 8px; padding: 16px; width: min(280px, calc(100vw - 80px));
+            max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; -webkit-overflow-scrolling: touch;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.9);
+            transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease; transform: translateX(0); opacity: 1; visibility: visible;
+        }
+        .hud-panel.hidden { transform: translateX(calc(-100% - 80px)); opacity: 0; visibility: hidden; pointer-events: none; }
+        .hud-title { font-size: 15px; font-weight: 700; letter-spacing: 2px; color: #ffb454; margin-bottom: 2px; text-transform: uppercase; text-shadow: 0 0 8px rgba(255,150,40,0.6); }
+        .hud-subtitle { font-size: 11px; color: #7b8e9d; margin-bottom: 4px; }
+        .hud-meta { font-size: 10.5px; color: #59707f; margin-bottom: 12px; line-height: 1.55; }
+        .btn-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+        button {
+            background: rgba(255, 180, 84, 0.06); border: 1px solid rgba(255, 180, 84, 0.22); color: #f0c98a;
+            padding: 6px 10px; min-height: 28px; border-radius: 4px; cursor: pointer; font-size: 10.5px; font-weight: 600;
+            transition: all 0.15s ease; text-align: left; touch-action: manipulation;
+        }
+        button:hover { background: rgba(255, 180, 84, 0.25); border-color: #ffb454; box-shadow: 0 0 12px rgba(255, 180, 84, 0.6); }
+        button.active { background: #ffb454; color: #000; }
+        .legend { font-size: 11px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+        #node-info {
+            position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); right: max(20px, env(safe-area-inset-right)); z-index: 10;
+            background: rgba(8, 12, 20, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 180, 84, 0.4); border-radius: 8px; padding: 14px 18px; min-width: 240px;
+            max-width: calc(100vw - 40px); max-height: calc(100dvh - 40px); overflow-y: auto; display: none;
+        }
+        #node-info h4 { margin: 0 0 6px 0; color: #ffb454; font-size: 13px; padding-right: 18px; }
+        #info-close {
+            position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; min-height: 0;
+            padding: 0; border-radius: 4px; font-size: 12px; line-height: 1; text-align: center;
+        }
+        #node-info p { margin: 3px 0; font-size: 11px; color: #cdd6df; word-break: break-word; }
+        #load-status {
+            position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 40;
+            background: rgba(8, 12, 20, 0.9); border: 1px solid rgba(255, 180, 84, 0.3); color: #9fb3c2;
+            font-size: 12px; padding: 8px 14px; border-radius: 6px; max-width: calc(100vw - 24px);
+        }
+        #load-status:empty { display: none; }
+        @media (max-width: 600px) {
+            .hud-panel {
+                left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); width: auto;
+                top: max(64px, calc(12px + env(safe-area-inset-top) + 44px)); max-height: calc(100dvh - 80px);
+            }
+            .hud-panel.hidden { transform: translateY(-120%); }
+            button { min-height: 44px; font-size: 12px; }
+            #node-info { left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); min-width: unset; }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+
+    <button id="menu-toggle" type="button" aria-label="Show menu" aria-expanded="false" aria-controls="hud-panel">☰</button>
+
+    <div class="hud-panel hidden" id="hud-panel">
+        <div class="btn-group" id="view-buttons"></div>
+        <label id="labels-toggle" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#9fb3c2;margin-bottom:8px">
+            <input type="checkbox" id="labels-all" checked> Show all labels
+        </label>
+        <button id="consensus-btn" style="width:100%;margin-bottom:6px">Consensus summary</button>
+        <button id="link-btn" style="width:100%;margin-bottom:12px">Link protocol</button>
+        <div class="hud-title" id="hud-title">Katzenpost Mixnet</div>
+        <div class="hud-subtitle">Live consensus &amp; reachability</div>
+        <div class="hud-meta" id="hud-meta"></div>
+        <div class="legend">
+            <div class="legend-item"><span class="dot" style="background:#00f3ff; box-shadow:0 0 6px #00f3ff"></span> In consensus &amp; reachable</div>
+            <div class="legend-item"><span class="dot" style="background:#ffaa00; box-shadow:0 0 6px #ffaa00"></span> Reachable, not in consensus</div>
+            <div class="legend-item"><span class="dot" style="background:#ff2d6b; box-shadow:0 0 6px #ff2d6b"></span> Down &amp; out (pulsing)</div>
+            <div class="legend-item"><span class="dot" style="background:#556677; box-shadow:0 0 4px #556677"></span> Address unknown</div>
+            <div class="legend-item"><span class="dot" style="background:#88bbff; box-shadow:0 0 6px #88bbff"></span> Simulated client</div>
+            <div class="legend-item"><span class="dot" style="background:#dfe8f0; box-shadow:0 0 6px #dfe8f0"></span> Monitor vantage (traceroute: dashes = hops)</div>
+            <div class="legend-item" style="margin-top:6px"><span class="dot" style="background:#00f3ff; box-shadow:0 0 8px #00f3ff"></span> Real payload (lambdaP)</div>
+            <div class="legend-item"><span class="dot" style="background:#ffaa00; box-shadow:0 0 8px #ffaa00"></span> Client loop (lambdaL)</div>
+            <div class="legend-item"><span class="dot" style="background:#ff00aa; box-shadow:0 0 8px #ff00aa"></span> Drop decoy (lambdaD)</div>
+            <div class="legend-item"><span class="dot" style="background:#8338ec; box-shadow:0 0 8px #8338ec"></span> Mix loop (lambdaM)</div>
+            <div class="legend-item"><span class="dot" style="background:#00ff88; box-shadow:0 0 8px #00ff88"></span> Gateway loop (lambdaG)</div>
+            <div class="legend-item" style="margin-top:6px;color:#7b8e9d">Links (click a node/group, or All links) by tier:</div>
+            <div class="legend-item"><span class="dot" style="background:#2ec4b6"></span> Link: gateway to mix L1</div>
+            <div class="legend-item"><span class="dot" style="background:#4d8bf0"></span> Link: mix L1 to L2</div>
+            <div class="legend-item"><span class="dot" style="background:#9b5de5"></span> Link: mix L2 to L3</div>
+            <div class="legend-item"><span class="dot" style="background:#ff8f3f"></span> Link: mix L3 to service</div>
+            <div class="legend-item"><span class="dot" style="background:#ffd23f"></span> Link: dirauth PKI (to every node)</div>
+            <div class="legend-item"><span class="dot" style="background:#00d2a0"></span> Link: replica replication</div>
+            <div class="legend-item"><span class="dot" style="background:#c06cff"></span> Link: courier to replica</div>
+            <div class="legend-item" style="margin-top:8px;color:#7b8e9d">Traceroute latency (final hop):</div>
+            <div style="height:10px;border-radius:3px;margin:2px 0;background:linear-gradient(to right,#2ce0c0,#8fe04a,#ffb454,#ff5d8f)"></div>
+            <div style="display:flex;justify-content:space-between;font-size:9.5px;color:#7b8e9d"><span>~20 ms</span><span>~110 ms</span><span>200 ms+</span></div>
+        </div>
+    </div>
+
+    <div id="node-info">
+        <button id="info-close" type="button" aria-label="Close">✕</button>
+        <h4 id="info-title">Node</h4>
+        <div id="info-body"></div>
+    </div>
+
+    <div id="load-status">Loading...</div>
+
+    <script>
+        // Where to find the data file, and how often to poll it (seconds).
+        window.KATZEN_DATA_URL = "__DATA_FILE__";
+        window.KATZEN_POLL_SECONDS = __POLL_SECONDS__;
+    </script>
+
+    <!-- Static local assets (no CDN): vendored three.js + our application JS. -->
+    <script src="__ASSETS_DIR__/three.min.js"></script>
+    <script src="__ASSETS_DIR__/OrbitControls.js"></script>
+    <script src="__ASSETS_DIR__/CopyShader.js"></script>
+    <script src="__ASSETS_DIR__/LuminosityHighPassShader.js"></script>
+    <script src="__ASSETS_DIR__/EffectComposer.js"></script>
+    <script src="__ASSETS_DIR__/RenderPass.js"></script>
+    <script src="__ASSETS_DIR__/ShaderPass.js"></script>
+    <script src="__ASSETS_DIR__/UnrealBloomPass.js"></script>
+
+    <!-- Application logic. Fetches the JSON data file below on a timer. -->
+    <script src="__ASSETS_DIR__/__APP_JS__"></script>
+
+    <!-- Optional feature plugins, one file each, loaded after the app. -->
+    __FEATURE_SCRIPTS__
+</body>
+</html>
