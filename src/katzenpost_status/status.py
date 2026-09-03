@@ -1400,6 +1400,7 @@ def make_ping_table(
 
     # Echo probes
     echo_providers = capabilities.get("echo", [])
+    echo_ran = "echo" in service_probes
     echo_results = service_probes.get("echo", {})
     for provider in sorted(echo_providers):
         service_name = f"echo@{provider}"
@@ -1409,7 +1410,9 @@ def make_ping_table(
                 (
                     service_name,
                     Text(service_name, style="dim"),
-                    Text("Unsupported", style="dim"),
+                    Text("Probing...", style="yellow")
+                    if not echo_ran
+                    else Text("Unsupported", style="dim"),
                 )
             )
         else:
@@ -1438,6 +1441,7 @@ def make_ping_table(
 
     # Courier probes (independent, not derived from replica probes)
     courier_providers = capabilities.get("courier", [])
+    courier_ran = "courier" in service_probes
     courier_results = service_probes.get("courier", {})
     for provider in sorted(courier_providers):
         service_name = f"courier@{provider}"
@@ -1447,7 +1451,9 @@ def make_ping_table(
                 (
                     service_name,
                     Text(service_name, style="dim"),
-                    Text("Unsupported", style="dim"),
+                    Text("Probing...", style="yellow")
+                    if not courier_ran
+                    else Text("Unsupported", style="dim"),
                 )
             )
         else:
@@ -1476,6 +1482,7 @@ def make_ping_table(
 
     # Replica probes - format: courier@provider->replica
     storage_replicas = capabilities.get("_storage_replicas", [])
+    replica_ran = "replica" in service_probes
     replica_results = service_probes.get("replica", {})
 
     for courier in sorted(courier_providers):
@@ -1495,7 +1502,9 @@ def make_ping_table(
                     (
                         sort_key,
                         service_label,
-                        Text("Unsupported", style="dim"),
+                        Text("Probing...", style="yellow")
+                        if not replica_ran
+                        else Text("Unsupported", style="dim"),
                     )
                 )
             else:
