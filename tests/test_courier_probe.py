@@ -28,7 +28,9 @@ async def test_courier_probe_write_ack():
             config_path, desc, timeout=60.0, debug=True
         )
 
-        assert result_code == "OK", f"Courier probe failed: {result_code}"
+        assert result_code == "OK", (
+            f"Courier probe failed: {result_code}"
+        )
         assert latency_ms is not None
         assert latency_ms > 0
     finally:

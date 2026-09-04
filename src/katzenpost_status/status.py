@@ -12,7 +12,6 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
-from html import escape as html_escape
 from pathlib import Path
 from typing import Any, Callable
 
@@ -46,6 +45,7 @@ def format_host_port(host: str, port: int) -> str:
 
 
 class ConnectionStatus:
+
     def __init__(self) -> None:
         self.daemon_connected: bool = False
         self.network_online: bool = False
@@ -86,9 +86,7 @@ async def probe_dirauths(
         for host, port in addrs:
             probe_list.append((name, host, port))
 
-    tasks = [
-        probe_tcp(host, port, timeout) for name, host, port in probe_list
-    ]
+    tasks = [probe_tcp(host, port, timeout) for name, host, port in probe_list]
     results_list = await asyncio.gather(*tasks)
 
     # Aggregate by name: if any address succeeds, node is up (use best latency)
@@ -102,9 +100,7 @@ async def probe_dirauths(
         elif ok and results[name][0]:
             # Both successful, compare latencies (prefer lower)
             existing_latency = results[name][1]
-            if latency is not None and (
-                existing_latency is None or latency < existing_latency
-            ):
+            if latency is not None and (existing_latency is None or latency < existing_latency):
                 results[name] = (ok, latency)
     return results
 
@@ -119,9 +115,7 @@ async def probe_all_nodes(
         for host, port in addrs:
             probe_list.append((name, host, port))
 
-    tasks = [
-        probe_tcp(host, port, timeout) for name, host, port in probe_list
-    ]
+    tasks = [probe_tcp(host, port, timeout) for name, host, port in probe_list]
     results_list = await asyncio.gather(*tasks)
 
     # Aggregate by name: if any address succeeds, node is up (use best latency)
@@ -135,9 +129,7 @@ async def probe_all_nodes(
         elif ok and results[name][0]:
             # Both successful, compare latencies (prefer lower)
             existing_latency = results[name][1]
-            if latency is not None and (
-                existing_latency is None or latency < existing_latency
-            ):
+            if latency is not None and (existing_latency is None or latency < existing_latency):
                 results[name] = (ok, latency)
     return results
 
@@ -168,18 +160,8 @@ def load_typed_address_cache(
                         if "|" in key and isinstance(addrs, list):
                             name, node_type = key.split("|", 1)
                             for addr in addrs:
-                                if (
-                                    isinstance(addr, (list, tuple))
-                                    and len(addr) == 2
-                                ):
-                                    targets.append(
-                                        (
-                                            name,
-                                            node_type,
-                                            str(addr[0]),
-                                            int(addr[1]),
-                                        )
-                                    )
+                                if isinstance(addr, (list, tuple)) and len(addr) == 2:
+                                    targets.append((name, node_type, str(addr[0]), int(addr[1])))
                     return targets
 
                 # Old format: list of [name, type, host, port]
@@ -187,15 +169,9 @@ def load_typed_address_cache(
                     first = data[0]
                     if isinstance(first, (list, tuple)) and len(first) == 4:
                         return [
-                            (
-                                str(item[0]),
-                                str(item[1]),
-                                str(item[2]),
-                                int(item[3]),
-                            )
+                            (str(item[0]), str(item[1]), str(item[2]), int(item[3]))
                             for item in data
-                            if isinstance(item, (list, tuple))
-                            and len(item) == 4
+                            if isinstance(item, (list, tuple)) and len(item) == 4
                         ]
                 if verbose:
                     click.echo(f"Unknown cache format, clearing: {data}")
@@ -281,9 +257,7 @@ def save_last_consensus(
         json.dump(data, f, indent=2)
 
 
-def run_icmp_ping(
-    host: str, count: int = 3, timeout: int = 2
-) -> dict[str, Any]:
+def run_icmp_ping(host: str, count: int = 3, timeout: int = 2) -> dict[str, Any]:
     result: dict[str, Any] = {
         "host": host,
         "reachable": False,
@@ -324,8 +298,8 @@ def run_icmp_ping(
 def run_tcp_traceroute(
     host: str,
     port: int,
-    max_hops: int = 20,
-    timeout: int = 1,
+    max_hops: int = 30,
+    timeout: int = 2,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {
         "host": host,
@@ -347,11 +321,9 @@ def run_tcp_traceroute(
     try:
         cmd = [
             "tcptraceroute",
-            "-w",
-            str(timeout),
+            "-w", str(timeout),
             "-n",
-            "-m",
-            str(max_hops),
+            "-m", str(max_hops),
             host,
             str(port),
         ]
@@ -399,10 +371,8 @@ def _run_ipv6_tcp_probe(
         cmd = [
             "tcptraceroute6",
             "-n",
-            "-w",
-            str(timeout),
-            "-m",
-            str(max_hops),
+            "-w", str(timeout),
+            "-m", str(max_hops),
             host,
             str(port),
         ]
@@ -438,13 +408,11 @@ def _run_ipv6_tcp_probe(
                 if not last_hop or last_hop.get("ip") != host:
                     # Add destination as final reachable hop
                     next_hop_num = len(result["hops"]) + 1
-                    result["hops"].append(
-                        {
-                            "hop": next_hop_num,
-                            "ip": host,
-                            "latency_ms": connect_result["final_latency_ms"],
-                        }
-                    )
+                    result["hops"].append({
+                        "hop": next_hop_num,
+                        "ip": host,
+                        "latency_ms": connect_result["final_latency_ms"]
+                    })
             else:
                 # No traceroute hops, use the connect result's single hop
                 result["hops"] = connect_result["hops"]
@@ -492,9 +460,7 @@ def _simple_tcp_connect(
         result["reachable"] = True
         result["final_latency_ms"] = (end - start) * 1000
         # Add a single "hop" showing the destination
-        result["hops"] = [
-            {"hop": 1, "ip": host, "latency_ms": result["final_latency_ms"]}
-        ]
+        result["hops"] = [{"hop": 1, "ip": host, "latency_ms": result["final_latency_ms"]}]
     except socket.timeout:
         result["error"] = "timeout"
     except ConnectionRefusedError:
@@ -509,11 +475,7 @@ def _parse_tcptraceroute_output(stdout: str, result: dict[str, Any]) -> None:
     """Parse output from tcptraceroute (IPv4)."""
     for line in stdout.splitlines():
         line = line.strip()
-        if (
-            not line
-            or line.startswith("Selected")
-            or line.startswith("Tracing")
-        ):
+        if not line or line.startswith("Selected") or line.startswith("Tracing"):
             continue
         parts = line.split()
         if len(parts) >= 2:
@@ -540,9 +502,7 @@ def _parse_tcptraceroute_output(stdout: str, result: dict[str, Any]) -> None:
                         except ValueError:
                             pass
                     if latencies:
-                        hop_info["latency_ms"] = sum(latencies) / len(
-                            latencies
-                        )
+                        hop_info["latency_ms"] = sum(latencies) / len(latencies)
                     else:
                         hop_info["latency_ms"] = None
                 result["hops"].append(hop_info)
@@ -562,11 +522,7 @@ def _parse_tcptraceroute6_output(stdout: str, result: dict[str, Any]) -> None:
         parts = line.split()
         if len(parts) >= 2 and parts[0].isdigit():
             hop_num = int(parts[0])
-            hop_info: dict[str, Any] = {
-                "hop": hop_num,
-                "ip": None,
-                "latency_ms": None,
-            }
+            hop_info: dict[str, Any] = {"hop": hop_num, "ip": None, "latency_ms": None}
 
             # Find IP address (not * and not in parentheses)
             for i, p in enumerate(parts[1:], 1):
@@ -606,8 +562,6 @@ def _parse_tcptraceroute6_output(stdout: str, result: dict[str, Any]) -> None:
 def _survey_single_target(
     target: SurveyTarget,
     run_traceroute: bool = True,
-    max_hops: int = 20,
-    hop_timeout: int = 1,
 ) -> tuple[str, dict[str, Any]]:
     name, node_type, host, port = target
     # Include host:port in key to allow multiple addresses per node
@@ -621,9 +575,7 @@ def _survey_single_target(
     if host:
         node_result["icmp_ping"] = run_icmp_ping(host)
         if run_traceroute:
-            node_result["tcp_traceroute"] = run_tcp_traceroute(
-                host, port, max_hops, hop_timeout
-            )
+            node_result["tcp_traceroute"] = run_tcp_traceroute(host, port)
     else:
         node_result["icmp_ping"] = {
             "host": "unknown",
@@ -648,8 +600,6 @@ def run_survey_parallel(
     run_traceroute: bool = True,
     verbose: bool = False,
     max_workers: int = 10,
-    max_hops: int = 20,
-    hop_timeout: int = 1,
 ) -> dict[str, dict[str, Any]]:
     results: dict[str, dict[str, Any]] = {}
 
@@ -658,13 +608,7 @@ def run_survey_parallel(
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_target = {
-            executor.submit(
-                _survey_single_target,
-                target,
-                run_traceroute,
-                max_hops,
-                hop_timeout,
-            ): target
+            executor.submit(_survey_single_target, target, run_traceroute): target
             for target in targets
         }
 
@@ -733,7 +677,7 @@ def make_survey_table(
         port = data.get("port", 0)
 
         is_unknown = host == "unknown" or host == ""
-
+        
         tcp = data.get("tcp_traceroute", {})
         tcp_reachable = tcp.get("reachable", False) if tcp else False
 
@@ -742,11 +686,9 @@ def make_survey_table(
 
         # Check if node is operational (in consensus) - dirauths are always considered operational
         is_dirauth = node_type == "dirauth"
-        is_operational = (
-            is_dirauth
-            or (operational_nodes is not None and name in operational_nodes)
-            or operational_nodes is None
-        )
+        is_operational = is_dirauth or (
+            operational_nodes is not None and name in operational_nodes
+        ) or operational_nodes is None
 
         # Determine if this row should be highlighted as OUT (reachable but not in consensus)
         is_out = tcp_reachable and not is_operational
@@ -763,10 +705,7 @@ def make_survey_table(
         elif icmp.get("reachable"):
             latency = icmp.get("latency_ms")
             if latency is not None:
-                icmp_status = Text(
-                    f"OK ({latency:.1f}ms)",
-                    style="yellow" if is_out else "cyan",
-                )
+                icmp_status = Text(f"OK ({latency:.1f}ms)", style="yellow" if is_out else "cyan")
             else:
                 icmp_status = Text("OK", style="yellow" if is_out else "cyan")
         elif icmp.get("error"):
@@ -790,16 +729,12 @@ def make_survey_table(
                 latency = tcp.get("final_latency_ms")
                 if is_out:
                     if latency is not None:
-                        tcp_status = Text(
-                            f"OUT ({latency:.1f}ms)", style="yellow"
-                        )
+                        tcp_status = Text(f"OUT ({latency:.1f}ms)", style="yellow")
                     else:
                         tcp_status = Text("OUT", style="yellow")
                 else:
                     if latency is not None:
-                        tcp_status = Text(
-                            f"OPEN ({latency:.1f}ms)", style="cyan"
-                        )
+                        tcp_status = Text(f"OPEN ({latency:.1f}ms)", style="cyan")
                     else:
                         tcp_status = Text("OPEN", style="cyan")
             elif tcp.get("error"):
@@ -809,11 +744,7 @@ def make_survey_table(
                     tcp_status = Text(f"ERR: {tcp['error']}", style="red")
             else:
                 tcp_status = Text("CLOSED", style="red")
-            hop_count = (
-                Text(str(len(tcp.get("hops", []))), style="yellow")
-                if is_out
-                else str(len(tcp.get("hops", [])))
-            )
+            hop_count = Text(str(len(tcp.get("hops", []))), style="yellow") if is_out else str(len(tcp.get("hops", [])))
         else:
             tcp_status = Text("N/A", style="dim")
             hop_count = "-"
@@ -824,19 +755,12 @@ def make_survey_table(
                 Text(node_type, style="yellow"),
                 Text(host_display, style="yellow"),
                 Text(port_display, style="yellow"),
-                icmp_status,
-                tcp_status,
-                hop_count,
+                icmp_status, tcp_status, hop_count
             )
         else:
             table.add_row(
-                name,
-                node_type,
-                host_display,
-                port_display,
-                icmp_status,
-                tcp_status,
-                hop_count,
+                name, node_type, host_display, port_display,
+                icmp_status, tcp_status, hop_count
             )
 
     return table
@@ -861,16 +785,14 @@ def make_traceroute_detail_table(
         addr_str = format_host_port(host, port)
 
     # Determine node status for title styling
-    tcp_reachable = (
-        trace_data.get("reachable", False) if trace_data else False
-    )
+    tcp_reachable = trace_data.get("reachable", False) if trace_data else False
     icmp_reachable = icmp_data.get("reachable", False) if icmp_data else False
     is_operational = name in operational_nodes if operational_nodes else False
-
+    
     # Dirauths are not in operational_nodes (which comes from PKI doc)
     # but should be cyan when TCP is up since they ARE the consensus makers
     is_dirauth = node_type == "dirauth"
-
+    
     # Determine title style:
     # - OK (in consensus, or dirauth with TCP up): cyan
     # - OUT (TCP up, not in consensus): yellow
@@ -885,7 +807,7 @@ def make_traceroute_detail_table(
     title = Text()
     title.append(f"{name} ({node_type})\n", style=title_style)
     title.append(addr_str, style=title_style)
-
+    
     table = Table(
         title=title,
         show_header=True,
@@ -960,7 +882,7 @@ def parse_host_port(addr: str) -> tuple[str, int] | None:
         bracket_end = addr.find("]")
         if bracket_end != -1:
             host = addr[1:bracket_end]
-            rest = addr[bracket_end + 1 :]
+            rest = addr[bracket_end + 1:]
             if rest.startswith(":"):
                 try:
                     return (host, int(rest[1:]))
@@ -1003,15 +925,13 @@ def parse_dirauth_config(dirauthconf: str) -> dict[str, Any]:
     dirauth_addresses = extract_all_addresses(config.get("Authorities", []))
     mix_addresses = extract_all_addresses(config.get("Mixes", []))
     gateway_addresses = extract_all_addresses(config.get("GatewayNodes", []))
-    servicenode_addresses = extract_all_addresses(
-        config.get("ServiceNodes", [])
-    )
-    storagenode_addresses = extract_all_addresses(
-        config.get("StorageReplicas", [])
-    )
+    servicenode_addresses = extract_all_addresses(config.get("ServiceNodes", []))
+    storagenode_addresses = extract_all_addresses(config.get("StorageReplicas", []))
 
     mixes = {mix["Identifier"] for mix in config.get("Mixes", [])}
-    gateways = {node["Identifier"] for node in config.get("GatewayNodes", [])}
+    gateways = {
+        node["Identifier"] for node in config.get("GatewayNodes", [])
+    }
     servicenodes = {
         node["Identifier"] for node in config.get("ServiceNodes", [])
     }
@@ -1168,14 +1088,10 @@ def get_operational_nodes(doc: dict[str, Any]) -> set[str]:
     return nodes
 
 
-def get_node_addresses_from_pki(
-    doc: dict[str, Any],
-) -> dict[str, list[tuple[str, int]]]:
+def get_node_addresses_from_pki(doc: dict[str, Any]) -> dict[str, list[tuple[str, int]]]:
     addresses: dict[str, list[tuple[str, int]]] = {}
 
-    def extract_all_addresses(
-        node_data: dict[str, Any],
-    ) -> list[tuple[str, int]]:
+    def extract_all_addresses(node_data: dict[str, Any]) -> list[tuple[str, int]]:
         results: list[tuple[str, int]] = []
         addrs = node_data.get("Addresses", {})
         for transport in ["tcp4", "tcp", "tcp6"]:
@@ -1225,9 +1141,7 @@ def get_node_addresses_from_pki(
 def build_survey_targets_from_pki(doc: dict[str, Any]) -> list[SurveyTarget]:
     targets: list[SurveyTarget] = []
 
-    def extract_all_addresses(
-        node_data: dict[str, Any],
-    ) -> list[tuple[str, int]]:
+    def extract_all_addresses(node_data: dict[str, Any]) -> list[tuple[str, int]]:
         results: list[tuple[str, int]] = []
         addrs = node_data.get("Addresses", {})
         for transport in ["tcp4", "tcp", "tcp6"]:
@@ -1301,9 +1215,7 @@ def make_network_params_table(
 
     user_payload = sphinx_geometry.get("UserForwardPayloadLength", "N/A")
     table.add_row("UserForwardPayloadLength", str(user_payload))
-    max_plaintext = pigeonhole_geometry.get(
-        "MaxPlaintextPayloadLength", "N/A"
-    )
+    max_plaintext = pigeonhole_geometry.get("MaxPlaintextPayloadLength", "N/A")
     table.add_row("MaxPlaintextPayloadLength", str(max_plaintext))
 
     table.add_row("Mix Layers", f"{len(doc.get('Topology', []))}")
@@ -1373,9 +1285,7 @@ def get_service_node_timing(
                 return float(tcp_latency)
             icmp = data.get("icmp_ping", {})
             icmp_latency = icmp.get("latency_ms")
-            if icmp.get("reachable") and isinstance(
-                icmp_latency, (int, float)
-            ):
+            if icmp.get("reachable") and isinstance(icmp_latency, (int, float)):
                 return float(icmp_latency)
     return None
 
@@ -1404,36 +1314,16 @@ def make_ping_table(
         service_name = f"echo@{provider}"
         probe_result = echo_results.get(provider)
         if probe_result is None:
-            rows.append(
-                (
-                    service_name,
-                    Text(service_name, style="dim"),
-                    Text("Unsupported", style="dim"),
-                )
-            )
+            rows.append((service_name, Text(service_name, style="dim"), Text("Unsupported", style="dim")))
         else:
             success, latency = probe_result
             if success:
-                latency_str = (
-                    f" ({latency:.0f}ms)" if latency is not None else ""
-                )
-                rows.append(
-                    (
-                        service_name,
-                        Text(service_name, style="cyan"),
-                        Text(f"OK{latency_str}", style="cyan"),
-                    )
-                )
+                latency_str = f" ({latency:.0f}ms)" if latency is not None else ""
+                rows.append((service_name, Text(service_name, style="cyan"), Text(f"OK{latency_str}", style="cyan")))
             else:
                 fallback = get_service_node_timing(provider, survey_results)
                 timing = f" ({fallback:.0f}ms)" if fallback else ""
-                rows.append(
-                    (
-                        service_name,
-                        Text(service_name, style="red"),
-                        Text(f"FAILURE{timing}", style="red"),
-                    )
-                )
+                rows.append((service_name, Text(service_name, style="red"), Text(f"FAILURE{timing}", style="red")))
 
     # Courier probes (independent, not derived from replica probes)
     courier_providers = capabilities.get("courier", [])
@@ -1442,36 +1332,16 @@ def make_ping_table(
         service_name = f"courier@{provider}"
         probe_result = courier_results.get(provider)
         if probe_result is None:
-            rows.append(
-                (
-                    service_name,
-                    Text(service_name, style="dim"),
-                    Text("Unsupported", style="dim"),
-                )
-            )
+            rows.append((service_name, Text(service_name, style="dim"), Text("Unsupported", style="dim")))
         else:
             success, latency = probe_result
             if success:
-                latency_str = (
-                    f" ({latency:.0f}ms)" if latency is not None else ""
-                )
-                rows.append(
-                    (
-                        service_name,
-                        Text(service_name, style="cyan"),
-                        Text(f"OK{latency_str}", style="cyan"),
-                    )
-                )
+                latency_str = f" ({latency:.0f}ms)" if latency is not None else ""
+                rows.append((service_name, Text(service_name, style="cyan"), Text(f"OK{latency_str}", style="cyan")))
             else:
                 fallback = get_service_node_timing(provider, survey_results)
                 timing = f" ({fallback:.0f}ms)" if fallback else ""
-                rows.append(
-                    (
-                        service_name,
-                        Text(service_name, style="red"),
-                        Text(f"FAILURE{timing}", style="red"),
-                    )
-                )
+                rows.append((service_name, Text(service_name, style="red"), Text(f"FAILURE{timing}", style="red")))
 
     # Replica probes - format: courier@provider->replica
     storage_replicas = capabilities.get("_storage_replicas", [])
@@ -1490,13 +1360,7 @@ def make_ping_table(
                 service_label.append(courier, style="dim")
                 service_label.append("->", style="dim")
                 service_label.append(replica, style="dim")
-                rows.append(
-                    (
-                        sort_key,
-                        service_label,
-                        Text("Unsupported", style="dim"),
-                    )
-                )
+                rows.append((sort_key, service_label, Text("Unsupported", style="dim")))
             else:
                 success, latency = probe_result
                 if success:
@@ -1505,16 +1369,8 @@ def make_ping_table(
                     service_label.append(courier, style="cyan")
                     service_label.append("->", style="cyan")
                     service_label.append(replica, style="cyan")
-                    latency_str = (
-                        f" ({latency:.0f}ms)" if latency is not None else ""
-                    )
-                    rows.append(
-                        (
-                            sort_key,
-                            service_label,
-                            Text(f"OK{latency_str}", style="cyan"),
-                        )
-                    )
+                    latency_str = f" ({latency:.0f}ms)" if latency is not None else ""
+                    rows.append((sort_key, service_label, Text(f"OK{latency_str}", style="cyan")))
                 elif latency is not None:
                     # Got courier ACK but no replica data - courier cyan, arrow/replica yellow
                     service_label.append("courier@", style="cyan")
@@ -1522,30 +1378,16 @@ def make_ping_table(
                     service_label.append("->", style="yellow")
                     service_label.append(replica, style="yellow")
                     latency_str = f" ({latency:.0f}ms)"
-                    rows.append(
-                        (
-                            sort_key,
-                            service_label,
-                            Text(f"COURIER ACK{latency_str}", style="yellow"),
-                        )
-                    )
+                    rows.append((sort_key, service_label, Text(f"COURIER ACK{latency_str}", style="yellow")))
                 else:
                     # Complete failure - all red
                     service_label.append("courier@", style="red")
                     service_label.append(courier, style="red")
                     service_label.append("->", style="red")
                     service_label.append(replica, style="red")
-                    fallback = get_service_node_timing(
-                        courier, survey_results
-                    )
+                    fallback = get_service_node_timing(courier, survey_results)
                     timing = f" ({fallback:.0f}ms)" if fallback else ""
-                    rows.append(
-                        (
-                            sort_key,
-                            service_label,
-                            Text(f"FAILURE{timing}", style="red"),
-                        )
-                    )
+                    rows.append((sort_key, service_label, Text(f"FAILURE{timing}", style="red")))
 
     # Sort rows alphabetically and add to table
     for sort_key, label, status_text in sorted(rows, key=lambda x: x[0]):
@@ -1553,13 +1395,10 @@ def make_ping_table(
 
     return table
 
-
-def make_connection_status_table(
-    conn_status: ConnectionStatus, has_consensus: bool
-) -> Table:
+def make_connection_status_table(conn_status: ConnectionStatus, has_consensus: bool) -> Table:
     # Check if any critical check failed
     any_failed = not conn_status.daemon_connected or not has_consensus
-
+    
     table = Table(
         title="kpclientd Status",
         show_header=True,
@@ -1642,9 +1481,7 @@ def make_outage_reports(
         role category when given so a dual-role machine's roles are not
         conflated. Returns (icmp_ok, icmp_latency, tcp_ok, tcp_latency,
         was_surveyed)."""
-        entries = _survey_entries_for_role(
-            node_name, category, survey_results
-        )
+        entries = _survey_entries_for_role(node_name, category, survey_results)
         if not entries:
             return False, None, False, None, False
 
@@ -1689,37 +1526,27 @@ def make_outage_reports(
             table.add_column("Status", justify="right")
             for node in sorted(outages):
                 # Get status from survey results (more accurate), for this role only
-                icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = (
-                    get_node_survey_status(node, category)
-                )
-
+                icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = get_node_survey_status(node, category)
+                
                 # Fallback to node_status if no survey results for this node
                 if not was_surveyed and node in node_status:
                     tcp_ok, tcp_latency = node_status[node]
-
+                
                 # Determine display based on survey status:
                 # - TCP OPEN: OUT (yellow) - service responds but not in consensus
                 # - TCP CLOSED (surveyed) + ICMP OK: DOWN & OUT with timing
                 # - TCP CLOSED (surveyed) + ICMP FAIL: DOWN & OUT
                 # - Not surveyed: OUT (yellow) - unknown if service is down
-
+                
                 if tcp_ok:
-                    latency = (
-                        tcp_latency
-                        if tcp_latency is not None
-                        else icmp_latency
-                    )
+                    latency = tcp_latency if tcp_latency is not None else icmp_latency
                     if latency is not None:
-                        status = Text(
-                            f"OUT ({latency:.0f}ms)", style="yellow"
-                        )
+                        status = Text(f"OUT ({latency:.0f}ms)", style="yellow")
                     else:
                         status = Text("OUT", style="yellow")
                 elif was_surveyed:
                     if icmp_ok and icmp_latency is not None:
-                        status = Text(
-                            f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red"
-                        )
+                        status = Text(f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red")
                     else:
                         status = Text("DOWN & OUT", style="red")
                 else:
@@ -1739,29 +1566,21 @@ def make_outage_reports(
             box=box.HEAVY_EDGE,
             border_style="red",
         )
-        dirauth_report.add_column(
-            "Directory Authorities", justify="center", no_wrap=True
-        )
+        dirauth_report.add_column("Directory Authorities", justify="center", no_wrap=True)
         dirauth_report.add_column("Status", justify="right")
         for node in sorted(dirauth_outages):
             # Get survey status for dirauth
-            icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = (
-                get_node_survey_status(node, "dirauth")
-            )
-
+            icmp_ok, icmp_latency, tcp_ok, tcp_latency, was_surveyed = get_node_survey_status(node, "dirauth")
+            
             if tcp_ok:
-                latency = (
-                    tcp_latency if tcp_latency is not None else icmp_latency
-                )
+                latency = tcp_latency if tcp_latency is not None else icmp_latency
                 if latency is not None:
                     status = Text(f"OUT ({latency:.0f}ms)", style="yellow")
                 else:
                     status = Text("OUT", style="yellow")
             elif was_surveyed:
                 if icmp_ok and icmp_latency is not None:
-                    status = Text(
-                        f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red"
-                    )
+                    status = Text(f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red")
                 else:
                     status = Text("DOWN & OUT", style="red")
             else:
@@ -1797,14 +1616,11 @@ def _survey_entries_for_role(
 ) -> list[dict[str, Any]]:
     if not survey_results:
         return []
-    accept = (
-        _role_accepts(category) if category is not None else (lambda _t: True)
-    )
+    accept = _role_accepts(category) if category is not None else (lambda _t: True)
     return [
         data
         for data in survey_results.values()
-        if data.get("name") == node_name
-        and accept(str(data.get("node_type", "")))
+        if data.get("name") == node_name and accept(str(data.get("node_type", "")))
     ]
 
 
@@ -1830,9 +1646,7 @@ def role_tcp_status(
         if tcp.get("reachable"):
             tcp_up = True
             lat = tcp.get("final_latency_ms")
-            if isinstance(lat, (int, float)) and (
-                tcp_latency is None or lat < tcp_latency
-            ):
+            if isinstance(lat, (int, float)) and (tcp_latency is None or lat < tcp_latency):
                 tcp_latency = float(lat)
     return tcp_up, tcp_latency
 
@@ -1861,15 +1675,11 @@ def make_dirauth_table(
     has_consensus: bool = True,
 ) -> Table:
     # Check if all dirauths are failing
-    all_down = (
-        all(
-            not dirauth_status.get(node, (False, None))[0]
-            for node in authorities
-        )
-        if authorities
-        else False
-    )
-
+    all_down = all(
+        not dirauth_status.get(node, (False, None))[0]
+        for node in authorities
+    ) if authorities else False
+    
     table = Table(
         title="Directory Authorities",
         show_header=False,
@@ -1890,10 +1700,7 @@ def make_dirauth_table(
                 else:
                     status = Text(f"DISSENSUS{latency_str}", style="red")
             else:
-                status = Text(
-                    f"DOWN{latency_str}" if latency_str else "DOWN",
-                    style="red",
-                )
+                status = Text(f"DOWN{latency_str}" if latency_str else "DOWN", style="red")
         else:
             status = Text("N/A", style="red")
         table.add_row(node, status)
@@ -1907,12 +1714,11 @@ def make_gateway_table(
     survey_results: dict[str, dict[str, Any]] | None = None,
 ) -> Table:
     # Check if all gateways are failing (not operational)
-    all_failing = (
-        all(node not in operational_nodes for node in gateways)
-        if gateways
-        else False
-    )
-
+    all_failing = all(
+        node not in operational_nodes
+        for node in gateways
+    ) if gateways else False
+    
     table = Table(
         title="Gateways",
         show_header=False,
@@ -1923,30 +1729,20 @@ def make_gateway_table(
     table.add_column("Node Name", style="dim")
     table.add_column("Status", justify="right")
     for node in sorted(gateways):
-        tcp_up, tcp_latency = role_tcp_status(
-            node, "gateway", survey_results, node_status
-        )
-        icmp_latency = get_icmp_latency_from_survey(
-            node, survey_results, "gateway"
-        )
-
+        tcp_up, tcp_latency = role_tcp_status(node, "gateway", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node, survey_results, "gateway")
+        
         is_operational = node in operational_nodes
 
         if is_operational:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OK{latency_str}", style="cyan")
         elif tcp_up:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OUT{latency_str}", style="yellow")
         else:
             if icmp_latency is not None:
-                status = Text(
-                    f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red"
-                )
+                status = Text(f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red")
             else:
                 status = Text("DOWN & OUT", style="red")
         table.add_row(node, status)
@@ -1960,12 +1756,11 @@ def make_service_table(
     survey_results: dict[str, dict[str, Any]] | None = None,
 ) -> Table:
     # Check if all service nodes are failing (not operational)
-    all_failing = (
-        all(node not in operational_nodes for node in servicenodes)
-        if servicenodes
-        else False
-    )
-
+    all_failing = all(
+        node not in operational_nodes
+        for node in servicenodes
+    ) if servicenodes else False
+    
     table = Table(
         title="Kaetzchen Service\nNodes",
         show_header=False,
@@ -1976,30 +1771,20 @@ def make_service_table(
     table.add_column("Node Name", style="dim")
     table.add_column("Status", justify="right")
     for node in sorted(servicenodes):
-        tcp_up, tcp_latency = role_tcp_status(
-            node, "service", survey_results, node_status
-        )
-        icmp_latency = get_icmp_latency_from_survey(
-            node, survey_results, "service"
-        )
-
+        tcp_up, tcp_latency = role_tcp_status(node, "service", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node, survey_results, "service")
+        
         is_operational = node in operational_nodes
 
         if is_operational:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OK{latency_str}", style="cyan")
         elif tcp_up:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OUT{latency_str}", style="yellow")
         else:
             if icmp_latency is not None:
-                status = Text(
-                    f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red"
-                )
+                status = Text(f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red")
             else:
                 status = Text("DOWN & OUT", style="red")
         table.add_row(node, status)
@@ -2013,12 +1798,11 @@ def make_storage_table(
     survey_results: dict[str, dict[str, Any]] | None = None,
 ) -> Table:
     # Check if all storage nodes are failing (not operational)
-    all_failing = (
-        all(node not in operational_nodes for node in storagenodes)
-        if storagenodes
-        else False
-    )
-
+    all_failing = all(
+        node not in operational_nodes
+        for node in storagenodes
+    ) if storagenodes else False
+    
     table = Table(
         title="Storage Replicas",
         show_header=False,
@@ -2028,32 +1812,22 @@ def make_storage_table(
     )
     table.add_column("Node Name", style="dim")
     table.add_column("Status", justify="right")
-
+    
     for node in sorted(storagenodes):
-        tcp_up, tcp_latency = role_tcp_status(
-            node, "storage", survey_results, node_status
-        )
-        icmp_latency = get_icmp_latency_from_survey(
-            node, survey_results, "storage"
-        )
-
+        tcp_up, tcp_latency = role_tcp_status(node, "storage", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node, survey_results, "storage")
+        
         is_operational = node in operational_nodes
 
         if is_operational:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OK{latency_str}", style="cyan")
         elif tcp_up:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OUT{latency_str}", style="yellow")
         else:
             if icmp_latency is not None:
-                status = Text(
-                    f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red"
-                )
+                status = Text(f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red")
             else:
                 status = Text("DOWN & OUT", style="red")
         table.add_row(node, status)
@@ -2069,14 +1843,11 @@ def make_topology_table(
     survey_results: dict[str, dict[str, Any]] | None = None,
 ) -> Table:
     # Check if all nodes in this layer are failing (not operational)
-    all_failing = (
-        all(
-            node_name not in operational_nodes for node_name in expected_nodes
-        )
-        if expected_nodes
-        else False
-    )
-
+    all_failing = all(
+        node_name not in operational_nodes
+        for node_name in expected_nodes
+    ) if expected_nodes else False
+    
     table = Table(
         title=f"Mix Layer {n}",
         show_header=False,
@@ -2088,30 +1859,20 @@ def make_topology_table(
     table.add_column("Status", justify="right")
 
     for node_name in sorted(expected_nodes):
-        tcp_up, tcp_latency = role_tcp_status(
-            node_name, "mix", survey_results, node_status
-        )
-        icmp_latency = get_icmp_latency_from_survey(
-            node_name, survey_results, "mix"
-        )
-
+        tcp_up, tcp_latency = role_tcp_status(node_name, "mix", survey_results, node_status)
+        icmp_latency = get_icmp_latency_from_survey(node_name, survey_results, "mix")
+        
         is_operational = node_name in operational_nodes
 
         if is_operational:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OK{latency_str}", style="cyan")
         elif tcp_up:
-            latency_str = (
-                f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
-            )
+            latency_str = f" ({tcp_latency:.0f}ms)" if tcp_latency is not None else ""
             status = Text(f"OUT{latency_str}", style="yellow")
         else:
             if icmp_latency is not None:
-                status = Text(
-                    f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red"
-                )
+                status = Text(f"DOWN & OUT ({icmp_latency:.0f}ms)", style="red")
             else:
                 status = Text("DOWN & OUT", style="red")
         table.add_row(node_name, status)
@@ -2126,7 +1887,7 @@ def make_consensus_info_table(
 ) -> Table:
     epoch = doc.get("Epoch", 0)
     has_consensus = epoch > 0
-
+    
     table = Table(
         title="Consensus Information",
         show_header=True,
@@ -2149,9 +1910,7 @@ def make_consensus_info_table(
     if epoch > 0:
         table.add_row("Epoch", str(epoch), epoch_id_to_time_str(epoch))
         table.add_row(
-            "GenesisEpoch",
-            str(genesis_epoch),
-            epoch_id_to_time_str(genesis_epoch),
+            "GenesisEpoch", str(genesis_epoch), epoch_id_to_time_str(genesis_epoch)
         )
     else:
         table.add_row(
@@ -2175,9 +1934,7 @@ def make_consensus_info_table(
                     )
                     now = datetime.utcnow().replace(tzinfo=saved_at.tzinfo)
                     delta = now - saved_at
-                    hours, remainder = divmod(
-                        int(delta.total_seconds()), 3600
-                    )
+                    hours, remainder = divmod(int(delta.total_seconds()), 3600)
                     minutes, seconds = divmod(remainder, 60)
                     if hours > 0:
                         elapsed = f"{hours}h {minutes}m {seconds}s ago"
@@ -2311,7 +2068,7 @@ def make_pigeonhole_geometry_table(
 def make_srv_table(doc: dict[str, Any]) -> Table:
     srv = doc.get("SharedRandomValue")
     has_srv = srv is not None
-
+    
     table = Table(
         title="Shared Random Value",
         show_header=True,
@@ -2350,10 +2107,8 @@ async def do_ping_provider(
     client = ThinClient(cfg)
     loop = asyncio.get_event_loop()
     try:
-        with (
-            contextlib.redirect_stdout(io.StringIO()),
-            contextlib.redirect_stderr(io.StringIO()),
-        ):
+        with contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
             await asyncio.wait_for(client.start(loop), timeout=10.0)
     except Exception:
         thinclient_logger.setLevel(original_level)
@@ -2362,22 +2117,18 @@ async def do_ping_provider(
     try:
         payload = b"hello"
         dest_node, dest_queue = service_desc.to_destination()
-        with (
-            contextlib.redirect_stdout(io.StringIO()),
-            contextlib.redirect_stderr(io.StringIO()),
-        ):
+        with contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
             reply_payload = await asyncio.wait_for(
                 client.blocking_send_message(
-                    payload,
-                    dest_node,
-                    dest_queue,
+                    payload, dest_node, dest_queue,
                     timeout_seconds=timeout,
                 ),
                 timeout=timeout + 5.0,
             )
         end_time = time.monotonic()
         latency_ms = (end_time - start_time) * 1000
-        payload2 = reply_payload[: len(payload)]
+        payload2 = reply_payload[:len(payload)]
         success = len(payload2) == len(payload) and payload2 == payload
         return success, latency_ms if success else None
     except (asyncio.TimeoutError, Exception):
@@ -2397,9 +2148,7 @@ async def do_ping_all_providers_parallel(
     except Exception:
         return {}
     tasks = {
-        desc.mix_descriptor.get("Name", "unknown"): do_ping_provider(
-            config_path, desc, timeout
-        )
+        desc.mix_descriptor.get("Name", "unknown"): do_ping_provider(config_path, desc, timeout)
         for desc in service_descs
     }
     results: dict[str, tuple[bool, float | None]] = {}
@@ -2411,13 +2160,20 @@ async def do_ping_all_providers_parallel(
             results[name] = result
     return results
 
-
 async def do_courier_probe(
     config_path: str,
     service_desc: Any,
     timeout: float = 60.0,
 ) -> tuple[bool, float | None]:
-    """Test courier service by sending a write and getting ACK."""
+    """Test courier service by sending a write and getting ACK.
+
+    This only tests that the courier responds, not replica connectivity.
+
+    Returns:
+        (success, latency_ms) where:
+        - (True, latency): Courier responded with ACK
+        - (False, None): No response or error
+    """
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
     thinclient_logger.setLevel(logging.WARNING)
@@ -2427,10 +2183,8 @@ async def do_courier_probe(
     loop = asyncio.get_event_loop()
 
     try:
-        with (
-            contextlib.redirect_stdout(io.StringIO()),
-            contextlib.redirect_stderr(io.StringIO()),
-        ):
+        with contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
             await asyncio.wait_for(client.start(loop), timeout=10.0)
     except Exception:
         thinclient_logger.setLevel(original_level)
@@ -2459,10 +2213,8 @@ async def do_courier_probe(
         envelope_hash = wcr.envelope_hash
 
         try:
-            with (
-                contextlib.redirect_stdout(io.StringIO()),
-                contextlib.redirect_stderr(io.StringIO()),
-            ):
+            with contextlib.redirect_stdout(io.StringIO()), \
+                 contextlib.redirect_stderr(io.StringIO()):
                 await asyncio.wait_for(
                     client.start_resending_encrypted_message(
                         read_cap=None,
@@ -2478,37 +2230,15 @@ async def do_courier_probe(
 
             end_time = time.monotonic()
             latency_ms = (end_time - start_time) * 1000
+            await client.cancel_resending_encrypted_message(wcr.envelope_hash)
             envelope_hash = None
             return True, latency_ms
 
         except asyncio.TimeoutError:
             return False, None
 
-        except Exception as e:
-            if type(e).__name__ == "DatabaseFailureError":
-                end_time = time.monotonic()
-                latency_ms = (end_time - start_time) * 1000
-                envelope_hash = None
-                logging.getLogger(__name__).warning(
-                    "courier probe got storage database failure after courier ACK"
-                )
-                return True, latency_ms
-
-            logging.getLogger(__name__).warning(
-                "courier probe failed after ARQ: %s: %s",
-                type(e).__name__,
-                e,
-            )
-            return False, None
-
-    except Exception as e:
-        logging.getLogger(__name__).warning(
-            "courier probe failed: %s: %s",
-            type(e).__name__,
-            e,
-        )
+    except Exception:
         return False, None
-
     finally:
         if envelope_hash is not None:
             try:
@@ -2525,24 +2255,22 @@ async def do_courier_probes_parallel(
     timeout: float = 60.0,
 ) -> dict[str, tuple[bool, float | None]]:
     """Probe all courier providers in parallel.
-
+    
     Returns dict mapping provider_name -> (success, latency_ms)
     """
     try:
         service_descs = client.get_services("courier")
     except Exception:
         return {}
-
+    
     if not service_descs:
         return {}
-
+    
     tasks = {
-        desc.mix_descriptor.get("Name", "unknown"): do_courier_probe(
-            config_path, desc, timeout
-        )
+        desc.mix_descriptor.get("Name", "unknown"): do_courier_probe(config_path, desc, timeout)
         for desc in service_descs
     }
-
+    
     results: dict[str, tuple[bool, float | None]] = {}
     gathered = await asyncio.gather(*tasks.values(), return_exceptions=True)
     for name, result in zip(tasks.keys(), gathered):
@@ -2550,28 +2278,21 @@ async def do_courier_probes_parallel(
             results[name] = (False, None)
         else:
             results[name] = result
-
+    
     return results
-
 
 async def do_replica_probe(
     config_path: str,
     service_desc: Any,
-    replica_name: str,
-    replica_index: int,
     timeout: float = 60.0,
 ) -> tuple[bool, float | None]:
-    """Probe one courier->one replica Pigeonhole path.
+    """Test courier->replica connectivity via write/read round-trip.
 
-    This is intentionally replica-index aware.  The previous implementation
-    labelled the same undirected courier/storage probe as every replica.  For
-    a real per-replica active check, ask the courier for the replica reply slot
-    corresponding to this replica row.
-
-    Return values are interpreted by the renderer as:
-      (True, latency)       -> write/read path succeeded
-      (False, latency)      -> courier/storage path reached, replica not OK
-      (False, None)         -> failure before useful courier/replica response
+    Returns:
+        (success, latency_ms) where:
+        - (True, latency): Full round-trip succeeded
+        - (False, latency): Courier ACK received but no replica data
+        - (False, None): Complete failure
     """
     thinclient_logger = logging.getLogger("thinclient")
     original_level = thinclient_logger.level
@@ -2582,34 +2303,24 @@ async def do_replica_probe(
     loop = asyncio.get_event_loop()
 
     try:
-        with (
-            contextlib.redirect_stdout(io.StringIO()),
-            contextlib.redirect_stderr(io.StringIO()),
-        ):
+        with contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
             await asyncio.wait_for(client.start(loop), timeout=10.0)
-    except Exception as e:
-        logging.getLogger(__name__).warning(
-            "replica probe %s: daemon connection failed: %s: %s",
-            replica_name,
-            type(e).__name__,
-            e,
-        )
+    except Exception:
         thinclient_logger.setLevel(original_level)
         return False, None
 
     start_time = time.monotonic()
+    got_write_ack = False
     write_envelope_hash = None
     read_envelope_hash = None
-
-    reply_index = replica_index % 2
 
     try:
         seed = os.urandom(32)
         kp = await client.new_keypair(seed)
 
-        test_payload = (
-            f"replica-probe-{replica_name}-{time.time_ns()}"
-        ).encode("ascii")
+        test_id = f"replica-probe-{time.time_ns()}"
+        test_payload = test_id.encode("ascii")
 
         try:
             wcr = await client.encrypt_write(
@@ -2625,10 +2336,8 @@ async def do_replica_probe(
         write_envelope_hash = wcr.envelope_hash
 
         try:
-            with (
-                contextlib.redirect_stdout(io.StringIO()),
-                contextlib.redirect_stderr(io.StringIO()),
-            ):
+            with contextlib.redirect_stdout(io.StringIO()), \
+                 contextlib.redirect_stderr(io.StringIO()):
                 await asyncio.wait_for(
                     client.start_resending_encrypted_message(
                         read_cap=None,
@@ -2638,38 +2347,22 @@ async def do_replica_probe(
                         envelope_descriptor=wcr.envelope_descriptor,
                         message_ciphertext=wcr.message_ciphertext,
                         envelope_hash=wcr.envelope_hash,
-                        # no_idempotent_box_already_exists=True,
                     ),
                     timeout=timeout,
                 )
-
-            write_envelope_hash = None
-
+            got_write_ack = True
         except asyncio.TimeoutError:
             return False, None
 
-        except Exception as e:
-            if type(e).__name__ == "DatabaseFailureError":
-                write_envelope_hash = None
-                logging.getLogger(__name__).warning(
-                    "replica probe %s reply_index=%d got database failure "
-                    "during write; continuing to readback probe",
-                    replica_name,
-                    reply_index,
-                )
-            else:
-                logging.getLogger(__name__).warning(
-                    "replica probe %s write failed after ARQ: %s: %s",
-                    replica_name,
-                    type(e).__name__,
-                    e,
-                )
-                return False, None
+        await client.cancel_resending_encrypted_message(wcr.envelope_hash)
+        write_envelope_hash = None
 
-        await asyncio.sleep(3.0)
+        # Wait for replication
+        await asyncio.sleep(10.0)
 
+        # Read phase
         max_retries = 3
-        retry_delay = 5.0
+        retry_delay = 10.0
 
         for attempt in range(max_retries):
             rcr = await client.encrypt_read(
@@ -2679,69 +2372,33 @@ async def do_replica_probe(
             read_envelope_hash = rcr.envelope_hash
 
             try:
-                with (
-                    contextlib.redirect_stdout(io.StringIO()),
-                    contextlib.redirect_stderr(io.StringIO()),
-                ):
+                with contextlib.redirect_stdout(io.StringIO()), \
+                     contextlib.redirect_stderr(io.StringIO()):
                     read_result = await asyncio.wait_for(
                         client.start_resending_encrypted_message(
                             read_cap=kp.read_cap,
                             write_cap=None,
                             message_box_index=kp.first_message_index,
-                            reply_index=reply_index,
+                            reply_index=0,
                             envelope_descriptor=rcr.envelope_descriptor,
                             message_ciphertext=rcr.message_ciphertext,
                             envelope_hash=rcr.envelope_hash,
-                            no_retry_on_box_id_not_found=True,
                         ),
                         timeout=timeout,
                     )
 
+                await client.cancel_resending_encrypted_message(rcr.envelope_hash)
                 read_envelope_hash = None
 
-                if (
-                    read_result is not None
-                    and getattr(read_result, "plaintext", None)
-                    == test_payload
-                ):
+                if read_result is not None and read_result.plaintext is not None:
                     end_time = time.monotonic()
                     latency_ms = (end_time - start_time) * 1000
                     return True, latency_ms
 
-                logging.getLogger(__name__).warning(
-                    "replica probe %s readback mismatch on attempt %d",
-                    replica_name,
-                    attempt + 1,
-                )
-
             except asyncio.TimeoutError:
-                pass
-
-            except Exception as e:
-                if type(e).__name__ == "BoxIDNotFoundError":
-                    pass
-                elif type(e).__name__ == "DatabaseFailureError":
-                    end_time = time.monotonic()
-                    latency_ms = (end_time - start_time) * 1000
-                    logging.getLogger(__name__).warning(
-                        "replica probe %s read got database failure",
-                        replica_name,
-                    )
-                    return False, latency_ms
-                else:
-                    logging.getLogger(__name__).warning(
-                        "replica probe %s read failed: %s: %s",
-                        replica_name,
-                        type(e).__name__,
-                        e,
-                    )
-
-            finally:
                 if read_envelope_hash is not None:
                     try:
-                        await client.cancel_resending_encrypted_message(
-                            read_envelope_hash,
-                        )
+                        await client.cancel_resending_encrypted_message(rcr.envelope_hash)
                     except Exception:
                         pass
                     read_envelope_hash = None
@@ -2749,26 +2406,25 @@ async def do_replica_probe(
             if attempt < max_retries - 1:
                 await asyncio.sleep(retry_delay)
 
-        end_time = time.monotonic()
-        latency_ms = (end_time - start_time) * 1000
-        return False, latency_ms
+        # Got courier ACK but no replica data
+        if got_write_ack:
+            end_time = time.monotonic()
+            latency_ms = (end_time - start_time) * 1000
+            return False, latency_ms
 
-    except Exception as e:
-        logging.getLogger(__name__).warning(
-            "replica probe %s failed: %s: %s",
-            replica_name,
-            type(e).__name__,
-            e,
-        )
         return False, None
 
+    except Exception:
+        if got_write_ack:
+            end_time = time.monotonic()
+            latency_ms = (end_time - start_time) * 1000
+            return False, latency_ms
+        return False, None
     finally:
-        for envelope_hash in (write_envelope_hash, read_envelope_hash):
-            if envelope_hash is not None:
+        for eh in (write_envelope_hash, read_envelope_hash):
+            if eh is not None:
                 try:
-                    await client.cancel_resending_encrypted_message(
-                        envelope_hash
-                    )
+                    await client.cancel_resending_encrypted_message(eh)
                 except Exception:
                     pass
         thinclient_logger.setLevel(original_level)
@@ -2781,57 +2437,39 @@ async def do_replica_probes_parallel(
     replica_names: list[str],
     timeout: float = 160.0,
 ) -> dict[str, tuple[bool, float | None]]:
-    """Probe each courier->replica Pigeonhole path separately.
-
-    replica_names may come from an unordered PKI walk.  Do not use enumerate()
-    order as the replica reply slot.  For the current namenlos deployment the
-    replica name encodes the ReplicaID: storagereplica0 -> slot 0,
-    storagereplica1 -> slot 1.
+    """Probe courier->replica paths with separate probes for each replica.
+    
+    Returns dict mapping "{courier}->{replica}" -> (success, latency_ms)
     """
     try:
         service_descs = client.get_services("courier")
     except Exception:
         return {}
-
-    if not service_descs or not replica_names:
+    
+    if not service_descs:
         return {}
-
-    def replica_reply_index(replica_name: str, fallback: int) -> int:
-        suffix = ""
-        for ch in reversed(replica_name):
-            if not ch.isdigit():
-                break
-            suffix = ch + suffix
-        if suffix:
-            return int(suffix)
-        return fallback
-
+    
+    if not replica_names:
+        return {}
+    
+    # Run separate probe for EACH courier->replica combination
     tasks: dict[str, Any] = {}
-
     for desc in service_descs:
         courier_name = desc.mix_descriptor.get("Name", "unknown")
-        for fallback_index, replica_name in enumerate(replica_names):
-            replica_index = replica_reply_index(replica_name, fallback_index)
+        for replica_name in replica_names:
             key = f"{courier_name}->{replica_name}"
-            tasks[key] = do_replica_probe(
-                config_path=config_path,
-                service_desc=desc,
-                replica_name=replica_name,
-                replica_index=replica_index,
-                timeout=timeout,
-            )
-
+            # Each probe is independent
+            tasks[key] = do_replica_probe(config_path, desc, timeout)
+    
     results: dict[str, tuple[bool, float | None]] = {}
     gathered = await asyncio.gather(*tasks.values(), return_exceptions=True)
-
     for key, result in zip(tasks.keys(), gathered):
         if isinstance(result, BaseException):
             results[key] = (False, None)
         else:
             results[key] = result
-
+    
     return results
-
 
 def pretty_print_pki_doc(doc: dict[str, Any]) -> str:
     lines: list[str] = []
@@ -2845,9 +2483,7 @@ def pretty_print_pki_doc(doc: dict[str, Any]) -> str:
                 return "{}"
             sub_lines = ["{"]
             for k, v in value.items():
-                sub_lines.append(
-                    f"{prefix}  {k}: {format_value(v, indent + 1)}"
-                )
+                sub_lines.append(f"{prefix}  {k}: {format_value(v, indent + 1)}")
             sub_lines.append(f"{prefix}}}")
             return "\n".join(sub_lines)
         elif isinstance(value, list):
@@ -2863,17 +2499,11 @@ def pretty_print_pki_doc(doc: dict[str, Any]) -> str:
         else:
             s = str(value)
             # Normalize multiple consecutive newlines to single newlines
-            while "\n\n" in s:
-                s = s.replace("\n\n", "\n")
+            while '\n\n' in s:
+                s = s.replace('\n\n', '\n')
             return s
 
-    skip_keys = {
-        "GatewayNodes",
-        "ServiceNodes",
-        "StorageReplicas",
-        "Topology",
-        "Signatures",
-    }
+    skip_keys = {"GatewayNodes", "ServiceNodes", "StorageReplicas", "Topology", "Signatures"}
 
     for key, value in doc.items():
         if key in skip_keys:
@@ -2907,17 +2537,14 @@ def pretty_print_pki_doc(doc: dict[str, Any]) -> str:
 
     return "\n".join(lines)
 
-
-def make_pki_doc_panel(
-    doc: dict[str, Any], has_consensus: bool = True
-) -> Panel:
+def make_pki_doc_panel(doc: dict[str, Any], has_consensus: bool = True) -> Panel:
     epoch = doc.get("Epoch", 0)
     if epoch > 0:
         pki_text = pretty_print_pki_doc(doc)
         content: RenderableType = Text(pki_text, style="dim")
     else:
         content = Align.center(Text("No consensus document", style="red"))
-
+    
     # Border is red if no consensus
     border_style = "cyan" if has_consensus else "red"
     return Panel(
@@ -2928,50 +2555,13 @@ def make_pki_doc_panel(
     )
 
 
-def make_footer(network_name: str, viz: bool = False) -> Text:
+def make_footer(network_name: str) -> Text:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    text = f"{network_name} status - Generated: {now} - v{__version__}"
-    if viz:
-        # Reserve the pi column here so Rich keeps the box aligned; the HTML
-        # export wraps this same glyph in a link (no added width).
-        text += " \u03c0"
-    return Text(text, style="dim", justify="center")
-
-
-def _inject_html_poller(
-    html: str, meta_name: str, generated_at: str, poll_seconds: int
-) -> str:
-    """Return html with a tiny auto-refresh poller inserted before </body>.
-
-    The poller fetches the sibling meta file every poll_seconds and reloads the
-    page when its generated_at advances past the value baked in at render time.
-    Dependency-free, ASCII-only, and silent on any fetch/JSON error. Injected at
-    the same point as the viz footer link. When poll_seconds <= 0 the html is
-    returned unchanged (caller gates on the same condition)."""
-    if poll_seconds <= 0:
-        return html
-    safe_meta = json.dumps(meta_name)
-    safe_gen = json.dumps(generated_at)
-    poller = (
-        "<script>\n"
-        "(function(){\n"
-        f"  var META={safe_meta}, BASE={safe_gen}, N={int(poll_seconds)};\n"
-        "  function check(){\n"
-        "    fetch(META, {cache: 'no-store'}).then(function(r){\n"
-        "      return r.ok ? r.json() : null;\n"
-        "    }).then(function(d){\n"
-        "      if (d && d.generated_at && d.generated_at !== BASE) {\n"
-        "        location.reload();\n"
-        "      }\n"
-        "    }).catch(function(){});\n"
-        "  }\n"
-        "  setInterval(check, N * 1000);\n"
-        "})();\n"
-        "</script>\n"
+    return Text(
+        f"{network_name} status - Generated: {now} - v{__version__}",
+        style="dim",
+        justify="center",
     )
-    if "</body>" in html:
-        return html.replace("</body>", poller + "</body>", 1)
-    return html + poller
 
 
 def generate_report(
@@ -2988,8 +2578,6 @@ def generate_report(
     quiet: bool = False,
     last_consensus: dict[str, Any] | None = None,
     pigeonhole_geometry: dict[str, Any] | None = None,
-    viz_link: str | None = None,
-    html_poll_seconds: int = 0,
 ) -> None:
     if conn_status is None:
         conn_status = ConnectionStatus()
@@ -3028,7 +2616,7 @@ def generate_report(
     servicenodes = dirauth_data["servicenodes"]
     storagenodes = dirauth_data["storagenodes"]
     topology_layers = dirauth_data["topology_layers"]
-
+    
     # Also include storage nodes from survey results (address cache)
     # These may not be in the PKI document yet
     if survey_results:
@@ -3063,7 +2651,7 @@ def generate_report(
                 tcp_latency = float(tcp_latency)
             else:
                 tcp_latency = None
-
+            
             # Aggregate: if any address succeeds, node is up (keep best latency)
             if node_name in node_status:
                 existing_ok, existing_latency = node_status[node_name]
@@ -3072,10 +2660,7 @@ def generate_report(
                     node_status[node_name] = (tcp_ok, tcp_latency)
                 elif tcp_ok and existing_ok:
                     # Both successful, prefer lower latency
-                    if tcp_latency is not None and (
-                        existing_latency is None
-                        or tcp_latency < existing_latency
-                    ):
+                    if tcp_latency is not None and (existing_latency is None or tcp_latency < existing_latency):
                         node_status[node_name] = (tcp_ok, tcp_latency)
                 # If existing is up and new is down, keep existing (success)
             else:
@@ -3087,19 +2672,10 @@ def generate_report(
         authorities, mixes, gateways, servicenodes, storagenodes
     )
 
-    connection_table = make_connection_status_table(
-        conn_status, has_consensus
-    )
+    connection_table = make_connection_status_table(conn_status, has_consensus)
 
     outage_tables = make_outage_reports(
-        doc,
-        mixes,
-        gateways,
-        servicenodes,
-        storagenodes,
-        dirauth_status,
-        node_status,
-        survey_results,
+        doc, mixes, gateways, servicenodes, storagenodes, dirauth_status, node_status, survey_results
     )
     outages_panel: Panel | None = None
     if outage_tables:
@@ -3131,9 +2707,7 @@ def generate_report(
     status_content.append(Align.center(connection_table))
 
     if has_consensus:
-        ping_table = make_ping_table(
-            service_probes, capabilities, survey_results
-        )
+        ping_table = make_ping_table(service_probes, capabilities, survey_results)
         status_content.append(Align.center(ping_table))
     if outages_panel:
         status_content.append(outages_panel)
@@ -3149,29 +2723,14 @@ def generate_report(
     )
 
     operational_nodes = get_operational_nodes(doc)
-    dirauth_table = make_dirauth_table(
-        authorities, dirauth_status, has_consensus
-    )
-    gateway_table = make_gateway_table(
-        gateways, operational_nodes, node_status, survey_results
-    )
-    servicenode_table = make_service_table(
-        servicenodes, operational_nodes, node_status, survey_results
-    )
-    storage_table = make_storage_table(
-        storagenodes, operational_nodes, node_status, survey_results
-    )
+    dirauth_table = make_dirauth_table(authorities, dirauth_status, has_consensus)
+    gateway_table = make_gateway_table(gateways, operational_nodes, node_status, survey_results)
+    servicenode_table = make_service_table(servicenodes, operational_nodes, node_status, survey_results)
+    storage_table = make_storage_table(storagenodes, operational_nodes, node_status, survey_results)
 
     layer_tables: list[Table] = []
     for i, layer_nodes in enumerate(topology_layers):
-        table = make_topology_table(
-            doc,
-            i,
-            layer_nodes,
-            operational_nodes,
-            node_status,
-            survey_results,
-        )
+        table = make_topology_table(doc, i, layer_nodes, operational_nodes, node_status, survey_results)
         layer_tables.append(table)
 
     # Layout: all tables stacked vertically (dirauths, gateways, layers, service, storage)
@@ -3180,9 +2739,7 @@ def generate_report(
         topology_content.append(Align.center(layer_table))
 
     # Service nodes and storage replicas stacked vertically
-    service_storage_content: list[RenderableType] = [
-        Align.center(servicenode_table)
-    ]
+    service_storage_content: list[RenderableType] = [Align.center(servicenode_table)]
     if storagenodes:
         service_storage_content.append(Align.center(storage_table))
 
@@ -3190,7 +2747,7 @@ def generate_report(
     # Check all configured nodes against operational nodes and TCP status
     any_node_down = False
     any_node_out = False
-
+    
     # Check mixes, gateways, servicenodes, storagenodes
     all_config_nodes = mixes | gateways | servicenodes | storagenodes
     for node_name in all_config_nodes:
@@ -3201,12 +2758,12 @@ def generate_report(
                 any_node_down = True
             else:
                 any_node_out = True
-
+    
     # Also check dirauths
     for name, (is_up, _) in dirauth_status.items():
         if not is_up:
             any_node_down = True
-
+    
     if any_node_down:
         nodes_border = "red"
     elif any_node_out:
@@ -3249,7 +2806,7 @@ def generate_report(
         border_style="cyan",
     )
 
-    footer = make_footer(network_name, viz=bool(viz_link))
+    footer = make_footer(network_name)
 
     sections: list[RenderableType] = [
         status_section,
@@ -3268,9 +2825,7 @@ def generate_report(
         # Build trace tables with consistent formatting
         trace_tables: list[Table] = []
         for key, data in sorted_items:
-            trace_table = make_traceroute_detail_table(
-                key, data, operational_nodes
-            )
+            trace_table = make_traceroute_detail_table(key, data, operational_nodes)
             trace_tables.append(trace_table)
 
         survey_content: list[RenderableType] = [Align.center(survey_table)]
@@ -3279,22 +2834,16 @@ def generate_report(
             # Stack tables vertically in rows of 3
             TABLES_PER_ROW = 3
             trace_rows: list[RenderableType] = []
-
+            
             for i in range(0, len(trace_tables), TABLES_PER_ROW):
-                row_tables = trace_tables[i : i + TABLES_PER_ROW]
+                row_tables = trace_tables[i:i + TABLES_PER_ROW]
                 if len(row_tables) == 1:
                     trace_rows.append(Align.center(row_tables[0]))
                 else:
-                    trace_rows.append(
-                        Columns(row_tables, equal=True, expand=True)
-                    )
+                    trace_rows.append(Columns(row_tables, equal=True, expand=True))
 
             # Determine trace panel border based on node status
-            trace_border = (
-                "red"
-                if any_node_down
-                else ("yellow" if any_node_out else "grey70")
-            )
+            trace_border = "red" if any_node_down else ("yellow" if any_node_out else "grey70")
             trace_panel = Panel(
                 Group(*trace_rows),
                 title="Network path details",
@@ -3309,7 +2858,7 @@ def generate_report(
             for data in survey_results.values()
         )
         survey_border = "red" if any_tcp_failed else "cyan"
-
+        
         survey_panel = Panel(
             Group(*survey_content),
             title="Network Survey",
@@ -3337,44 +2886,8 @@ def generate_report(
 
     if output_file:
         html = console.export_html(inline_styles=True, theme=MONOKAI)
-        if viz_link:
-            # The only link to the animated page: wrap the pi that make_footer
-            # already reserved in the footer (just right of the version number)
-            # in a link. Wrapping adds no columns, so the box stays aligned.
-            safe_link = html_escape(viz_link, quote=True)
-            pi_link = (
-                f'<a href="{safe_link}" title="Live visualization" '
-                'style="text-decoration:none;color:#00f3ff;opacity:0.55;">'
-                "\u03c0</a>"
-            )
-            anchor = f"v{__version__} \u03c0"
-            if anchor in html:
-                html = html.replace(anchor, f"v{__version__} " + pi_link, 1)
-        # Optional main-page auto-refresh: bake the current timestamp into a
-        # small inline poller and drop a sibling meta file carrying the same
-        # value. When a later render advances the meta timestamp, an open page
-        # reloads. Off by default (html_poll_seconds == 0).
-        generated_at = ""
-        if html_poll_seconds > 0:
-            generated_at = (
-                datetime.utcnow().isoformat(timespec="microseconds") + "Z"
-            )
-            out_path = Path(output_file)
-            meta_name = out_path.stem + ".meta.json"
-            html = _inject_html_poller(
-                html, meta_name, generated_at, html_poll_seconds
-            )
         with open(output_file, "w", encoding="utf-8") as file:
             file.write(html)
-        # Write the meta file AFTER the html so a poller firing in the gap never
-        # reloads into the stale page; worst case is one missed poll cycle.
-        if html_poll_seconds > 0:
-            meta_path = Path(output_file).with_name(
-                Path(output_file).stem + ".meta.json"
-            )
-            meta_path.write_text(
-                json.dumps({"generated_at": generated_at}), encoding="utf-8"
-            )
 
 
 async def _collect_network_data(
@@ -3398,9 +2911,7 @@ async def _collect_network_data(
     dirauth_data = parse_dirauth_config(dirauthconf)
     dirauth_addresses = dirauth_data["dirauth_addresses"]
 
-    dirauth_status = await probe_dirauths(
-        dirauth_addresses, timeout=connect_timeout
-    )
+    dirauth_status = await probe_dirauths(dirauth_addresses, timeout=connect_timeout)
 
     thinclient_data = parse_thinclient_config(config_path)
     network = thinclient_data.get("network", "tcp")
@@ -3423,22 +2934,16 @@ async def _collect_network_data(
         click.echo(f"Connecting to kpclientd at {network}://{address}...")
 
     try:
-        with (
-            contextlib.redirect_stdout(captured_output),
-            contextlib.redirect_stderr(captured_output),
-        ):
-            await asyncio.wait_for(
-                client.start(loop), timeout=connect_timeout
-            )
+        with contextlib.redirect_stdout(captured_output), \
+             contextlib.redirect_stderr(captured_output):
+            await asyncio.wait_for(client.start(loop), timeout=connect_timeout)
         conn_status.daemon_connected = True
         client_started = True
         if verbose:
             click.echo("  Socket: OK")
     except asyncio.TimeoutError:
         conn_status.daemon_connected = False
-        conn_status.error_message = (
-            f"Connection to daemon timed out ({network}://{address})"
-        )
+        conn_status.error_message = f"Connection to daemon timed out ({network}://{address})"
         if verbose:
             click.echo(f"  Socket: TIMEOUT after {connect_timeout}s")
             output = captured_output.getvalue()
@@ -3511,22 +3016,9 @@ async def _async_main_inner(ctx: click.Context) -> None:
     dirauthconf: str = ctx.obj["dirauthconf"]
     config_path: str = ctx.obj["config_path"]
     htmlout: str = ctx.obj["htmlout"]
-    visualize: bool = ctx.obj["visualize"]
-    vizout: str = ctx.obj["vizout"]
-    viz_poll_seconds: int = ctx.obj["viz_poll_seconds"]
-    html_poll_seconds: int = ctx.obj["html_poll_seconds"]
-    geoip_db: str = ctx.obj["geoip_db"]
-    geoip_asn_db: str = ctx.obj["geoip_asn_db"]
-    viz_vantage: str = ctx.obj["viz_vantage"]
-    viz_clients: int = ctx.obj["viz_clients"]
-    viz_history: int = ctx.obj["viz_history"]
-    asn_whois: bool = ctx.obj["asn_whois"]
-    asn_cache: str = ctx.obj["asn_cache"]
     network_name: str = ctx.obj["network_name"]
     show_pki_doc: bool = ctx.obj["pki_document"]
     run_survey: bool = ctx.obj["survey"]
-    survey_max_hops: int = ctx.obj["survey_max_hops"]
-    survey_hop_timeout: int = ctx.obj["survey_hop_timeout"]
     ping_enabled: bool = ctx.obj["ping"]
     max_threads: int = ctx.obj["max_threads"]
     cache_file: str = ctx.obj["cache_file"]
@@ -3536,27 +3028,17 @@ async def _async_main_inner(ctx: click.Context) -> None:
     cache_path = get_cache_path(cache_file if cache_file else None)
 
     if verbose:
-        (
-            doc,
-            conn_status,
-            dirauth_status,
-            node_status,
-            client,
-            pigeonhole_geometry,
-        ) = await _collect_network_data(ctx, cache_path)
+        doc, conn_status, dirauth_status, node_status, client, pigeonhole_geometry = (
+            await _collect_network_data(ctx, cache_path)
+        )
     else:
         with (
             contextlib.redirect_stdout(io.StringIO()),
             contextlib.redirect_stderr(io.StringIO()),
         ):
-            (
-                doc,
-                conn_status,
-                dirauth_status,
-                node_status,
-                client,
-                pigeonhole_geometry,
-            ) = await _collect_network_data(ctx, cache_path)
+            doc, conn_status, dirauth_status, node_status, client, pigeonhole_geometry = (
+                await _collect_network_data(ctx, cache_path)
+            )
 
     last_consensus = load_last_consensus(cache_path)
     epoch = doc.get("Epoch", 0)
@@ -3620,17 +3102,9 @@ async def _async_main_inner(ctx: click.Context) -> None:
         if not all_targets:
             return None
         if verbose and not quiet:
-            click.echo(
-                f"Running survey on {len(all_targets)} node endpoints..."
-            )
+            click.echo(f"Running survey on {len(all_targets)} node endpoints...")
         return await asyncio.to_thread(
-            run_survey_parallel,
-            all_targets,
-            True,
-            verbose and not quiet,
-            max_threads,
-            survey_max_hops,
-            survey_hop_timeout,
+            run_survey_parallel, all_targets, True, verbose and not quiet, max_threads
         )
 
     # Get storage replica names from PKI for replica probes
@@ -3642,22 +3116,14 @@ async def _async_main_inner(ctx: click.Context) -> None:
     async def run_echo_probes_async() -> dict[str, tuple[bool, float | None]]:
         if not (ping_enabled and client):
             return {}
-        return await do_ping_all_providers_parallel(
-            config_path, client, timeout=30.0
-        )
+        return await do_ping_all_providers_parallel(config_path, client, timeout=30.0)
 
-    async def run_courier_probes_async() -> dict[
-        str, tuple[bool, float | None]
-    ]:
+    async def run_courier_probes_async() -> dict[str, tuple[bool, float | None]]:
         if not (ping_enabled and client):
             return {}
-        return await do_courier_probes_parallel(
-            config_path, client, timeout=60.0
-        )
+        return await do_courier_probes_parallel(config_path, client, timeout=60.0)
 
-    async def run_replica_probes_async() -> dict[
-        str, tuple[bool, float | None]
-    ]:
+    async def run_replica_probes_async() -> dict[str, tuple[bool, float | None]]:
         if not (ping_enabled and client):
             return {}
         if not storage_replica_names:
@@ -3666,110 +3132,13 @@ async def _async_main_inner(ctx: click.Context) -> None:
             config_path, client, storage_replica_names, timeout=160.0
         )
 
-    # The visualization is opt-in (--visualize, off by default). Only when it is
-    # enabled do we render the animated page and link to it from the report. The
-    # two files live side by side, so the report links by bare filename (the
-    # deployed site serves both from the same directory). This is resolved up
-    # front (it depends only on doc/ctx) so the intermediate viz write below can
-    # use it.
-    viz_path = ""
-    if visualize:
-        viz_path = vizout
-        if not viz_path and htmlout:
-            viz_path = os.path.join(
-                os.path.dirname(htmlout), "visualize.html"
-            )
-        if not viz_path:
-            click.echo(
-                "warning: --visualize needs --vizout or --htmlout to know where "
-                "to write; skipping the visualization.",
-                err=True,
-            )
-    viz_link = os.path.basename(viz_path) if viz_path else None
-
-    epoch_val = doc.get("Epoch", 0)
-    vantage: dict[str, Any] | None = None
-    if viz_vantage:
-        try:
-            lat_s, lon_s = viz_vantage.split(",", 1)
-            vantage = {
-                "lat": float(lat_s),
-                "lon": float(lon_s),
-                "label": "monitor",
-            }
-        except ValueError:
-            vantage = None
-
-    # Run the four probes concurrently (unchanged), but stage the writes so an
-    # open viz page updates as soon as the survey finishes (~40s) instead of
-    # waiting for the ~2 min replica probe. The survey (latency/hops/status),
-    # node_status, and dirauth_status are the only inputs the viz consumes;
-    # courier/replica only feed the rich report, so the intermediate viz write
-    # is already complete viz data (not a partial). We never write before the
-    # survey completes: the already-served data file holds the previous run's
-    # complete data, and a consensus-only write would visibly degrade an open
-    # page.
-    survey_task = asyncio.create_task(run_survey_async())
-    echo_task = asyncio.create_task(run_echo_probes_async())
-    courier_task = asyncio.create_task(run_courier_probes_async())
-    replica_task = asyncio.create_task(run_replica_probes_async())
-
-    survey_results = await survey_task
-    echo_results = await echo_task
+    survey_results, echo_results, courier_results, replica_results = await asyncio.gather(
+        run_survey_async(), run_echo_probes_async(), run_courier_probes_async(), run_replica_probes_async()
+    )
     if echo_results:
         service_probes["echo"] = echo_results
         if any(ok for ok, _ in echo_results.values()):
             conn_status.network_online = True
-
-    def write_viz(write_history: bool) -> None:
-        from .viz import generate_viz  # local import avoids a circular import
-
-        generate_viz(
-            doc,
-            viz_path,
-            survey_results=survey_results,
-            node_status=node_status,
-            dirauth_status=dirauth_status,
-            network_name=network_name,
-            epoch=epoch_val or None,
-            epoch_time_str=epoch_id_to_time_str(epoch_val)
-            if epoch_val
-            else None,
-            epoch_end=(EPOCH + (epoch_val + 1) * PERIOD).isoformat() + "Z"
-            if epoch_val
-            else None,
-            epoch_period_s=PERIOD.total_seconds(),
-            poll_seconds=viz_poll_seconds,
-            geoip_db=geoip_db or None,
-            geoip_asn_db=geoip_asn_db or None,
-            asn_whois=asn_whois,
-            asn_cache_path=(
-                asn_cache
-                or (
-                    os.path.join(os.path.dirname(viz_path), ".asn-cache.json")
-                    if asn_whois
-                    else ""
-                )
-            )
-            or None,
-            vantage=vantage,
-            clients_per_gateway=viz_clients,
-            history_len=viz_history,
-            write_history=write_history,
-        )
-
-    # Intermediate write: complete viz data as soon as the survey is done, so an
-    # open page refreshes early. History is deferred to the final write so the
-    # epoch-deduped scrubber keeps the full snapshot, not this one. Run in a
-    # thread (like run_survey_parallel): generate_viz is synchronous work that
-    # can include RDAP lookups, and the courier/replica probes are still in
-    # flight on this loop, so blocking here would delay their responses and
-    # inflate their measured latencies.
-    if viz_path:
-        await asyncio.to_thread(write_viz, False)
-
-    courier_results = await courier_task
-    replica_results = await replica_task
     if courier_results:
         service_probes["courier"] = courier_results
         if any(ok for ok, _ in courier_results.values()):
@@ -3777,15 +3146,12 @@ async def _async_main_inner(ctx: click.Context) -> None:
     if replica_results:
         service_probes["replica"] = replica_results
         # Check if any replica probe succeeded or got ACK
-        if any(
-            ok or (lat is not None) for ok, lat in replica_results.values()
-        ):
+        if any(ok or (lat is not None) for ok, lat in replica_results.values()):
             conn_status.network_online = True
 
     if client:
         client.stop()
 
-    # Final writes with the complete data (report needs courier/replica).
     generate_report(
         doc,
         dirauthconf,
@@ -3800,15 +3166,7 @@ async def _async_main_inner(ctx: click.Context) -> None:
         quiet=quiet,
         last_consensus=last_consensus,
         pigeonhole_geometry=pigeonhole_geometry,
-        viz_link=viz_link,
-        html_poll_seconds=html_poll_seconds,
     )
-
-    if viz_path:
-        write_viz(write_history=True)
-        if not quiet:
-            click.echo(f"Wrote visualization to {viz_path}")
-
 
 async def async_main(ctx: click.Context) -> None:
     await _async_main_inner(ctx)
@@ -3825,89 +3183,6 @@ async def async_main(ctx: click.Context) -> None:
     "--htmlout",
     default="",
     help="Path to output HTML file.",
-)
-@click.option(
-    "--visualize/--no-visualize",
-    "visualize",
-    default=False,
-    help="Render the animated three.js visualization page and link to it from "
-    "the status page. Disabled by default.",
-)
-@click.option(
-    "--vizout",
-    default="",
-    help="Path to output the visualization HTML page (used only with "
-    "--visualize). Defaults to 'visualize.html' next to --htmlout.",
-)
-@click.option(
-    "--viz-poll-seconds",
-    "viz_poll_seconds",
-    default=60,
-    type=int,
-    help="How often the visualization page reloads its data file, in seconds "
-    "(used only with --visualize; default: 60).",
-)
-@click.option(
-    "--html-poll-seconds",
-    "html_poll_seconds",
-    default=0,
-    type=int,
-    help="How often the main status page checks for a fresh render and reloads, "
-    "in seconds. 0 disables (default). When > 0 the page fetches a small "
-    "sibling <name>.meta.json and reloads when a newer render lands.",
-)
-@click.option(
-    "--geoip-db",
-    "geoip_db",
-    default="",
-    help="Path to a GeoLite2/GeoIP2 City database (.mmdb) used to locate node "
-    "IPs for the Earth view. Optional; the curated table takes precedence.",
-)
-@click.option(
-    "--geoip-asn-db",
-    "geoip_asn_db",
-    default="",
-    help="Path to a GeoLite2/GeoIP2 ASN database (.mmdb) used to annotate "
-    "traceroute hops with their network (AS). Optional.",
-)
-@click.option(
-    "--viz-vantage",
-    "viz_vantage",
-    default="",
-    help='Monitor vantage location as "lat,lon" for the traceroute links '
-    "(used only with --visualize).",
-)
-@click.option(
-    "--viz-clients",
-    "viz_clients",
-    default=3,
-    type=int,
-    help="Number of simulated clients per gateway in the visualization "
-    "(used only with --visualize; default: 3).",
-)
-@click.option(
-    "--viz-history",
-    "viz_history",
-    default=48,
-    type=int,
-    help="How many recent epochs of visualization data to retain for the "
-    "history scrubber, written each run alongside the data (used only with "
-    "--visualize; 0 disables; default: 48).",
-)
-@click.option(
-    "--asn-whois/--no-asn-whois",
-    "asn_whois",
-    default=False,
-    help="Resolve each node's AS/operator via ipwhois (RDAP) when no ASN "
-    "database is given, for the diversity view -- no database file needed. "
-    "Results are cached on disk (see --asn-cache) since IP-to-AS is static.",
-)
-@click.option(
-    "--asn-cache",
-    "asn_cache",
-    default="",
-    help="Path to the persistent ipwhois ASN cache (used with --asn-whois). "
-    "Defaults to '.asn-cache.json' next to the output.",
 )
 @click.option(
     "--dirauthconf",
@@ -3949,22 +3224,6 @@ async def async_main(ctx: click.Context) -> None:
     help="Maximum number of threads for parallel survey (default: 20).",
 )
 @click.option(
-    "--survey-max-hops",
-    type=int,
-    default=20,
-    help="Max TCP-traceroute hops per target (default: 20). Lower is faster; "
-    "reachable nodes stop at the destination regardless, so this only bounds "
-    "unreachable or filtered paths.",
-)
-@click.option(
-    "--survey-hop-timeout",
-    type=int,
-    default=1,
-    help="Per-hop TCP-traceroute reply timeout in seconds (default: 1). Lower "
-    "is faster on unanswered hops; the final-hop latency to reachable nodes is "
-    "well under a second.",
-)
-@click.option(
     "--cache-file",
     "cache_file",
     default="",
@@ -3988,24 +3247,11 @@ def main(
     dirauthconf: str,
     network_name: str,
     htmlout: str,
-    visualize: bool,
-    vizout: str,
-    viz_poll_seconds: int,
-    html_poll_seconds: int,
-    geoip_db: str,
-    geoip_asn_db: str,
-    viz_vantage: str,
-    viz_clients: int,
-    viz_history: int,
-    asn_whois: bool,
-    asn_cache: str,
     ping: bool,
     timeout: float,
     pki_document: bool,
     survey: bool,
     max_threads: int,
-    survey_max_hops: int,
-    survey_hop_timeout: int,
     cache_file: str,
     verbose: bool,
     quiet: bool,
@@ -4015,24 +3261,11 @@ def main(
     ctx.obj["dirauthconf"] = dirauthconf
     ctx.obj["network_name"] = network_name
     ctx.obj["htmlout"] = htmlout
-    ctx.obj["visualize"] = visualize
-    ctx.obj["vizout"] = vizout
-    ctx.obj["viz_poll_seconds"] = viz_poll_seconds
-    ctx.obj["html_poll_seconds"] = html_poll_seconds
-    ctx.obj["geoip_db"] = geoip_db
-    ctx.obj["geoip_asn_db"] = geoip_asn_db
-    ctx.obj["viz_vantage"] = viz_vantage
-    ctx.obj["viz_clients"] = viz_clients
-    ctx.obj["viz_history"] = viz_history
-    ctx.obj["asn_whois"] = asn_whois
-    ctx.obj["asn_cache"] = asn_cache
     ctx.obj["ping"] = ping
     ctx.obj["timeout"] = timeout
     ctx.obj["pki_document"] = pki_document
     ctx.obj["survey"] = survey
     ctx.obj["max_threads"] = max_threads
-    ctx.obj["survey_max_hops"] = survey_max_hops
-    ctx.obj["survey_hop_timeout"] = survey_hop_timeout
     ctx.obj["cache_file"] = cache_file
     ctx.obj["verbose"] = verbose
     ctx.obj["quiet"] = quiet
