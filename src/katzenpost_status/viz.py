@@ -642,7 +642,7 @@ def render_shell_html(
     same every run (idempotent), apart from the per-asset cache-busting hashes
     which change only when an asset's content changes."""
     shell = SHELL_PATH.read_text(encoding="utf-8")
-    feature_tags = f'<script src="{_feature_bundle_url()}"></script>'
+    feature_tags = f'<script defer src="{_feature_bundle_url()}"></script>'
     html = (
         shell.replace("__NETWORK_NAME__", html_escape(network_name))
         .replace("__ASSETS_DIR__", ASSETS_SUBDIR)

@@ -131,7 +131,6 @@
             var el = document.createElement('div');
             el.id = opts.id + '-overlay';
             el.style.cssText = 'position:fixed;inset:0;z-index:25;display:none;background:#04060c;overflow:hidden';
-            document.body.appendChild(el);
 
             var mob = window.matchMedia('(max-width: 600px)').matches;
             var PACK_MAX = mob ? 120 : 320;
@@ -144,13 +143,14 @@
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
             var pdHandler = null, puHandler = null, lastSig = null, _lay = null;
             var labelSprites = [], _labelsOn = null;
+            var nodeInst = null, _instObj = new THREE.Object3D(), _dwellBase = 0.6, _pktRGB = null;
 
             function onResize() {
                 if (!renderer) return;
                 var w = el.clientWidth || window.innerWidth, h = el.clientHeight || window.innerHeight;
                 renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
             }
-            function disposeGroup(g) { g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
+            function disposeGroup(g) { g.traverse(function (o) { if (o.isInstancedMesh && o.dispose) o.dispose(); if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map && !o.material.map._shared) o.material.map.dispose(); o.material.dispose(); } }); }
 
             function initGL() {
                 if (!SHARED_R) {
@@ -202,8 +202,13 @@
                     ptr.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
                     ptr.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
                     ray.setFromCamera(ptr, camera);
-                    var hit = ray.intersectObjects(nodeGroup.children, false)[0];
-                    if (hit && hit.object.userData.node) { var n = hit.object.userData.node; if (K.reselect) K.reselect(n.name, n.type); spawnFromNode(n.name); }
+                    var hits = ray.intersectObjects(nodeGroup.children, false), nsel = null;
+                    for (var hi = 0; hi < hits.length && !nsel; hi++) {
+                        var ho = hits[hi];
+                        if (ho.object === nodeInst && ho.instanceId != null && nodeInst.userData.nodes) nsel = nodeInst.userData.nodes[ho.instanceId];
+                        else if (ho.object.userData && ho.object.userData.node) nsel = ho.object.userData.node;
+                    }
+                    if (nsel) { if (K.reselect) K.reselect(nsel.name, nsel.type); spawnFromNode(nsel.name); }
                 };
                 renderer.domElement.addEventListener('pointerdown', pdHandler);
                 renderer.domElement.addEventListener('pointerup', puHandler);
@@ -242,22 +247,40 @@
                 function hashName(s) { var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff; return h; }
                 labelSprites = [];
                 _labelsOn = (window.KATZEN_LABELS !== false);
+                nodeInst = null;
+                var drawn = [];
                 nodes.forEach(function (nd) {
                     nodePos[nd.name] = nd.pos;
-                    if (!metaByName[nd.name] && nd.type !== 'client') return;
-                    var raw = geomHex(nd.pos), themed = K.themeColor ? K.themeColor(raw) : raw;
-                    var base = new THREE.Color(themed);
-                    base.multiplyScalar(0.74 + 0.42 * ((hashName(nd.name || '') % 100) / 100));
-                    var meta = metaByName[nd.name] || {}, st = nd.status || meta.status;
-                    var col = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : base;
-                    var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: col }));
-                    m.position.copy(nd.pos); m.userData = { node: nd, base: base }; nodeGroup.add(m);
-                    if (K.makeLabel && nd.name) {
-                        var lab = K.makeLabel(nd.name, themed);
-                        lab.position.set(0, 1.9, 0); lab.visible = _labelsOn;
-                        m.add(lab); labelSprites.push(lab);
-                    }
+                    if (metaByName[nd.name] || nd.type === 'client') drawn.push(nd);
                 });
+                if (!drawn.length && window.console) console.warn('KATZEN: overlay ' + opts.id + ' drew no real consensus nodes');
+                if (drawn.length) {
+                    var inst = new THREE.InstancedMesh(sph, new THREE.MeshBasicMaterial(), drawn.length);
+                    var baseCols = [], di;
+                    for (di = 0; di < drawn.length; di++) {
+                        var nd = drawn[di];
+                        var raw = geomHex(nd.pos), themed = K.themeColor ? K.themeColor(raw) : raw;
+                        var base = new THREE.Color(themed);
+                        base.multiplyScalar(0.74 + 0.42 * ((hashName(nd.name || '') % 100) / 100));
+                        var meta = metaByName[nd.name] || {}, st = nd.status || meta.status;
+                        var col = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : base;
+                        _instObj.position.copy(nd.pos); _instObj.rotation.set(0, 0, 0); _instObj.scale.set(1, 1, 1); _instObj.updateMatrix();
+                        inst.setMatrixAt(di, _instObj.matrix);
+                        inst.setColorAt(di, col);
+                        baseCols.push(base);
+                        if (K.makeLabel && nd.name) {
+                            var lab = K.makeLabel(nd.name, themed);
+                            lab.position.copy(nd.pos); lab.position.y += 1.9; lab.visible = _labelsOn;
+                            lab.userData = { node: nd };
+                            nodeGroup.add(lab); labelSprites.push(lab);
+                        }
+                    }
+                    inst.instanceMatrix.needsUpdate = true;
+                    if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+                    inst.userData = { nodes: drawn, base: baseCols };
+                    nodeGroup.add(inst);
+                    nodeInst = inst;
+                }
                 world.add(nodeGroup);
                 if (edges.length) {
                     var pa = new Float32Array(edges.length * 6), ca = new Float32Array(edges.length * 6);
@@ -278,6 +301,7 @@
                 }
                 spawnFn = lay.spawn || null;
                 buildGraph(edges, nodes);
+                computeDwellBase();
                 if (controls && lay.target) { controls.target.copy(lay.target); controls.update(); }
                 lastSig = nodeSig();
             }
@@ -288,13 +312,15 @@
                 return out + '#' + JSON.stringify(d.layers || []);
             }
             function recolorNodes() {
-                if (!nodeGroup) return;
+                if (!nodeInst) return;
                 var meta = {}; ((K.data() || {}).nodes || []).forEach(function (x) { meta[x.name] = x; });
-                nodeGroup.children.forEach(function (m) {
-                    var nd = m.userData.node, st = (meta[nd.name] || {}).status;
-                    var c = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : m.userData.base;
-                    if (c) m.material.color.copy(c);
-                });
+                var nds = nodeInst.userData.nodes, base = nodeInst.userData.base, i;
+                for (i = 0; i < nds.length; i++) {
+                    var st = (meta[nds[i].name] || {}).status;
+                    var c = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : base[i];
+                    if (c) nodeInst.setColorAt(i, c);
+                }
+                if (nodeInst.instanceColor) nodeInst.instanceColor.needsUpdate = true;
             }
 
             // Build a routing graph from the edges (merging near-coincident
@@ -417,11 +443,11 @@
                 return pts.length >= 2 ? { pts: pts, stops: stops } : null;
             }
 
-            function meanDwell() {
+            function computeDwellBase() {
                 var d = K.data() || {}, mu = (d.parameters && d.parameters.Mu) || 0;
-                var base = mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
-                return base * (window.KATZEN_DELAY || 1);
+                _dwellBase = mu > 0 ? Math.max(0.25, Math.min(1.4, (1 / mu) / 200)) : 0.6;
             }
+            function meanDwell() { return _dwellBase * (window.KATZEN_DELAY || 1); }
             function spawnPacket(cover) {
                 if (packets.length >= (slowMode ? (PACK_MAX * 0.4) | 0 : PACK_MAX)) return;
                 var r = routeAlongEdges(), path = null, stops = null;   // packets follow the geometry's lines
@@ -459,6 +485,7 @@
                 snd('send');
             }
             var _zAxis = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion();
+            var _shellN = new THREE.Vector3(), _dir2 = new THREE.Vector3();
             function triggerShell(pos, color, max, grow, normal) {
                 if (window.KATZEN_FX_SHELLS === false) return;   // menu toggle
                 snd('ring');
@@ -472,8 +499,8 @@
                     // direction (a ripple it passes through), plus a little jitter
                     // so no two are coplanar. Heartbeat rings (no normal) tumble.
                     var n;
-                    if (normal && normal.lengthSq() > 1e-6) n = normal.clone().normalize();
-                    else n = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+                    if (normal && normal.lengthSq() > 1e-6) n = _shellN.copy(normal).normalize();
+                    else n = _shellN.set(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
                     n.x += (Math.random() - 0.5) * 0.5; n.y += (Math.random() - 0.5) * 0.5; n.normalize();
                     _q.setFromUnitVectors(_zAxis, n); s.mesh.quaternion.copy(_q);
                     return;
@@ -492,10 +519,15 @@
                 // Packet colours come from the live theme palette so they match
                 // the rest of the scene: payload cyan while moving, loop amber
                 // while queued/dwelling (both re-themed via K.themeColor).
-                var moveHex = K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff;
-                var dwellHex = K.themeColor ? K.themeColor(0xffaa00) : 0xffaa00;
-                var mr = ((moveHex >> 16) & 255) / 255, mg = ((moveHex >> 8) & 255) / 255, mb = (moveHex & 255) / 255;
-                var dr = ((dwellHex >> 16) & 255) / 255, dg = ((dwellHex >> 8) & 255) / 255, db = (dwellHex & 255) / 255;
+                if (!_pktRGB) {
+                    var moveHex = K.themeColor ? K.themeColor(0x00f3ff) : 0x00f3ff;
+                    var dwellHex = K.themeColor ? K.themeColor(0xffaa00) : 0xffaa00;
+                    _pktRGB = {
+                        mr: ((moveHex >> 16) & 255) / 255, mg: ((moveHex >> 8) & 255) / 255, mb: (moveHex & 255) / 255,
+                        dr: ((dwellHex >> 16) & 255) / 255, dg: ((dwellHex >> 8) & 255) / 255, db: (dwellHex & 255) / 255
+                    };
+                }
+                var mr = _pktRGB.mr, mg = _pktRGB.mg, mb = _pktRGB.mb, dr = _pktRGB.dr, dg = _pktRGB.dg, db = _pktRGB.db;
                 for (var i = packets.length - 1; i >= 0; i--) {
                     var pk = packets[i], a = pk.path[pk.seg], b = pk.path[pk.seg + 1];
                     if (pk.dwell > 0) {
@@ -512,7 +544,7 @@
                         if (pk.stops[pk.seg + 1]) {   // arrive at a real hop: dwell + shed a ripple facing travel dir
                             pk.t = 1;
                             pk.dwell = -Math.log(Math.max(1e-6, Math.random())) * md;
-                            triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, b.clone().sub(a));
+                            triggerShell(b, K.themeColor ? K.themeColor(0xffc24d) : 0xffc24d, 1.0, 9, _dir2.copy(b).sub(a));
                             snd('arrive');
                             break;
                         }
@@ -556,8 +588,8 @@
                 renderer.render(scene, camera);
             }
 
-            K.on('data', function () { if (!world || !running) return; if (nodeSig() === lastSig) recolorNodes(); else rebuild(); });
-            K.on('theme', function () { if (world && running) rebuild(true); });
+            K.on('data', function () { if (!world || !running) return; computeDwellBase(); if (nodeSig() === lastSig) recolorNodes(); else rebuild(); });
+            K.on('theme', function () { _pktRGB = null; if (world && running) rebuild(true); });
             K.on('shape', function () { if (world && running) rebuild(true); });
             window.addEventListener('resize', function () { if (running) onResize(); });
 
@@ -575,6 +607,7 @@
                 } catch (e) { }
                 renderer = null; scene = null; camera = null; controls = null; world = null;
                 nodeGroup = null; edgeLines = null; packPts = null; shellPool = []; packets = [];
+                nodeInst = null; _pktRGB = null;
                 gVerts = []; gAdj = []; nodeVert = {}; _distCache = {};
                 pdHandler = null; puHandler = null; _lay = null;
             }
@@ -586,6 +619,7 @@
             window.KATZEN_OVERLAYS.push({
                 id: opts.id, name: opts.name, el: el,
                 onShow: function () {
+                    if (!el.parentNode) document.body.appendChild(el);
                     if (!renderer && !initGL()) return;
                     rebuild(); packets = []; spawnAcc = 0; lastT = 0; onResize();
                     ACTIVE_REBUILD = rebuild;

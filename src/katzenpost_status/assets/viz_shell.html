@@ -165,17 +165,17 @@
     </script>
 
     <!-- Static local assets (no CDN): vendored three.js + our application JS. -->
-    <script src="__ASSETS_DIR__/three.min.js"></script>
-    <script src="__ASSETS_DIR__/OrbitControls.js"></script>
-    <script src="__ASSETS_DIR__/CopyShader.js"></script>
-    <script src="__ASSETS_DIR__/LuminosityHighPassShader.js"></script>
-    <script src="__ASSETS_DIR__/EffectComposer.js"></script>
-    <script src="__ASSETS_DIR__/RenderPass.js"></script>
-    <script src="__ASSETS_DIR__/ShaderPass.js"></script>
-    <script src="__ASSETS_DIR__/UnrealBloomPass.js"></script>
+    <script defer src="__ASSETS_DIR__/three.min.js"></script>
+    <script defer src="__ASSETS_DIR__/OrbitControls.js"></script>
+    <script defer src="__ASSETS_DIR__/CopyShader.js"></script>
+    <script defer src="__ASSETS_DIR__/LuminosityHighPassShader.js"></script>
+    <script defer src="__ASSETS_DIR__/EffectComposer.js"></script>
+    <script defer src="__ASSETS_DIR__/RenderPass.js"></script>
+    <script defer src="__ASSETS_DIR__/ShaderPass.js"></script>
+    <script defer src="__ASSETS_DIR__/UnrealBloomPass.js"></script>
 
     <!-- Application logic. Fetches the JSON data file below on a timer. -->
-    <script src="__ASSETS_DIR__/__APP_JS__"></script>
+    <script defer src="__ASSETS_DIR__/__APP_JS__"></script>
 
     <!-- Optional feature plugins, one file each, loaded after the app. -->
     __FEATURE_SCRIPTS__

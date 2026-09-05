@@ -108,7 +108,7 @@
     var netEpoch = null;        // current consensus epoch (for mix-key expiry)
     var historyMode = false;    // replaying an old snapshot: ignore live polls
     var clock;
-    var coneGeo, UP_Y;
+    var coneGeo, UP_Y, _pdir, _pktMats = {};
     var lastData = null;
     var contextLost = false;   // true while the WebGL context is gone (see initThree)
     var suspended = false;     // true while a fullscreen overlay covers the main scene
@@ -271,6 +271,7 @@
 
         coneGeo = new THREE.ConeGeometry(0.3, 1.2, 6);
         UP_Y = new THREE.Vector3(0, 1, 0);
+        _pdir = new THREE.Vector3();
         clock = new THREE.Clock();
 
         setupPointer();
@@ -423,7 +424,7 @@
             if (obj.geometry) obj.geometry.dispose();
             if (obj.material) {
                 var mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-                mats.forEach(function (m) { if (m.map) m.map.dispose(); m.dispose(); });
+                mats.forEach(function (m) { if (m.map && !m.map._shared) m.map.dispose(); m.dispose(); });
             }
         });
         while (worldRoot.children.length) worldRoot.remove(worldRoot.children[0]);
@@ -644,7 +645,11 @@
         });
     }
 
-    function createLabel(text, colorHex) {
+    var _labelTexCache = {};
+    function labelTexture(text, colorHex) {
+        var key = text + '|' + colorHex + '|' + currentTheme;
+        var tex = _labelTexCache[key];
+        if (tex) return tex;
         var pad = 10, font = 36;
         var fam = 'bold ' + font + 'px "Courier New", monospace';
         var measure = document.createElement('canvas').getContext('2d');
@@ -670,11 +675,18 @@
         ctx.globalAlpha = 0.55;
         ctx.fillText(text, pad, h / 2 + 2);
         ctx.globalAlpha = 1;
-        var tex = new THREE.CanvasTexture(canvas);
+        tex = new THREE.CanvasTexture(canvas);
         tex.minFilter = THREE.LinearFilter;
+        tex._shared = true;
+        _labelTexCache[key] = tex;
+        return tex;
+    }
+    function createLabel(text, colorHex) {
+        var tex = labelTexture(text, colorHex);
+        var iw = tex.image.width, ih = tex.image.height;
         var sprite = new THREE.Sprite(new THREE.SpriteMaterial(
             { map: tex, transparent: true, depthWrite: false, depthTest: true }));
-        sprite.scale.set(w * 0.013, h * 0.013, 1);
+        sprite.scale.set(iw * 0.013, ih * 0.013, 1);
         return sprite;
     }
 
@@ -1027,7 +1039,9 @@
         function Packet(type, path) {
             this.type = type; this.path = path;
             var color = TYPE_COLOR[type] || 0x00f3ff; this.color = color;
-            this.mesh = new THREE.Mesh(coneGeo, new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2.0, roughness: 0.2 }));
+            var pmat = _pktMats[color];
+            if (!pmat) { pmat = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 2.0, roughness: 0.2 }); _pktMats[color] = pmat; }
+            this.mesh = new THREE.Mesh(coneGeo, pmat);
             this.seg = 0; this.progress = 0; this.speed = 0.7 + Math.random() * 0.6; this.dwell = 0;
             this.prev = path[0].mesh.position.clone();
             this.mesh.position.copy(this.prev);
@@ -1046,8 +1060,8 @@
             var A = this.path[this.seg].mesh.position, B = this.path[this.seg + 1].mesh.position;
             if (segInterp) this.mesh.position.copy(segInterp(A, B, this.progress));
             else this.mesh.position.lerpVectors(A, B, this.progress);
-            var dir = this.mesh.position.clone().sub(this.prev);
-            if (dir.lengthSq() > 1e-8) this.mesh.quaternion.setFromUnitVectors(UP_Y, dir.normalize());
+            _pdir.copy(this.mesh.position).sub(this.prev);
+            if (_pdir.lengthSq() > 1e-8) this.mesh.quaternion.setFromUnitVectors(UP_Y, _pdir.normalize());
             this.prev.copy(this.mesh.position);
             return true;
         };
@@ -1386,6 +1400,7 @@
         if (typeof t.dirauthLink === 'number') DIRAUTH_LINK_COLOR = t.dirauthLink;
         if (typeof t.replicaLink === 'number') REPLICA_LINK_COLOR = t.replicaLink;
         if (typeof t.courierLink === 'number') COURIER_LINK_COLOR = t.courierLink;
+        _invalidateThemeCache();
     }
     // Boot theme: window.KATZEN_THEME may be a name (string) or an override object.
     (function () { var w = window.KATZEN_THEME; if (typeof w === 'string' && THEMES[w]) { currentTheme = w; applyThemePalette(THEMES[w]); } else if (w && typeof w === 'object') { applyThemePalette(w); } })();
@@ -1408,12 +1423,17 @@
     // Map any hex to the current theme's palette: exact-match a default-palette
     // colour to its themed slot, else snap to the nearest palette colour. Used
     // so geometry edges/packets always match the scheme and re-theme live.
+    var _tcDef = null, _tcCur = null, _tcMap = null;
+    function _invalidateThemeCache() { _tcDef = null; _tcCur = null; _tcMap = null; }
     function themeColor(hex) {
-        var defs = _paletteEntries(true), cur = _paletteEntries(false), i;
-        for (i = 0; i < defs.length; i++) if (defs[i] === hex) return cur[i];
-        var br = (hex >> 16) & 255, bg = (hex >> 8) & 255, bb = hex & 255, best = cur[0], bd = 1e18;
-        for (i = 0; i < defs.length; i++) { var d = defs[i], dr = ((d >> 16) & 255) - br, dg = ((d >> 8) & 255) - bg, db = (d & 255) - bb, dist = dr * dr + dg * dg + db * db; if (dist < bd) { bd = dist; best = cur[i]; } }
-        return best;
+        if (!_tcCur) {
+            _tcDef = _paletteEntries(true); _tcCur = _paletteEntries(false); _tcMap = {};
+            for (var j = 0; j < _tcDef.length; j++) if (_tcMap[_tcDef[j]] === undefined) _tcMap[_tcDef[j]] = _tcCur[j];
+        }
+        var v = _tcMap[hex]; if (v !== undefined) return v;
+        var br = (hex >> 16) & 255, bg = (hex >> 8) & 255, bb = hex & 255, best = _tcCur[0], bd = 1e18, i;
+        for (i = 0; i < _tcDef.length; i++) { var d = _tcDef[i], dr = ((d >> 16) & 255) - br, dg = ((d >> 8) & 255) - bg, db = (d & 255) - bb, dist = dr * dr + dg * dg + db * db; if (dist < bd) { bd = dist; best = _tcCur[i]; } }
+        _tcMap[hex] = best; return best;
     }
     function groupColor(node) {
         if (!node || !node.data) return 0x8aa0b4;
@@ -1577,6 +1597,7 @@
     }
 
     var _lw = new THREE.Vector3();
+    var _cl = new THREE.Vector3();
     function clusterTexture(n) {
         var s = 96, cv = document.createElement('canvas'); cv.width = cv.height = s;
         var g = cv.getContext('2d');
@@ -1608,7 +1629,7 @@
         if (old) old.dispose();
     }
     function screenXY(o, W, H) {
-        var p = o.mesh.getWorldPosition(_lw).clone().project(camera);
+        var p = o.mesh.getWorldPosition(_cl).project(camera);
         if (p.z > 1) return null;                 // behind the camera
         return { x: (p.x * 0.5 + 0.5) * W, y: (-p.y * 0.5 + 0.5) * H };
     }
@@ -1642,7 +1663,7 @@
             if (grp.length >= 2) {
                 var cid = grp.reduce(function (m, o) { return Math.min(m, o._idx); }, Infinity);
                 var c = new THREE.Vector3();
-                grp.forEach(function (o) { o.mesh.visible = false; if (o.label) o.label.visible = false; o._ncid = cid; c.add(o.mesh.getWorldPosition(new THREE.Vector3())); });
+                grp.forEach(function (o) { o.mesh.visible = false; if (o.label) o.label.visible = false; o._ncid = cid; c.add(o.mesh.getWorldPosition(_cl)); });
                 c.multiplyScalar(1 / grp.length); worldRoot.worldToLocal(c);
                 var rec = clusterPool[used++] || makeClusterMarker();
                 rec.sprite.position.copy(c); rec.sprite.visible = true;
@@ -1670,7 +1691,7 @@
         });
         var kept = [];
         list.forEach(function (o) {
-            var p = o.mesh.getWorldPosition(_lw).clone().project(camera);
+            var p = o.mesh.getWorldPosition(_cl).project(camera);
             var forced = (o === selectedObj || o === hoverObj);
             if (p.z > 1) { o.label.visible = false; return; }   // behind the camera
             var sx = (p.x * 0.5 + 0.5) * W, sy = (-p.y * 0.5 + 0.5) * H;
