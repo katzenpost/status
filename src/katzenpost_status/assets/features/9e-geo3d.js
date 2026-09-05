@@ -143,13 +143,14 @@
             var running = false, raf = 0;
             var shellPool = [], heartAcc = 0, ORIGIN = new THREE.Vector3(0, 0, 0);   // onion-peel shells + epoch heartbeat
             var pdHandler = null, puHandler = null, lastSig = null, _lay = null;
+            var labelSprites = [], _labelsOn = null;
 
             function onResize() {
                 if (!renderer) return;
                 var w = el.clientWidth || window.innerWidth, h = el.clientHeight || window.innerHeight;
                 renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
             }
-            function disposeGroup(g) { g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); }
+            function disposeGroup(g) { g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
 
             function initGL() {
                 if (!SHARED_R) {
@@ -239,8 +240,11 @@
                     return best;
                 }
                 function hashName(s) { var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff; return h; }
+                labelSprites = [];
+                _labelsOn = (window.KATZEN_LABELS !== false);
                 nodes.forEach(function (nd) {
                     nodePos[nd.name] = nd.pos;
+                    if (!metaByName[nd.name] && nd.type !== 'client') return;
                     var raw = geomHex(nd.pos), themed = K.themeColor ? K.themeColor(raw) : raw;
                     var base = new THREE.Color(themed);
                     base.multiplyScalar(0.74 + 0.42 * ((hashName(nd.name || '') % 100) / 100));
@@ -248,6 +252,11 @@
                     var col = (st && st !== 'ok' && K.statusColor) ? new THREE.Color(K.statusColor(st)) : base;
                     var m = new THREE.Mesh(sph, new THREE.MeshBasicMaterial({ color: col }));
                     m.position.copy(nd.pos); m.userData = { node: nd, base: base }; nodeGroup.add(m);
+                    if (K.makeLabel && nd.name) {
+                        var lab = K.makeLabel(nd.name, themed);
+                        lab.position.set(0, 1.9, 0); lab.visible = _labelsOn;
+                        m.add(lab); labelSprites.push(lab);
+                    }
                 });
                 world.add(nodeGroup);
                 if (edges.length) {
@@ -542,6 +551,8 @@
                 updatePackets(dt);
                 updateShells(dt);
                 if (controls) controls.update();
+                var lon = (window.KATZEN_LABELS !== false);
+                if (lon !== _labelsOn) { _labelsOn = lon; for (var li = 0; li < labelSprites.length; li++) labelSprites[li].visible = lon; }
                 renderer.render(scene, camera);
             }
 

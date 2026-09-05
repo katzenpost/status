@@ -277,12 +277,16 @@
         window.addEventListener('resize', onResize);
         if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
         var labelsAllInput = document.getElementById('labels-all');
-        if (labelsAllInput) labelsAllInput.addEventListener('change', function (e) {
-            labelsAll = e.target.checked;
-            nodeObjs.forEach(function (o) {
-                if (o.label) o.label.visible = labelsAll || o === selectedObj || o === hoverObj;
+        if (labelsAllInput) {
+            window.KATZEN_LABELS = labelsAllInput.checked;
+            labelsAllInput.addEventListener('change', function (e) {
+                labelsAll = e.target.checked;
+                window.KATZEN_LABELS = e.target.checked;
+                nodeObjs.forEach(function (o) {
+                    if (o.label) o.label.visible = labelsAll || o === selectedObj || o === hoverObj;
+                });
             });
-        });
+        }
         var consBtn = document.getElementById('consensus-btn');
         if (consBtn) consBtn.addEventListener('click', function () {
             selectedObj = null; clearSelPath(); showVantage();
@@ -1854,6 +1858,7 @@
         hudPanel: function () { return document.getElementById('hud-panel'); },
         setStatus: setStatusLine,
         statusColor: statusColor,
+        makeLabel: function (text, colorHex) { return createLabel(text, colorHex); },
         esc: esc,
         hex6: hex6
     };
