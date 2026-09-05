@@ -234,13 +234,32 @@
                 var metaByName = {};   // layouts drop status/layer; look them up for colour
                 ((K.data() || {}).nodes || []).forEach(function (x) { metaByName[x.name] = x; });
                 var baseHex = (opts.color != null ? opts.color : 0x2ec4b6);
-                function geomHex(pos) {
-                    if (!edges.length) return baseHex;
-                    var best = baseHex, bd = Infinity, i, e, d;
+                var _ehCell = 1, _eh = null;
+                (function buildEdgeHash() {
+                    if (!edges.length) return;
+                    var mnx = Infinity, mny = Infinity, mnz = Infinity, mxx = -Infinity, mxy = -Infinity, mxz = -Infinity, i, e, p;
                     for (i = 0; i < edges.length; i++) {
                         e = edges[i]; if (!e.a || !e.b) continue;
-                        d = pos.distanceToSquared(e.a); if (d < bd) { bd = d; best = e.color == null ? baseHex : e.color; }
-                        d = pos.distanceToSquared(e.b); if (d < bd) { bd = d; best = e.color == null ? baseHex : e.color; }
+                        for (var s = 0; s < 2; s++) { p = s ? e.b : e.a; if (p.x < mnx) mnx = p.x; if (p.y < mny) mny = p.y; if (p.z < mnz) mnz = p.z; if (p.x > mxx) mxx = p.x; if (p.y > mxy) mxy = p.y; if (p.z > mxz) mxz = p.z; }
+                    }
+                    var ext = Math.max(mxx - mnx, mxy - mny, mxz - mnz, 1e-3);
+                    _ehCell = ext / 40 || 1; _eh = {};
+                    function put(p, col) { var k = Math.round(p.x / _ehCell) + '_' + Math.round(p.y / _ehCell) + '_' + Math.round(p.z / _ehCell); (_eh[k] || (_eh[k] = [])).push(p.x, p.y, p.z, col); }
+                    for (i = 0; i < edges.length; i++) { e = edges[i]; if (!e.a || !e.b) continue; var col = e.color == null ? baseHex : e.color; put(e.a, col); put(e.b, col); }
+                })();
+                // Nearest edge-endpoint colour via ring-expanding grid search: exact
+                // (stops only once no unsearched cell can beat the best distance).
+                function geomHex(pos) {
+                    if (!_eh) return baseHex;
+                    var Qc = _ehCell, rx = Math.round(pos.x / Qc), ry = Math.round(pos.y / Qc), rz = Math.round(pos.z / Qc);
+                    var best = baseHex, bd = Infinity, R, dx, dy, dz, m;
+                    for (R = 0; R <= 80; R++) {
+                        if (bd < Infinity) { var lo = (R - 1) * Qc; if (lo > 0 && lo * lo > bd) break; }
+                        for (dx = -R; dx <= R; dx++) for (dy = -R; dy <= R; dy++) for (dz = -R; dz <= R; dz++) {
+                            if (R > 0 && Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) !== R) continue;
+                            var arr = _eh[(rx + dx) + '_' + (ry + dy) + '_' + (rz + dz)]; if (!arr) continue;
+                            for (m = 0; m < arr.length; m += 4) { var ex = arr[m] - pos.x, ey = arr[m + 1] - pos.y, ez = arr[m + 2] - pos.z, dd = ex * ex + ey * ey + ez * ez; if (dd < bd) { bd = dd; best = arr[m + 3]; } }
+                        }
                     }
                     return best;
                 }
@@ -371,11 +390,23 @@
                         for (s = 0; s < gVerts.length; s++) { if (find(s) === main) continue; if (ringBridge(s)) merged = true; }
                     }
                 }
-                nodes.forEach(function (nd) {
-                    var best = -1, bd = Infinity;
-                    for (var j = 0; j < gVerts.length; j++) { var dd = gVerts[j].distanceToSquared(nd.pos); if (dd < bd) { bd = dd; best = j; } }
-                    nodeVert[nd.name] = best;
-                });
+                function nearestVert(pos) {
+                    var rx = Math.round(pos.x / Q), ry = Math.round(pos.y / Q), rz = Math.round(pos.z / Q);
+                    var best = -1, bd = Infinity, R, dx, dy, dz, vj, dd;
+                    for (R = 0; R <= 80; R++) {
+                        if (best >= 0) { var lo = (R - 1) * Q; if (lo > 0 && lo * lo > bd) break; }
+                        for (dx = -R; dx <= R; dx++) for (dy = -R; dy <= R; dy++) for (dz = -R; dz <= R; dz++) {
+                            if (R > 0 && Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) !== R) continue;
+                            vj = vmap[(rx + dx) + '_' + (ry + dy) + '_' + (rz + dz)];
+                            if (vj == null) continue;
+                            dd = gVerts[vj].distanceToSquared(pos);
+                            if (dd < bd) { bd = dd; best = vj; }
+                        }
+                    }
+                    if (best < 0) { for (var j = 0; j < gVerts.length; j++) { var d2 = gVerts[j].distanceToSquared(pos); if (d2 < bd) { bd = d2; best = j; } } }
+                    return best;
+                }
+                nodes.forEach(function (nd) { nodeVert[nd.name] = nearestVert(nd.pos); });
                 pipeCols = window.KATZEN_GEO3D.columns(K.data() || {});
             }
             // BFS distance field from a destination vertex over the routing
