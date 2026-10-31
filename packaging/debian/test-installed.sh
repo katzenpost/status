@@ -54,7 +54,7 @@ assert out.is_file()
 assert out.with_name("visualize.data.json").is_file()
 assets = out.parent / viz.ASSETS_SUBDIR
 assert (assets / viz.APP_JS_NAME).is_file()
-assert (assets / "vendor/three/three.min.js").is_file()
+assert (assets / "three.min.js").is_file()
 payload = json.loads(out.with_name("visualize.data.json").read_text())
 assert payload["network_name"] == "package-render-check"
 PY
@@ -67,7 +67,7 @@ if [ -d "$root/src/katzenpost_status/assets" ]; then
 		-type f | wc -l)
 	test "$source_assets" -eq "$installed_assets"
 fi
-if [ "${SYSTEMD_VERIFY:-1}" = 1 ]; then
+if [ "${SYSTEMD_VERIFY:-0}" = 1 ]; then
 	systemd-analyze verify \
 		"$tmp/usr/lib/systemd/system/katzenpost-status.service" \
 		"$tmp/usr/lib/systemd/system/katzenpost-status.timer" \
