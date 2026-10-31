@@ -1,7 +1,3 @@
 packaging/systemd/katzenpost-status.service usr/lib/systemd/system
 packaging/systemd/katzenpost-status.timer usr/lib/systemd/system
-debian/vendor/katzenpost_thinclient usr/lib/python3/dist-packages/
-debian/vendor/ipwhois usr/lib/python3/dist-packages/
-debian/vendor/pprintpp.py usr/lib/python3/dist-packages/
-debian/vendor/pprintpp-package/pprintpp usr/lib/python3/dist-packages/
 packaging/man/katzenpost-status.1 usr/share/man/man1

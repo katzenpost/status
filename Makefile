@@ -18,7 +18,8 @@ deb-lint:
 deb-repro:
 	packaging/debian/reproducible.sh
 
-deb-ci: deb-build deb-test deb-lint deb-repro
+deb-ci:
+	packaging/debian/ci.sh
 
 deb-clean:
 	dh_clean

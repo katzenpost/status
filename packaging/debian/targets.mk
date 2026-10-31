@@ -1,0 +1,11 @@
+THINCLIENT_URL := https://github.com/katzenpost/thin_client.git
+THINCLIENT_REV := 7c7de9128033554ecff355020dcccb22b4d5bb25
+CBOR2_VERSION := 5.9.0
+CBOR2_URL := https://files.pythonhosted.org/packages/bd/cb/09939728be094d155b5d4ac262e39877875f5f7e36eea66beb359f647bd0/cbor2-5.9.0.tar.gz
+CBOR2_SHA256 := 85c7a46279ac8f226e1059275221e6b3d0e370d2bb6bd0500f9780781615bcea
+SETUPTOOLS_VERSION := 80.9.0
+SETUPTOOLS_WHEEL_URL := https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl
+SETUPTOOLS_WHEEL_SHA256 := 062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922
+IPWHOIS_VERSION := 1.3.0
+IPWHOIS_URL := https://files.pythonhosted.org/packages/ed/e9/f1dd533366b5809494d0ee0d39db2e0806388c52c25b1dcff2e0794a51d8/ipwhois-1.3.0.tar.gz
+IPWHOIS_SHA256 := 11d59784b6350210c33e12301cc50cd1ebfbb0b12a7b0f97916e11d6661c4d5d

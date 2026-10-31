@@ -7,29 +7,64 @@ package=$(find "$(dirname "$root")" -maxdepth 1 -type f \
 test -n "$package"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
-dpkg-deb -x "$package" "$tmp"
-dpkg-deb -e "$package" "$tmp/control"
-test -x "$tmp/usr/bin/katzenpost-status"
-test -f "$tmp/usr/lib/systemd/system/katzenpost-status.service"
-test -f "$tmp/usr/lib/systemd/system/katzenpost-status.timer"
-grep -Fxq '/etc/default/katzenpost-status' "$tmp/control/conffiles"
-test ! -e "$tmp/usr/lib/systemd/system/kpclientd.service"
+dpkg-query -W -f='${Status}\n' katzenpost-status | grep -Fxq 'install ok installed'
+dpkg-query -W -f='${Status}\n' python3-katzenpost-thinclient | grep -Fxq 'install ok installed'
+test -x /usr/bin/katzenpost-status
+test -f /usr/lib/systemd/system/katzenpost-status.service
+test -f /usr/lib/systemd/system/katzenpost-status.timer
+grep -Fxq '/etc/default/katzenpost-status' /var/lib/dpkg/info/katzenpost-status.conffiles
+test ! -e /usr/lib/systemd/system/kpclientd.service
 grep -Fq 'ExecStart=/usr/bin/katzenpost-status ' \
-	"$tmp/usr/lib/systemd/system/katzenpost-status.service"
+	/usr/lib/systemd/system/katzenpost-status.service
 grep -Fq 'OnCalendar=*:0/15' \
-	"$tmp/usr/lib/systemd/system/katzenpost-status.timer"
+	/usr/lib/systemd/system/katzenpost-status.timer
 if grep -Eq 'uv|/var/lib/katzenpost-status/src|/usr/local/bin' \
-	"$tmp/usr/lib/systemd/system/katzenpost-status.service"; then
+	/usr/lib/systemd/system/katzenpost-status.service; then
 	echo 'service depends on uv, a source checkout, or a non-system path' >&2
 	exit 1
 fi
-PYTHONPATH="$tmp/usr/lib/python3/dist-packages" \
-	"$tmp/usr/bin/katzenpost-status" --help >/dev/null
-PYTHONPATH="$tmp/usr/lib/python3/dist-packages" \
+if dpkg-query -L katzenpost-status | \
+	grep -Eq '/(katzenpost_thinclient|ipwhois|pprintpp)(/|\.py$)'; then
+	echo 'status package contains a dependency module' >&2
+	exit 1
+fi
+/usr/bin/katzenpost-status --help >/dev/null
+python3 - "$tmp/thinclient.toml" <<'PY'
+import sys
+from importlib import metadata
+from pathlib import Path
+
+from katzenpost_thinclient import Config, ThinClient
+
+config_path = Path(sys.argv[1])
+config_path.write_text('[Dial.Tcp]\nAddress = "127.0.0.1:64331"\nNetwork = "tcp"\n')
+config = Config(str(config_path))
+client = ThinClient(config)
+assert config.dial.tcp.address == "127.0.0.1:64331"
+assert metadata.version("cbor2") == "5.9.0"
+for name in (
+    "start", "stop", "get_services", "new_keypair", "encrypt_write",
+    "start_resending_encrypted_message", "cancel_resending_encrypted_message",
+):
+    assert callable(getattr(client, name)), name
+PY
+if python3 -c 'import importlib.util; assert importlib.util.find_spec("pprintpp") is None'; then
+	:
+else
+	echo 'pprintpp must not be installed as a runtime dependency' >&2
+	exit 1
+fi
+thinclient_module=$(python3 -c 'import katzenpost_thinclient; print(katzenpost_thinclient.__file__)')
+test "$(dpkg-query -S "$thinclient_module" | cut -d: -f1)" = python3-katzenpost-thinclient
+cbor2_module=$(python3 -c 'import cbor2; print(cbor2.__file__)')
+test "$(dpkg-query -S "$cbor2_module" | cut -d: -f1)" = python3-cbor2
+if grep -Fq 'ipwhois' "$root/pyproject.toml"; then
 	python3 -c 'from ipwhois import IPWhois'
+	ipwhois_module=$(python3 -c 'import ipwhois; print(ipwhois.__file__)')
+	test "$(dpkg-query -S "$ipwhois_module" | cut -d: -f1)" = python3-ipwhois
+fi
 if [ -f "$root/src/katzenpost_status/viz.py" ]; then
-	PYTHONPATH="$tmp/usr/lib/python3/dist-packages" \
-		python3 - "$root" "$tmp/render" <<'PY'
+	python3 - "$root" "$tmp/render" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -59,8 +94,7 @@ payload = json.loads(out.with_name("visualize.data.json").read_text())
 assert payload["network_name"] == "package-render-check"
 PY
 else
-	PYTHONPATH="$tmp/usr/lib/python3/dist-packages" \
-		python3 - "$tmp/render" <<'PY'
+	python3 - "$tmp/render" <<'PY'
 import sys
 from pathlib import Path
 from katzenpost_status.status import generate_report
@@ -75,10 +109,10 @@ assert "Status and Health" in out.read_text()
 PY
 fi
 if [ -d "$root/src/katzenpost_status/assets" ]; then
-	test -d "$tmp/usr/lib/python3/dist-packages/katzenpost_status/assets"
+	test -d /usr/lib/python3/dist-packages/katzenpost_status/assets
 	source_assets=$(find "$root/src/katzenpost_status/assets" -type f | wc -l)
 	installed_assets=$(find \
-		"$tmp/usr/lib/python3/dist-packages/katzenpost_status/assets" \
+		/usr/lib/python3/dist-packages/katzenpost_status/assets \
 		-type f | wc -l)
 	test "$source_assets" -eq "$installed_assets"
 fi
@@ -91,8 +125,8 @@ if [ "${SYSTEMD_VERIFY:-0}" = 1 ]; then
 		exit 1
 	}
 fi
-if [ -d "$tmp/etc/systemd" ] && \
-	find "$tmp/etc/systemd" \( -type l -o -path '*.wants/*' \) | grep -q .; then
+if find /etc/systemd/system \( -type l -o -path '*.wants/*' \) \
+	-name '*katzenpost-status*' | grep -q .; then
 	echo 'package enables a systemd unit during installation' >&2
 	exit 1
 fi

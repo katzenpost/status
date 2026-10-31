@@ -16,15 +16,7 @@ Package: katzenpost-status
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
-         adduser,
-         python3-cbor2,
-         python3-click,
-         python3-coloredlogs (>= 15.0.1),
-         python3-defusedxml,
-         python3-dnspython,
-         python3-rich,
-         python3-toml (>= 0.10.2),
-         python3-tomli
+         adduser
 Description: status page generator for Katzenpost mix networks
  Renders an HTML status page for a Katzenpost mix network by reading the
  directory authorities and probing the configured client daemon. Site paths

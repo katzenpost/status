@@ -1,7 +1,6 @@
 katzenpost-thinclient
-pprintpp
-ipwhois
 cbor2 python3-cbor2
+ipwhois python3-ipwhois
 coloredlogs python3-coloredlogs; PEP440
 toml python3-toml; PEP440
 click python3-click

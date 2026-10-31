@@ -1,10 +1,11 @@
 # Debian packages
 
-`make deb-build` builds an architecture independent package. `make deb-test`
-extracts the built package and runs its installed command and systemd unit
-checks. `make deb-ci` runs those checks, lintian, and two clean builds in
-independent source directories. The supported CI targets are Ubuntu 24.04,
-Ubuntu 26.04, and Debian 13 (trixie).
+`make deb-build` builds the status package after its runtime package closure is
+installed. `make deb-ci` builds the pinned thinclient and missing Python runtime
+dependencies as separate Debian packages, installs the closure, builds and
+installs the status package, exercises the installed command and fixtures, runs
+lintian, and compares two independent builds. The supported CI targets are
+Ubuntu 24.04, Ubuntu 26.04, and Debian 13 (trixie).
 
 The package installs `/usr/bin/katzenpost-status`, the status service, and its
 15-minute timer. It creates a locked system account and state directory. It
@@ -15,21 +16,24 @@ the host's configuration paths and output location, then enable the timer:
 systemctl enable --now katzenpost-status.timer
 ```
 
-The Python thinclient sources pinned by the project are included with the
-package. The package also includes the narrow `pprintpp` and `ipwhois` modules
-that are absent from the target distributions, while their other Python
-dependencies come from distribution packages. The installed command does not
-need uv, a checkout, pip, or runtime downloads. GeoIP and RDAP support remain
-available when the corresponding visualize dependencies and data files are
-installed.
+The status package depends on a separately built `python3-katzenpost-thinclient`
+package from the upstream revision pinned in `pyproject.toml`. The package
+closure also builds `python3-cbor2` from its pinned source release and, on the
+visualize branch, `python3-ipwhois`; their remaining runtime dependencies come
+from distribution packages. The installed command does not need uv, a source
+checkout, pip, or runtime downloads. GeoIP and RDAP support remain available
+when the corresponding visualize dependencies and data files are installed.
 
-The uv workflow keeps the upstream minimum versions in `pyproject.toml`. Debian
-maps the dependencies to each release's `python3-*` packages because the
-application uses long-standing APIs: CBOR `loads`/`dumps`, Click commands and
-options, Rich consoles/tables, Tomli loading, and MaxMindDB readers. The target
-matrix installs the built package and renders a page from the checked-in public
-consensus fixture; this verifies those APIs on the distro versions without
-claiming a live network probe.
+The uv workflow and package closure use the same pinned thinclient source. The
+container build keeps the declared Python minimums and supplies `cbor2` 5.9.0
+because the Ubuntu 24.04 distro package is older than the thinclient minimum.
+The target matrix installs each separately owned package and renders a page
+from the checked-in public consensus fixture; this exercises those runtime APIs
+without claiming a live network probe.
+
+The status service requires a running `kpclientd` reachable through its
+configured Unix socket or TCP address. The daemon may run on the same host or a
+remote host; package installation does not install or configure a local daemon.
 
 Before installing on a host with hand-written units in
 `/etc/systemd/system/katzenpost-status.service` or

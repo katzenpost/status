@@ -3,15 +3,6 @@ revision = 3
 requires-python = ">=3.12"
 
 [[package]]
-name = "asyncio"
-version = "3.4.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/da/54/054bafaf2c0fb8473d423743e191fcdf49b2c1fd5e9af3524efbe097bafd/asyncio-3.4.3.tar.gz", hash = "sha256:83360ff8bc97980e4ff25c964c7bd3923d333d177aa4f7fb736b019f26c7cb41", size = 204411, upload-time = "2015-03-10T14:11:26.494Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/74/07679c5b9f98a7cb0fc147b1ef1cc1853bc07a4eb9cb5731e24732c5f773/asyncio-3.4.3-py3-none-any.whl", hash = "sha256:c4d18b22701821de07bd6aea8b53d21449ec0ec5680645e5317062ea21817d2d", size = 101767, upload-time = "2015-03-10T14:05:10.959Z" },
-]
-
-[[package]]
 name = "cbor2"
 version = "5.6.5"
 source = { registry = "https://pypi.org/simple" }
@@ -173,7 +164,7 @@ wheels = [
 
 [[package]]
 name = "katzenpost-status"
-version = "0.0.8"
+version = "0.0.9"
 source = { editable = "." }
 dependencies = [
     { name = "cbor2" },
@@ -197,7 +188,7 @@ dev = [
 requires-dist = [
     { name = "cbor2", specifier = ">=5.6.2" },
     { name = "click", specifier = ">=8.1.7" },
-    { name = "katzenpost-thinclient", git = "https://github.com/katzenpost/thin_client?rev=fa3c7fface7084dd80483ddb24f8002c78df4267" },
+    { name = "katzenpost-thinclient", git = "https://github.com/katzenpost/thin_client?rev=7c7de9128033554ecff355020dcccb22b4d5bb25" },
     { name = "rich", specifier = ">=13.9.3" },
     { name = "tomli", specifier = ">=2.0.2" },
 ]
@@ -214,13 +205,11 @@ dev = [
 
 [[package]]
 name = "katzenpost-thinclient"
-version = "0.0.17"
-source = { git = "https://github.com/katzenpost/thin_client?rev=fa3c7fface7084dd80483ddb24f8002c78df4267#fa3c7fface7084dd80483ddb24f8002c78df4267" }
+version = "0.0.24"
+source = { git = "https://github.com/katzenpost/thin_client?rev=7c7de9128033554ecff355020dcccb22b4d5bb25#7c7de9128033554ecff355020dcccb22b4d5bb25" }
 dependencies = [
-    { name = "asyncio" },
     { name = "cbor2" },
     { name = "coloredlogs" },
-    { name = "pprintpp" },
     { name = "toml" },
 ]
 
@@ -364,15 +353,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
-]
-
-[[package]]
-name = "pprintpp"
-version = "0.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/06/1a/7737e7a0774da3c3824d654993cf57adc915cb04660212f03406334d8c0b/pprintpp-0.4.0.tar.gz", hash = "sha256:ea826108e2c7f49dc6d66c752973c3fc9749142a798d6b254e1e301cfdbc6403", size = 17995, upload-time = "2018-07-01T01:42:34.87Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/d1/e4ed95fdd3ef13b78630280d9e9e240aeb65cc7c544ec57106149c3942fb/pprintpp-0.4.0-py2.py3-none-any.whl", hash = "sha256:b6b4dcdd0c0c0d75e4d7b2f21a9e933e5b2ce62b26e1a54537f9651ae5a5c01d", size = 16952, upload-time = "2018-07-01T01:42:36.496Z" },
 ]
 
 [[package]]
