@@ -10,10 +10,3 @@ override_dh_auto_test:
 
 override_dh_installsystemd:
 	dh_installsystemd --no-enable --no-start
-
-override_dh_install:
-	dh_install
-	if [ -d src/katzenpost_status/assets ]; then \
-		install -d debian/katzenpost-status/usr/lib/python3/dist-packages/katzenpost_status/assets; \
-		cp -a src/katzenpost_status/assets/. debian/katzenpost-status/usr/lib/python3/dist-packages/katzenpost_status/assets/; \
-	fi

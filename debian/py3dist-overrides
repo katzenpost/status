@@ -1,11 +1,6 @@
-katzenpost-thinclient
 cbor2 python3-cbor2; PEP440
 coloredlogs python3-coloredlogs; PEP440
 toml python3-toml; PEP440
 click python3-click; PEP440
 rich python3-rich; PEP440
 tomli python3-tomli; PEP440
-pygments python3-pygments; PEP440
-maxminddb python3-maxminddb; PEP440
-ipwhois python3-ipwhois; PEP440
-rjsmin python3-rjsmin; PEP440

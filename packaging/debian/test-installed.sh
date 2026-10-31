@@ -27,8 +27,8 @@ if grep -Eq 'uv|/var/lib/katzenpost-status/src|/usr/local/bin' \
 	exit 1
 fi
 if dpkg-query -L katzenpost-status | \
-	grep -Eq '/(katzenpost_thinclient|ipwhois|pprintpp)(/|\.py$)'; then
-	echo 'status package contains a dependency module' >&2
+	grep -Eq '/katzenpost_thinclient(/|\.py$)'; then
+	echo 'status package contains the thinclient dependency module' >&2
 	exit 1
 fi
 /usr/bin/katzenpost-status --help >/dev/null
@@ -61,23 +61,19 @@ cbor2_module=$(python3 -c 'import cbor2; print(cbor2.__file__)')
 test "$(dpkg-query -S "$cbor2_module" | cut -d: -f1)" = python3-cbor2
 check_dependency() {
 	module=$1
-	package=$2
+	owner_package=$2
 	dist=$3
 	minimum=$(sed -n "s/^[[:space:]]*\"$dist>=\\([^,<>\"]*\\).*$/\\1/p" \
 		"$root/pyproject.toml" | head -1)
 	[ -n "$minimum" ] || return 0
 	module_path=$(python3 -c "import $module; print($module.__file__)")
-	test "$(dpkg-query -S "$module_path" | cut -d: -f1)" = "$package"
+	test "$(dpkg-query -S "$module_path" | cut -d: -f1)" = "$owner_package"
 	version=$(python3 -c "from importlib.metadata import version; print(version('$dist'))")
 	dpkg --compare-versions "$version" ge "$minimum"
 }
 check_dependency click python3-click click
 check_dependency rich python3-rich rich
-check_dependency pygments python3-pygments pygments
 check_dependency tomli python3-tomli tomli
-check_dependency maxminddb python3-maxminddb maxminddb
-check_dependency ipwhois python3-ipwhois ipwhois
-check_dependency rjsmin python3-rjsmin rjsmin
 thinclient_cbor2_min=$(sed -n \
 	's/^THINCLIENT_CBOR2_MIN := //p' "$root/packaging/debian/targets.mk")
 app_cbor2_min=$(sed -n \
@@ -89,38 +85,7 @@ else
 fi
 cbor2_version=$(python3 -c 'from importlib.metadata import version; print(version("cbor2"))')
 dpkg --compare-versions "$cbor2_version" ge "$cbor2_min"
-if [ -f "$root/src/katzenpost_status/viz.py" ]; then
-	python3 - "$root" "$tmp/render" <<'PY'
-import json
-import sys
-from pathlib import Path
-from katzenpost_status import viz
-
-root = Path(sys.argv[1])
-out = Path(sys.argv[2]) / "visualize.html"
-snapshot = json.loads((root / "testdata/consensus_namenlos.json").read_text())
-doc = snapshot["doc"]
-dirauth_status = {name: (True, 5.0) for name in snapshot["dirauths"]}
-viz.generate_viz(
-    doc,
-    str(out),
-    survey_results={},
-    dirauth_status=dirauth_status,
-    network_name="package-render-check",
-    epoch=doc["Epoch"],
-    epoch_time_str=snapshot["captured_epoch_time"],
-    write_history=False,
-)
-assert out.is_file()
-assert out.with_name("visualize.data.json").is_file()
-assets = out.parent / viz.ASSETS_SUBDIR
-assert (assets / viz.APP_JS_NAME).is_file()
-assert (assets / "three.min.js").is_file()
-payload = json.loads(out.with_name("visualize.data.json").read_text())
-assert payload["network_name"] == "package-render-check"
-PY
-else
-	python3 - "$tmp/render" <<'PY'
+python3 - "$tmp/render" <<'PY'
 import sys
 from pathlib import Path
 from katzenpost_status.status import generate_report
@@ -133,24 +98,14 @@ generate_report({}, str(config), str(out), quiet=True)
 assert out.is_file()
 assert "Status and Health" in out.read_text()
 PY
-fi
-if [ -d "$root/src/katzenpost_status/assets" ]; then
-	test -d /usr/lib/python3/dist-packages/katzenpost_status/assets
-	source_assets=$(find "$root/src/katzenpost_status/assets" -type f | wc -l)
-	installed_assets=$(find \
-		/usr/lib/python3/dist-packages/katzenpost_status/assets \
-		-type f | wc -l)
-	test "$source_assets" -eq "$installed_assets"
-fi
-if [ "${SYSTEMD_VERIFY:-0}" = 1 ]; then
-	systemd-analyze verify \
-		"$tmp/usr/lib/systemd/system/katzenpost-status.service" \
-		"$tmp/usr/lib/systemd/system/katzenpost-status.timer" \
-		2>"$tmp/systemd-verify.log" || {
-		cat "$tmp/systemd-verify.log" >&2
-		exit 1
-	}
-fi
+
+systemd-analyze verify \
+	/usr/lib/systemd/system/katzenpost-status.service \
+	/usr/lib/systemd/system/katzenpost-status.timer \
+	2>"$tmp/systemd-verify.log" || {
+	cat "$tmp/systemd-verify.log" >&2
+	exit 1
+}
 if find /etc/systemd/system \( -type l -o -path '*.wants/*' \) \
 	-name '*katzenpost-status*' | grep -q .; then
 	echo 'package enables a systemd unit during installation' >&2

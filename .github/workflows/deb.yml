@@ -1,10 +1,8 @@
-# SPDX-License-Identifier: AGPL-3.0-only
-
 name: debian package
 
 on:
   push:
-    branches: [main, visualize]
+    branches: [main]
   pull_request:
   merge_group:
   workflow_dispatch:
@@ -12,9 +10,6 @@ on:
 permissions:
   contents: read
 
-# A pull request and its merge-queue entry are the same work. Cancel the
-# former when it is superseded; never cancel the latter, because the queue is
-# waiting on its answer.
 concurrency:
   group: deb-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -46,24 +41,11 @@ jobs:
             python3-pytest \
             python3-cbor2 python3-click python3-coloredlogs python3-rich \
             python3-toml python3-tomli \
-            python3-pygments python3-maxminddb python3-defusedxml \
-            python3-dnspython python3-rjsmin \
+            python3-pygments \
             dpkg-dev
       - uses: actions/checkout@v4
       - name: build, lint and prove the bytes reproduce
         run: make deb-ci
-      - name: install and check the packaged command
-        run: |
-          set -eu
-          deb=$(ls -1t ../katzenpost-status_*_all.deb | head -1)
-          apt-get install -y "$deb"
-          katzenpost-status --help >/dev/null
-          test -x /usr/bin/katzenpost-status
-          test -f /usr/lib/systemd/system/katzenpost-status.service
-          test -f /usr/lib/systemd/system/katzenpost-status.timer
-          test ! -e /usr/lib/systemd/system/kpclientd.service
-          test ! -e /etc/systemd/system/timers.target.wants/katzenpost-status.timer
-          systemd-analyze verify /usr/lib/systemd/system/katzenpost-status.service /usr/lib/systemd/system/katzenpost-status.timer
       - name: what was built
         run: |
           deb=$(ls -1t ../katzenpost-status_*_all.deb | head -1)

@@ -1,5 +1,3 @@
-PODMAN ?= podman
-DEB_DISTROS ?= ubuntu-24.04 ubuntu-26.04 debian-13
 
 .PHONY: deb deb-build deb-test deb-lint deb-repro deb-ci deb-clean deb-help
 

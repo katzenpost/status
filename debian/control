@@ -16,7 +16,8 @@ Package: katzenpost-status
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
-         adduser
+         adduser,
+         python3-katzenpost-thinclient (>= 0.0.24)
 Description: status page generator for Katzenpost mix networks
  Renders an HTML status page for a Katzenpost mix network by reading the
  directory authorities and probing the configured client daemon. Site paths

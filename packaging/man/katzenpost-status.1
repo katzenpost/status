@@ -6,8 +6,8 @@ katzenpost-status \- generate a Katzenpost network status page
 .RI [ options ]
 .SH DESCRIPTION
 .B katzenpost-status
-reads the configured thin client and directory authority settings, queries the
-network status, and writes an HTML report.
+reads the thin client and directory authority settings.
+It queries the network status and writes an HTML report.
 .SH OPTIONS
 .TP
 .B --config FILE
@@ -20,7 +20,7 @@ Path to the directory authority configuration TOML file.
 Write the generated HTML to FILE.
 .TP
 .B --network-name NAME
-Set the network name displayed in the report.
+Set the network name in the report.
 .TP
 .B --ping, --no-ping
 Enable or disable the echo service probe.
@@ -34,7 +34,7 @@ Run network reachability surveys.
 .B --help
 Show the complete option list.
 .SH CONFIGURATION
-The systemd timer reads site-specific arguments from
+The service reads arguments from
 .IR /etc/default/katzenpost-status .
 The service runs as the locked
 .B katzenpost-status
