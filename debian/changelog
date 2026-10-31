@@ -1,0 +1,5 @@
+katzenpost-status (0.0.9-1) UNRELEASED; urgency=medium
+
+  * Package the generator and a disabled 15-minute systemd timer.
+
+ -- Katzenpost <packages@katzenpost.network>  Sat, 31 Oct 2026 00:00:00 +0000

@@ -1,0 +1,11 @@
+The Debian package carries the Python thin-client modules needed by the status
+application from katzenpost/thin_client commit
+fa3c7fface7084dd80483ddb24f8002c78df4267. The vendored Python client uses the
+upstream cbor2, coloredlogs, pprintpp, and toml dependencies; pprintpp 0.4.0
+is included because the supported target distributions do not provide it.
+The RDAP fallback includes ipwhois 1.3.0 because Ubuntu 24.04 and Debian 13 do
+not provide python3-ipwhois. Its dnspython and defusedxml dependencies remain
+distribution packages.
+The application metadata retains the pinned git dependency for the uv
+developer workflow. debian/py3dist-overrides omits that runtime metadata entry
+because these exact source modules are installed with this package.

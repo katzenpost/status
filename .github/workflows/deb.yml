@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: debian package
+
+on:
+  push:
+    branches: [main, visualize]
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A pull request and its merge-queue entry are the same work. Cancel the
+# former when it is superseded; never cancel the latter, because the queue is
+# waiting on its answer.
+concurrency:
+  group: deb-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deb:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - ubuntu:24.04
+          - ubuntu:26.04
+          - debian:13
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - name: install the build dependencies
+        run: |
+          set -eu
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential debhelper devscripts lintian make systemd \
+            dh-python python3-all flit pybuild-plugin-pyproject \
+            python3-pytest \
+            python3-cbor2 python3-click python3-coloredlogs python3-rich \
+            python3-toml python3-tomli \
+            python3-pygments python3-maxminddb python3-defusedxml \
+            python3-dnspython python3-rjsmin \
+            dpkg-dev
+      - uses: actions/checkout@v4
+      - name: build, lint and prove the bytes reproduce
+        run: make deb-ci
+      - name: install and check the packaged command
+        run: |
+          set -eu
+          deb=$(ls -1t ../katzenpost-status_*_all.deb | head -1)
+          apt-get install -y "$deb"
+          katzenpost-status --help >/dev/null
+          test -x /usr/bin/katzenpost-status
+          test -f /usr/lib/systemd/system/katzenpost-status.service
+          test -f /usr/lib/systemd/system/katzenpost-status.timer
+          test ! -e /usr/lib/systemd/system/kpclientd.service
+          test ! -e /etc/systemd/system/timers.target.wants/katzenpost-status.timer
+          systemd-analyze verify /usr/lib/systemd/system/katzenpost-status.service /usr/lib/systemd/system/katzenpost-status.timer
+      - name: what was built
+        run: |
+          deb=$(ls -1t ../katzenpost-status_*_all.deb | head -1)
+          dpkg-deb -I "$deb"
+          dpkg-deb -c "$deb"
