@@ -58,6 +58,21 @@ assert (assets / "three.min.js").is_file()
 payload = json.loads(out.with_name("visualize.data.json").read_text())
 assert payload["network_name"] == "package-render-check"
 PY
+else
+	PYTHONPATH="$tmp/usr/lib/python3/dist-packages" \
+		python3 - "$tmp/render" <<'PY'
+import sys
+from pathlib import Path
+from katzenpost_status.status import generate_report
+
+out = Path(sys.argv[1]) / "status.html"
+out.parent.mkdir(parents=True, exist_ok=True)
+config = out.parent / "authority.toml"
+config.write_text("Server = {}\nSphinxGeometry = {}\n")
+generate_report({}, str(config), str(out), quiet=True)
+assert out.is_file()
+assert "Status and Health" in out.read_text()
+PY
 fi
 if [ -d "$root/src/katzenpost_status/assets" ]; then
 	test -d "$tmp/usr/lib/python3/dist-packages/katzenpost_status/assets"
