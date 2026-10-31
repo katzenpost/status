@@ -1,0 +1,44 @@
+.TH KATZENPOST-STATUS 1 "October 2026" "katzenpost-status 0.0.9" "User Commands"
+.SH NAME
+katzenpost-status \- generate a Katzenpost network status page
+.SH SYNOPSIS
+.B katzenpost-status
+.RI [ options ]
+.SH DESCRIPTION
+.B katzenpost-status
+reads the thin client and directory authority settings.
+It queries the network status and writes an HTML report.
+.SH OPTIONS
+.TP
+.B --config FILE
+Path to the thin client TOML configuration file.
+.TP
+.B --dirauthconf FILE
+Path to the directory authority configuration TOML file.
+.TP
+.B --htmlout FILE
+Write the generated HTML to FILE.
+.TP
+.B --network-name NAME
+Set the network name in the report.
+.TP
+.B --ping, --no-ping
+Enable or disable the echo service probe.
+.TP
+.B --pki-document
+Include the full PKI document in the report.
+.TP
+.B --survey
+Run network reachability surveys.
+.TP
+.B --help
+Show the complete option list.
+.SH CONFIGURATION
+The service reads arguments from
+.IR /etc/default/katzenpost-status .
+The service runs as the locked
+.B katzenpost-status
+system account.
+.SH SEE ALSO
+.BR systemd.timer (5),
+.BR systemd.service (5)

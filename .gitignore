@@ -1,3 +1,12 @@
 __pycache__/
 .venv/
 .coverage
+dist/debs/
+.pybuild/
+debian/.debhelper/
+debian/katzenpost-status/
+debian/*.substvars
+debian/*.debhelper*
+debian/files
+debian/*.debhelper.log
+debian/debhelper-build-stamp

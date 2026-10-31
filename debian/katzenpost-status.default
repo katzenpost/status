@@ -1,0 +1,4 @@
+KATZENPOST_STATUS_ARGS="--config /etc/katzenpost/thinclient.toml \
+--dirauthconf /etc/katzenpost/authority.toml \
+--htmlout /var/lib/katzenpost-status/index.html \
+--quiet"

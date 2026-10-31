@@ -1,0 +1,3 @@
+packaging/systemd/katzenpost-status.service usr/lib/systemd/system
+packaging/systemd/katzenpost-status.timer usr/lib/systemd/system
+packaging/man/katzenpost-status.1 usr/share/man/man1

@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ] && ! getent passwd katzenpost-status >/dev/null; then
+	adduser --system --group --no-create-home \
+		--home /var/lib/katzenpost-status \
+		--shell /usr/sbin/nologin \
+		--gecos "Katzenpost status page generator" \
+		katzenpost-status >/dev/null
+fi
+
+install -d -o katzenpost-status -g katzenpost-status -m 0755 \
+	/var/lib/katzenpost-status
+
+#DEBHELPER#
+
+exit 0

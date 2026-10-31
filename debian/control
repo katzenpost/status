@@ -1,0 +1,24 @@
+Source: katzenpost-status
+Section: net
+Priority: optional
+Maintainer: Katzenpost <packages@katzenpost.network>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               flit,
+               pybuild-plugin-pyproject,
+               python3-pytest
+Standards-Version: 4.7.0
+Homepage: https://github.com/katzenpost/status
+Rules-Requires-Root: no
+
+Package: katzenpost-status
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         adduser,
+         python3-katzenpost-thinclient (>= 0.0.24)
+Description: status page generator for Katzenpost mix networks
+ Renders an HTML status page for a Katzenpost mix network by reading the
+ directory authorities and probing the configured client daemon. Site paths
+ and options are supplied through /etc/default/katzenpost-status.

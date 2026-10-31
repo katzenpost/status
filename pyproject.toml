@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Security :: Cryptography",
 ]
 dependencies = [
-    "katzenpost_thinclient @ git+https://github.com/katzenpost/thin_client@fa3c7fface7084dd80483ddb24f8002c78df4267",
+    "katzenpost_thinclient @ git+https://github.com/katzenpost/thin_client@7c7de9128033554ecff355020dcccb22b4d5bb25",
     "cbor2>=5.9.0,<6",
     "click>=8.3.3",
     "rich>=13.9.3",
@@ -59,7 +59,7 @@ testpaths = [
 [dependency-groups]
 dev = [
     "mypy>=1.18.2",
-    "pytest>=9.0.1",
+    "pytest>=9.0.3",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=7.0.0",
     "pytest-xdist>=3.8.0",

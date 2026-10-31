@@ -1,0 +1,21 @@
+[Unit]
+Description=Generate the Katzenpost status page
+
+[Service]
+Type=oneshot
+User=katzenpost-status
+Group=katzenpost-status
+EnvironmentFile=/etc/default/katzenpost-status
+WorkingDirectory=/var/lib/katzenpost-status
+ExecStart=/usr/bin/katzenpost-status $KATZENPOST_STATUS_ARGS
+Nice=10
+TimeoutStartSec=6min
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+LockPersonality=yes
