@@ -4,3 +4,4 @@ toml python3-toml; PEP440
 click python3-click; PEP440
 rich python3-rich; PEP440
 tomli python3-tomli; PEP440
+pygments python3-pygments; PEP440

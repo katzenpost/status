@@ -8,6 +8,9 @@ test -n "$package"
 depends=$(dpkg-deb -f "$package" Depends)
 printf '%s\n' "$depends" | grep -Eq \
 	'python3-katzenpost-thinclient \(>= 0\.0\.24\)'
+printf '%s\n' "$depends" | grep -Eq \
+	'python3-cbor2 \(>= 5\.9(\.0)?\)'
+printf '%s\n' "$depends" | grep -Fq 'python3-cbor2 (<< 6)'
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
 dpkg-query -W -f='${Status}\n' katzenpost-status | grep -Fxq 'install ok installed'
@@ -73,6 +76,7 @@ check_dependency() {
 }
 check_dependency click python3-click click
 check_dependency rich python3-rich rich
+check_dependency pygments python3-pygments pygments
 check_dependency tomli python3-tomli tomli
 thinclient_cbor2_min=$(sed -n \
 	's/^THINCLIENT_CBOR2_MIN := //p' "$root/packaging/debian/targets.mk")
@@ -85,6 +89,7 @@ else
 fi
 cbor2_version=$(python3 -c 'from importlib.metadata import version; print(version("cbor2"))')
 dpkg --compare-versions "$cbor2_version" ge "$cbor2_min"
+dpkg --compare-versions "$cbor2_version" lt 6
 python3 - "$tmp/render" <<'PY'
 import sys
 from pathlib import Path

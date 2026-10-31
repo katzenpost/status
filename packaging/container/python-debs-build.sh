@@ -169,6 +169,12 @@ minimum_version() {
 		"$root/pyproject.toml" | head -1
 }
 
+maximum_version() {
+	dist=$1
+	sed -n "s/^[[:space:]]*\"$dist[^\"]*<\\([^,<>\"]*\).*$/\\1/p" \
+		"$root/pyproject.toml" | head -1
+}
+
 ensure_deb() {
 	dist=$1
 	package=$2
@@ -181,9 +187,13 @@ ensure_deb() {
 		return
 	fi
 	candidate=$(apt-cache policy "$package" | sed -n 's/^[[:space:]]*Candidate: //p')
+	maximum=$(maximum_version "$dist")
 	if [ -n "$candidate" ] && [ "$candidate" != '(none)' ] && \
 		dpkg --compare-versions "$candidate" ge "$minimum"; then
-		return
+		if [ -z "$maximum" ] || \
+			dpkg --compare-versions "$candidate" lt "$maximum"; then
+			return
+		fi
 	fi
 	archive="$work/${package##*-}-$version.tar.gz"
 	curl -fsSL "$url" -o "$archive"
@@ -191,7 +201,7 @@ ensure_deb() {
 	build_deb "$package" "$version" "$archive" "$depends" "$url"
 }
 
-for backend in SETUPTOOLS PACKAGING FLIT_CORE POETRY_CORE; do
+for backend in SETUPTOOLS PACKAGING FLIT_CORE POETRY_CORE HATCHLING PATHSPEC PLUGGY TROVE_CLASSIFIERS; do
 	version=$(value "${backend}_VERSION")
 	url=$(value "${backend}_WHEEL_URL")
 	sha=$(value "${backend}_WHEEL_SHA256")
@@ -204,9 +214,11 @@ python3 -m venv --system-site-packages "$work/venv"
 "$work/venv/bin/python" -m pip install --disable-pip-version-check \
 	--no-index --no-deps "$work"/setuptools-*.whl \
 	"$work"/packaging-*.whl "$work"/flit_core-*.whl \
-	"$work"/poetry_core-*.whl
+	"$work"/poetry_core-*.whl "$work"/hatchling-*.whl \
+	"$work"/pathspec-*.whl "$work"/pluggy-*.whl \
+	"$work"/trove_classifiers-*.whl
 "$work/venv/bin/python" -c \
-	"from importlib.metadata import version; assert version('setuptools') == '$(value SETUPTOOLS_VERSION)'; assert version('packaging') == '$(value PACKAGING_VERSION)'; assert version('flit_core') == '$(value FLIT_CORE_VERSION)'; assert version('poetry-core') == '$(value POETRY_CORE_VERSION)'"
+	"from importlib.metadata import version; assert version('setuptools') == '$(value SETUPTOOLS_VERSION)'; assert version('packaging') == '$(value PACKAGING_VERSION)'; assert version('flit_core') == '$(value FLIT_CORE_VERSION)'; assert version('poetry-core') == '$(value POETRY_CORE_VERSION)'; assert version('hatchling') == '$(value HATCHLING_VERSION)'; assert version('pathspec') == '$(value PATHSPEC_VERSION)'; assert version('pluggy') == '$(value PLUGGY_VERSION)'; assert version('trove-classifiers') == '$(value TROVE_CLASSIFIERS_VERSION)'"
 
 cbor2_min=$(minimum_version cbor2)
 thinclient_cbor2_min=$(value THINCLIENT_CBOR2_MIN)
@@ -226,6 +238,9 @@ ensure_deb rich python3-rich "$(minimum_version rich)" \
 	"$(value RICH_VERSION)" "$(value RICH_URL)" \
 	"$(value RICH_SHA256)" \
 	"python3 (>= 3.12~), python3-markdown-it (>= 2.2.0), python3-pygments (>= 2.13.0)"
+ensure_deb pygments python3-pygments "$(minimum_version pygments)" \
+	"$(value PYGMENTS_VERSION)" "$(value PYGMENTS_URL)" \
+	"$(value PYGMENTS_SHA256)" "python3 (>= 3.12~)"
 ensure_deb tomli python3-tomli "$(minimum_version tomli)" \
 	"$(value TOMLI_VERSION)" "$(value TOMLI_URL)" \
 	"$(value TOMLI_SHA256)" "python3 (>= 3.12~)"
