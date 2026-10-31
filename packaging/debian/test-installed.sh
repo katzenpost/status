@@ -5,6 +5,9 @@ root=$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)
 package=$(find "$(dirname "$root")" -maxdepth 1 -type f \
 	-name 'katzenpost-status_*_all.deb' -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)
 test -n "$package"
+depends=$(dpkg-deb -f "$package" Depends)
+printf '%s\n' "$depends" | grep -Eq \
+	'python3-katzenpost-thinclient \(>= 0\.0\.24\)'
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
 dpkg-query -W -f='${Status}\n' katzenpost-status | grep -Fxq 'install ok installed'
