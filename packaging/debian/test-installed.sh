@@ -62,7 +62,7 @@ check_dependency() {
 	dist=$3
 	minimum=$(sed -n "s/^[[:space:]]*\"$dist>=\\([^,<>\"]*\\).*$/\\1/p" \
 		"$root/pyproject.toml" | head -1)
-	[ -n "$minimum" ] || return
+	[ -n "$minimum" ] || return 0
 	module_path=$(python3 -c "import $module; print($module.__file__)")
 	test "$(dpkg-query -S "$module_path" | cut -d: -f1)" = "$package"
 	version=$(python3 -c "from importlib.metadata import version; print(version('$dist'))")

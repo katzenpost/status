@@ -19,10 +19,12 @@ systemctl enable --now katzenpost-status.timer
 The status package depends on a separately built `python3-katzenpost-thinclient`
 package from the upstream revision pinned in `pyproject.toml`. The closure
 compares distro package versions with the declared minimums and builds
-hash-pinned source DEBs only where a distro package is missing or too old. This
-includes `python3-cbor2` and, on the visualize branch, `python3-ipwhois` on the
-supported targets. Their remaining runtime dependencies come from distro
-packages. The installed command does not need uv, a source checkout, pip, or
+hash-pinned source DEBs only where a distro package is missing or too old.
+Depending on the target and branch, this can include cbor2, Click, Rich,
+Pygments, Tomli, MaxMindDB, and IPWhois; their remaining runtime dependencies
+come from distro packages. Pinned build backends and setuptools-scm are used
+only to build those packages. No Python dependency source is included in the
+status DEB. The installed command does not need uv, a source checkout, pip, or
 runtime downloads. GeoIP and RDAP support remain available when the
 corresponding visualize dependencies and data files are installed.
 
