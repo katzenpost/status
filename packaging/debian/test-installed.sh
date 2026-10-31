@@ -31,7 +31,6 @@ fi
 /usr/bin/katzenpost-status --help >/dev/null
 python3 - "$tmp/thinclient.toml" <<'PY'
 import sys
-from importlib import metadata
 from pathlib import Path
 
 from katzenpost_thinclient import Config, ThinClient
@@ -41,7 +40,6 @@ config_path.write_text('[Dial.Tcp]\nAddress = "127.0.0.1:64331"\nNetwork = "tcp"
 config = Config(str(config_path))
 client = ThinClient(config)
 assert config.dial.tcp.address == "127.0.0.1:64331"
-assert metadata.version("cbor2") == "5.9.0"
 for name in (
     "start", "stop", "get_services", "new_keypair", "encrypt_write",
     "start_resending_encrypted_message", "cancel_resending_encrypted_message",
@@ -58,11 +56,36 @@ thinclient_module=$(python3 -c 'import katzenpost_thinclient; print(katzenpost_t
 test "$(dpkg-query -S "$thinclient_module" | cut -d: -f1)" = python3-katzenpost-thinclient
 cbor2_module=$(python3 -c 'import cbor2; print(cbor2.__file__)')
 test "$(dpkg-query -S "$cbor2_module" | cut -d: -f1)" = python3-cbor2
-if grep -Fq 'ipwhois' "$root/pyproject.toml"; then
-	python3 -c 'from ipwhois import IPWhois'
-	ipwhois_module=$(python3 -c 'import ipwhois; print(ipwhois.__file__)')
-	test "$(dpkg-query -S "$ipwhois_module" | cut -d: -f1)" = python3-ipwhois
+check_dependency() {
+	module=$1
+	package=$2
+	dist=$3
+	minimum=$(sed -n "s/^[[:space:]]*\"$dist>=\\([^,<>\"]*\\).*$/\\1/p" \
+		"$root/pyproject.toml" | head -1)
+	[ -n "$minimum" ] || return
+	module_path=$(python3 -c "import $module; print($module.__file__)")
+	test "$(dpkg-query -S "$module_path" | cut -d: -f1)" = "$package"
+	version=$(python3 -c "from importlib.metadata import version; print(version('$dist'))")
+	dpkg --compare-versions "$version" ge "$minimum"
+}
+check_dependency click python3-click click
+check_dependency rich python3-rich rich
+check_dependency pygments python3-pygments pygments
+check_dependency tomli python3-tomli tomli
+check_dependency maxminddb python3-maxminddb maxminddb
+check_dependency ipwhois python3-ipwhois ipwhois
+check_dependency rjsmin python3-rjsmin rjsmin
+thinclient_cbor2_min=$(sed -n \
+	's/^THINCLIENT_CBOR2_MIN := //p' "$root/packaging/debian/targets.mk")
+app_cbor2_min=$(sed -n \
+	's/^[[:space:]]*"cbor2>=\([^,<>" ]*\).*$/\1/p' "$root/pyproject.toml" | head -1)
+if dpkg --compare-versions "$app_cbor2_min" ge "$thinclient_cbor2_min"; then
+	cbor2_min=$app_cbor2_min
+else
+	cbor2_min=$thinclient_cbor2_min
 fi
+cbor2_version=$(python3 -c 'from importlib.metadata import version; print(version("cbor2"))')
+dpkg --compare-versions "$cbor2_version" ge "$cbor2_min"
 if [ -f "$root/src/katzenpost_status/viz.py" ]; then
 	python3 - "$root" "$tmp/render" <<'PY'
 import json

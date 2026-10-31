@@ -17,19 +17,21 @@ systemctl enable --now katzenpost-status.timer
 ```
 
 The status package depends on a separately built `python3-katzenpost-thinclient`
-package from the upstream revision pinned in `pyproject.toml`. The package
-closure also builds `python3-cbor2` from its pinned source release and, on the
-visualize branch, `python3-ipwhois`; their remaining runtime dependencies come
-from distribution packages. The installed command does not need uv, a source
-checkout, pip, or runtime downloads. GeoIP and RDAP support remain available
-when the corresponding visualize dependencies and data files are installed.
+package from the upstream revision pinned in `pyproject.toml`. The closure
+compares distro package versions with the declared minimums and builds
+hash-pinned source DEBs only where a distro package is missing or too old. This
+includes `python3-cbor2` and, on the visualize branch, `python3-ipwhois` on the
+supported targets. Their remaining runtime dependencies come from distro
+packages. The installed command does not need uv, a source checkout, pip, or
+runtime downloads. GeoIP and RDAP support remain available when the
+corresponding visualize dependencies and data files are installed.
 
 The uv workflow and package closure use the same pinned thinclient source. The
 container build keeps the declared Python minimums and supplies `cbor2` 5.9.0
-because the Ubuntu 24.04 distro package is older than the thinclient minimum.
-The target matrix installs each separately owned package and renders a page
-from the checked-in public consensus fixture; this exercises those runtime APIs
-without claiming a live network probe.
+when the distro package is below the thinclient or visualize minimum. The target
+matrix installs each separately owned package and renders a page from the
+checked-in public consensus fixture; this exercises those runtime APIs without
+claiming a live network probe.
 
 The status service requires a running `kpclientd` reachable through its
 configured Unix socket or TCP address. The daemon may run on the same host or a
